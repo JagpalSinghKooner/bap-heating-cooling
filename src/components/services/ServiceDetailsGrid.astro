@@ -1,0 +1,39 @@
+---
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+const profile = await getBusinessProfile();
+const warranty = profile.warranty_and_guarantees;
+
+// Only render if warranty data exists
+if (!warranty) {
+  return null;
+}
+---
+
+<section class="section">
+  <div class="section-container">
+    <h2 class="mb-8 text-center text-3xl font-bold">What's Included</h2>
+    <div class="grid-responsive-2">
+      <div class="card-standard">
+        <h3 class="mb-4 text-xl font-semibold">
+          {warranty.guarantee_primary.title}
+        </h3>
+        <p class="text-muted-foreground">
+          {warranty.guarantee_primary.copy}
+        </p>
+      </div>
+      <div class="card-standard">
+        <h3 class="mb-4 text-xl font-semibold">
+          {warranty.guarantee_secondary.title}
+        </h3>
+        <p class="text-muted-foreground">
+          {warranty.guarantee_secondary.copy}
+        </p>
+      </div>
+      <div class="card-featured sm:col-span-2">
+        <h3 class="mb-3 text-xl font-semibold">Warranty Coverage</h3>
+        <p class="text-muted-foreground">{warranty.warranty_statement}</p>
+      </div>
+    </div>
+  </div>
+</section>

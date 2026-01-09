@@ -1,0 +1,95 @@
+---
+/**
+ * Service Areas Section (REFACTORED)
+ * Compact accordion-based region display - conversion-focused
+ * Emphasizes fast response & coverage, not directory listing
+ */
+
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+const profile = await getBusinessProfile();
+const regions = profile.coverage.regions;
+---
+
+<section class="section bg-muted/30">
+  <div class="section-container">
+    <!-- Section Header (CONVERSION FRAMING) -->
+    <div class="mb-8 text-center">
+      <p class="eyebrow mb-3">Fast Response Across Ontario</p>
+      <h2 class="section-title">We Service Your Area</h2>
+      <p class="section-description mx-auto max-w-2xl">
+        Same-day service available across {regions.reduce((acc, r) => acc + r.locations.length, 0)}+ communities
+      </p>
+    </div>
+
+    <!-- Compact Regional Cards (MAX 2 ROWS) -->
+    <div class="mx-auto max-w-4xl">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
+        {regions.map((region) => (
+          <details class="group card-standard cursor-pointer transition-all hover:shadow-md">
+            {/* Compact Header (Always Visible) */}
+            <summary class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 class="text-lg font-bold text-foreground sm:text-xl">{region.name}</h3>
+                  <p class="text-sm text-muted-foreground">
+                    {region.locations.length} cities
+                  </p>
+                </div>
+              </div>
+
+              {/* Expand Icon */}
+              <svg class="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+
+            {/* City List (Hidden Until Expanded) */}
+            <div class="mt-4 border-t pt-4">
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {region.locations.map((location) => (
+                  <a
+                    href={`/locations/${location.slug}/`}
+                    class="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+                  >
+                    {location.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+
+    <!-- Inline CTA -->
+    <div class="mt-8 text-center">
+      <a
+        href={`tel:${profile.contact.phone_e164}`}
+        class="inline-flex items-center gap-2 text-base font-semibold text-primary hover:underline"
+      >
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        </svg>
+        <span>Check service availability in your area: {profile.contact.phone_display}</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Remove default details marker */
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

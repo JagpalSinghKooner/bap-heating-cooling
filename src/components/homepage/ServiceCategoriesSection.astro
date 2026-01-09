@@ -1,0 +1,104 @@
+---
+/**
+ * Service Categories Section
+ * Gateway to main service categories - UI only, no new content
+ */
+
+// Icon placeholder URLs
+const iconPlaceholders = {
+  heating: 'https://placehold.co/80x80/f97316/ffffff.png?text=🔥',
+  cooling: 'https://placehold.co/80x80/3b82f6/ffffff.png?text=❄️',
+  air: 'https://placehold.co/80x80/10b981/ffffff.png?text=💨',
+  water: 'https://placehold.co/80x80/06b6d4/ffffff.png?text=💧',
+} as const;
+
+type IconKey = keyof typeof iconPlaceholders;
+
+// Map service categories to visual presentation
+const serviceCategories: Array<{
+  title: string;
+  description: string;
+  href: string;
+  icon: IconKey;
+  color: string;
+}> = [
+  {
+    title: 'Heating',
+    description: 'Furnace, boiler, and heat pump services',
+    href: '/services/heating/',
+    icon: 'heating',
+    color: 'orange',
+  },
+  {
+    title: 'Cooling',
+    description: 'Air conditioning installation and repair',
+    href: '/services/cooling/',
+    icon: 'cooling',
+    color: 'blue',
+  },
+  {
+    title: 'Indoor Air Quality',
+    description: 'Air filtration and ventilation systems',
+    href: '/services/indoor-air-quality/',
+    icon: 'air',
+    color: 'green',
+  },
+  {
+    title: 'Water Heating',
+    description: 'Tank and tankless water heater services',
+    href: '/services/water-heating/',
+    icon: 'water',
+    color: 'cyan',
+  },
+];
+---
+
+<section class="section bg-white">
+  <div class="section-container">
+    <!-- Section Header -->
+    <div class="mb-12 text-center">
+      <p class="eyebrow mb-3">Our Services</p>
+      <h2 class="section-title">Complete HVAC Solutions</h2>
+      <p class="section-description mx-auto max-w-2xl">
+        Professional heating, cooling, and air quality services for residential and commercial properties
+      </p>
+    </div>
+
+    <!-- Service Category Cards -->
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {serviceCategories.map((category) => (
+        <a
+          href={category.href}
+          class="group card-standard flex flex-col items-center text-center transition-all hover:shadow-lg hover:-translate-y-1"
+        >
+          <!-- Icon -->
+          <div class="mb-4 h-20 w-20 overflow-hidden rounded-full">
+            <img
+              src={iconPlaceholders[category.icon]}
+              alt=""
+              class="h-full w-full object-cover transition-transform group-hover:scale-110"
+            />
+          </div>
+
+          <!-- Title -->
+          <h3 class="mb-2 text-lg font-bold text-foreground">
+            {category.title}
+          </h3>
+
+          <!-- Description -->
+          <p class="mb-4 text-sm text-muted-foreground">
+            {category.description}
+          </p>
+
+          <!-- CTA Arrow -->
+          <div class="mt-auto flex items-center gap-2 text-sm font-semibold text-primary">
+            <span>Explore services</span>
+            <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

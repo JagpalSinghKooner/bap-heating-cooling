@@ -1,0 +1,55 @@
+---
+/**
+ * TrustBadges Component
+ * Displays trust signals (rating, years, license) from business profile
+ * Used above-the-fold to increase conversion credibility
+ */
+import { getBusinessProfile } from '../lib/getBusinessProfile';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+const profile = await getBusinessProfile();
+
+// Calculate years in business
+const currentYear = new Date().getFullYear();
+const yearsInBusiness = currentYear - profile.business.established_year;
+
+// Check if we have trust signals to display
+const hasRating = profile.reputation.google_rating > 0 && profile.reputation.google_review_count > 0;
+const hasYears = yearsInBusiness > 0;
+const hasLicense = profile.trust_and_compliance?.wsib || profile.trust_and_compliance?.insured_statement;
+---
+
+{(hasRating || hasYears || hasLicense) && (
+  <div class={`trust-badges ${className}`}>
+    {hasRating && (
+      <div class="trust-badge">
+        <span aria-hidden="true">⭐</span>
+        <span>
+          <strong>{profile.reputation.google_rating}</strong> ({profile.reputation.google_review_count}+ reviews)
+        </span>
+      </div>
+    )}
+
+    {hasYears && (
+      <div class="trust-badge">
+        <span aria-hidden="true">📅</span>
+        <span>
+          <strong>{yearsInBusiness}+</strong> Years in Business
+        </span>
+      </div>
+    )}
+
+    {hasLicense && (
+      <div class="trust-badge">
+        <span aria-hidden="true">✓</span>
+        <span>
+          Licensed & Insured
+        </span>
+      </div>
+    )}
+  </div>
+)}

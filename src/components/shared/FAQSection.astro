@@ -1,0 +1,28 @@
+---
+import AccordionItem from './AccordionItem.astro';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  faqs: CollectionEntry<'faqs'>[];
+  title?: string;
+  class?: string;
+}
+
+const { faqs, title = 'Frequently Asked Questions', class: className = '' } = Astro.props;
+---
+
+{faqs.length > 0 && (
+  <section class={`section bg-muted/30 ${className}`}>
+    <div class="section-container">
+      <h2 class="mb-8 text-center text-3xl font-bold">{title}</h2>
+      <div class="mx-auto max-w-3xl space-y-4">
+        {faqs.map((faq) => (
+          <AccordionItem
+            question={faq.data.question}
+            answer={faq.data.answer}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

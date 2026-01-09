@@ -16,3 +16,163 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ============================================
+   CARD COMPONENTS
+   ============================================ */
+
+@layer components {
+  /* Base Card */
+  .card-base {
+    @apply rounded-lg border border-border bg-card text-card-foreground;
+  }
+
+  /* Standard Card (content/features) */
+  .card-standard {
+    @apply card-base p-6 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  /* Featured Card (conversion blocks with brand emphasis) */
+  .card-featured {
+    @apply card-base border-2 border-primary/20 bg-primary/5 p-8 shadow-md;
+  }
+
+  /* CTA Conversion Card */
+  .card-cta {
+    @apply card-base bg-muted/50 p-8 shadow-sm;
+  }
+
+  /* Compact Card (service area links) */
+  .card-compact {
+    @apply card-base p-3 text-center transition-colors hover:border-primary hover:shadow-sm;
+  }
+
+  /* Urgent Card (replaces red emergency alert styling) */
+  .card-urgent {
+    @apply card-base border-orange-200 bg-orange-50 p-6 shadow-md;
+  }
+}
+
+/* ============================================
+   BUTTON & CTA COMPONENTS
+   ============================================ */
+
+@layer components {
+  /* CTA Group: Stack on mobile, row on desktop */
+  .cta-group {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4;
+  }
+
+  /* CTA Group: Full width on mobile, auto on desktop */
+  .cta-group-mobile-full {
+    @apply flex flex-col gap-3;
+  }
+
+  .cta-group-mobile-full > * {
+    @apply w-full sm:w-auto;
+  }
+
+  /* Mobile-only full width button utility */
+  .btn-mobile-full {
+    @apply w-full sm:w-auto;
+  }
+}
+
+/* ============================================
+   BADGE & TRUST SIGNAL COMPONENTS
+   ============================================ */
+
+@layer components {
+  /* Trust Badge Container */
+  .trust-badges {
+    @apply flex flex-wrap items-center justify-center gap-4 sm:gap-6;
+  }
+
+  /* Individual Badge */
+  .trust-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm;
+  }
+
+  /* Eyebrow Label */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-wide text-primary;
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY HIERARCHY COMPONENTS
+   ============================================ */
+
+@layer components {
+  /* Section Title (H2) */
+  .section-title {
+    @apply text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl;
+  }
+
+  /* Section Description (Supporting text under title) */
+  .section-description {
+    @apply mt-3 text-base text-muted-foreground sm:text-lg;
+  }
+
+  /* Page Title (H1) */
+  .page-title {
+    @apply text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl;
+  }
+
+  /* Card Title */
+  .card-title {
+    @apply text-xl font-bold text-foreground lg:text-2xl;
+  }
+}
+
+/* ============================================
+   SECTION CONTAINERS
+   ============================================ */
+
+@layer components {
+  /* Section Base */
+  .section {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+
+  /* Section Compact (between related blocks) */
+  .section-compact {
+    @apply py-8 sm:py-10 lg:py-12;
+  }
+
+  /* Section Container */
+  .section-container {
+    @apply container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Hero Section */
+  .section-hero {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+}
+
+/* ============================================
+   RESPONSIVE GRID UTILITIES
+   ============================================ */
+
+@layer utilities {
+  /* 1-col mobile, 2-col tablet, 3-col desktop */
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* 1-col mobile, 2-col tablet, 4-col desktop */
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+
+  /* 1-col mobile, 2-col desktop (for content blocks) */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-8;
+  }
+
+  /* Feature Grid: always 1 col on mobile, 3 on desktop */
+  .grid-features {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8;
+  }
+}

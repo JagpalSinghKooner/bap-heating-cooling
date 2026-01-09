@@ -1,106 +1,79 @@
 ---
 /**
  * ReviewsBlock Component
- * Minimal review display component (no styling polish)
+ * Displays customer reviews using design system card styles
  */
 import type { Review } from '../lib/reviewResolver';
 
 interface Props {
   reviews: Review[];
   title?: string;
+  class?: string;
 }
 
-const { reviews, title = 'Customer Reviews' } = Astro.props;
+const { reviews, title = 'Customer Reviews', class: className = '' } = Astro.props;
 ---
 
-<section class="reviews-block">
-  <h2>{title}</h2>
-
-  {reviews.length === 0 ? (
-    <p>No reviews available.</p>
-  ) : (
-    <div class="reviews-list">
-      {reviews.map((review) => (
-        <div class="review-item" data-verified={review.data.verified}>
-          <div class="review-header">
-            <strong>{review.data.authorName}</strong>
-            <span class="review-rating">
-              {'⭐'.repeat(review.data.rating)}
-            </span>
-            <span class="review-source" data-source={review.data.source}>
-              {review.data.source}
-            </span>
-          </div>
-
-          <p class="review-text">{review.data.text}</p>
-
-          {review.data.url && (
-            <a href={review.data.url} target="_blank" rel="noopener noreferrer">
-              View original review
-            </a>
-          )}
-
-          {review.data.reviewDate && (
-            <time class="review-date">{review.data.reviewDate}</time>
-          )}
-        </div>
-      ))}
+<section class={`section bg-white ${className}`}>
+  <div class="section-container">
+    <!-- Enhanced Section Header -->
+    <div class="mb-12 text-center">
+      <p class="eyebrow mb-3">Customer Testimonials</p>
+      <h2 class="section-title">{title}</h2>
+      <p class="section-description mx-auto max-w-2xl">
+        Real experiences from homeowners who trust us with their comfort
+      </p>
     </div>
-  )}
+
+    {reviews.length === 0 ? (
+      <p class="text-center text-muted-foreground">No reviews available.</p>
+    ) : (
+      <div class="grid-responsive-3">
+        {reviews.map((review) => (
+          <div class="card-standard flex h-full flex-col" data-verified={review.data.verified}>
+            {/* Star Rating - More Prominent */}
+            <div class="mb-4 flex items-center gap-1 text-2xl text-yellow-500" aria-label={`${review.data.rating} stars`}>
+              {'⭐'.repeat(review.data.rating)}
+            </div>
+
+            {/* Review Text - Larger */}
+            <p class="mb-6 flex-grow text-base leading-relaxed text-foreground">
+              "{review.data.text}"
+            </p>
+
+            {/* Author Info - Better Hierarchy */}
+            <div class="border-t pt-4">
+              <div class="mb-3 flex items-center justify-between">
+                <strong class="text-lg font-bold">{review.data.authorName}</strong>
+                <span
+                  class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
+                  data-source={review.data.source}
+                >
+                  {review.data.source}
+                </span>
+              </div>
+
+              {review.data.reviewDate && (
+                <time datetime={review.data.reviewDate} class="text-sm text-muted-foreground">
+                  {review.data.reviewDate}
+                </time>
+              )}
+
+              {review.data.url && (
+                <a
+                  href={review.data.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                >
+                  <span>View original</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
 </section>
-
-<style>
-  .reviews-block {
-    margin: 2rem 0;
-    padding: 1rem;
-    border: 1px solid #ddd;
-  }
-
-  .reviews-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1rem;
-  }
-
-  .review-item {
-    padding: 1rem;
-    border: 1px solid #eee;
-    background: #fafafa;
-  }
-
-  .review-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .review-rating {
-    color: #ffa500;
-  }
-
-  .review-source {
-    font-size: 0.75rem;
-    color: #666;
-    padding: 0.125rem 0.5rem;
-    background: #e0e0e0;
-    border-radius: 3px;
-  }
-
-  .review-text {
-    margin: 0.5rem 0;
-    line-height: 1.5;
-  }
-
-  .review-date {
-    font-size: 0.875rem;
-    color: #666;
-  }
-
-  .review-item a {
-    font-size: 0.875rem;
-    color: #0066cc;
-    text-decoration: underline;
-  }
-</style>

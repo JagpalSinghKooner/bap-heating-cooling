@@ -1,0 +1,60 @@
+---
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+const profile = await getBusinessProfile();
+
+const trustSignals = [
+  {
+    icon: '⚡',
+    title: '24/7 Emergency Service',
+    description: profile.hours.response_time_statement,
+  },
+  {
+    icon: '✓',
+    title: 'Free Estimates',
+    description: 'No-cost estimates and diagnostics on all services.',
+  },
+  {
+    icon: '🛡️',
+    title: '10-Year Warranty',
+    description: profile.warranty.statement,
+  },
+];
+---
+
+<section class="section bg-gradient-to-br from-muted/30 to-muted/10">
+  <div class="section-container">
+    <!-- Enhanced Section Header -->
+    <div class="mb-12 text-center">
+      <p class="eyebrow mb-3">Why Choose B.A.P Heating & Cooling</p>
+      <h2 class="section-title">Built on Trust & Quality</h2>
+    </div>
+
+    <!-- Enhanced Trust Signal Cards with Dividers -->
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-12">
+      {trustSignals.map((signal, index) => (
+        <div class="group relative flex flex-col items-center text-center">
+          {/* Divider (not on first item on desktop) */}
+          {index > 0 && (
+            <div class="absolute -left-6 top-0 hidden h-full w-px bg-border md:block lg:-left-8" aria-hidden="true" />
+          )}
+
+          {/* Large Icon with Background */}
+          <div class="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:shadow-lg">
+            <div class="text-6xl" aria-hidden="true">{signal.icon}</div>
+          </div>
+
+          {/* Title */}
+          <h3 class="mb-3 text-xl font-bold text-foreground lg:text-2xl">
+            {signal.title}
+          </h3>
+
+          {/* Description */}
+          <p class="text-base text-muted-foreground lg:text-lg">
+            {signal.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

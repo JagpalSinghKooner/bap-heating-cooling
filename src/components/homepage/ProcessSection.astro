@@ -1,0 +1,78 @@
+---
+/**
+ * Process Section (How It Works)
+ * Simple 4-step process - UI only, no new marketing content
+ */
+
+const processSteps = [
+  {
+    number: '1',
+    title: 'Call or Book Online',
+    description: 'Reach out via phone or online booking',
+    iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=📞',
+  },
+  {
+    number: '2',
+    title: 'Technician Dispatched',
+    description: 'Licensed professional arrives on schedule',
+    iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=🚗',
+  },
+  {
+    number: '3',
+    title: 'Diagnose & Options',
+    description: 'Clear assessment and upfront pricing',
+    iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=🔧',
+  },
+  {
+    number: '4',
+    title: 'Repair or Install',
+    description: 'Quality work with warranty protection',
+    iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=✅',
+  },
+];
+---
+
+<section class="section bg-white">
+  <div class="section-container">
+    <!-- Section Header -->
+    <div class="mb-12 text-center">
+      <p class="eyebrow mb-3">Our Process</p>
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-description mx-auto max-w-2xl">
+        From initial contact to completed service, we make HVAC service straightforward
+      </p>
+    </div>
+
+    <!-- Process Steps -->
+    <div class="relative">
+      {/* Connection Line (Desktop) */}
+      <div class="absolute left-0 top-12 hidden h-0.5 w-full bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 lg:block" aria-hidden="true" />
+
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        {processSteps.map((step) => (
+          <div class="relative flex flex-col items-center text-center">
+            {/* Step Number Badge */}
+            <div class="relative z-10 mb-4 flex h-24 w-24 items-center justify-center">
+              <div class="absolute inset-0 rounded-full bg-white border-4 border-primary shadow-lg" />
+              <img
+                src={step.iconUrl}
+                alt=""
+                class="relative z-20 h-16 w-16 rounded-full"
+              />
+            </div>
+
+            {/* Title */}
+            <h3 class="mb-2 text-lg font-bold text-foreground">
+              {step.title}
+            </h3>
+
+            {/* Description */}
+            <p class="text-sm text-muted-foreground">
+              {step.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

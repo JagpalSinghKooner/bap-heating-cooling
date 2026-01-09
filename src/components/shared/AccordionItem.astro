@@ -1,0 +1,41 @@
+---
+export interface Props {
+  question: string;
+  answer: string;
+}
+
+const { question, answer } = Astro.props;
+---
+
+<div class="card-base">
+  <button
+    class="flex w-full items-center justify-between p-4 text-left font-semibold transition-colors hover:bg-muted/30"
+    aria-expanded="false"
+    data-accordion-trigger
+  >
+    <span>{question}</span>
+    <span aria-hidden="true" class="text-xl transition-transform">+</span>
+  </button>
+  <div class="hidden px-4 pb-4" data-accordion-content>
+    <p class="text-muted-foreground">{answer}</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-accordion-trigger]').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const content = trigger.nextElementSibling;
+        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+        trigger.setAttribute('aria-expanded', String(!isExpanded));
+        content?.classList.toggle('hidden');
+
+        const icon = trigger.querySelector('span:last-child');
+        if (icon) {
+          icon.textContent = isExpanded ? '+' : '−';
+        }
+      });
+    });
+  });
+</script>

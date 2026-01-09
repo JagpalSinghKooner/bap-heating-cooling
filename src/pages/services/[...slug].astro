@@ -2,6 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ReviewsBlock from '../../components/ReviewsBlock.astro';
 import PrimaryCTA from '../../components/PrimaryCTA.astro';
+import TrustBadges from '../../components/TrustBadges.astro';
+import ServiceDetailsGrid from '../../components/services/ServiceDetailsGrid.astro';
+import FAQSection from '../../components/shared/FAQSection.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getServiceSchema, getLocalBusinessSchema } from '../../lib/schema';
@@ -226,34 +229,48 @@ if (type === 'service-city' && location && locationSlug) {
   robots={robots}
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    {type === 'service' ? (
-      <>
-        <div class="mb-8">
+  {type === 'service' ? (
+    <>
+      <!-- Breadcrumb -->
+      <div class="border-b bg-muted/30">
+        <div class="section-container py-4">
           <a href="/services/" class="text-sm text-muted-foreground hover:text-primary">
             ← Back to Services
           </a>
         </div>
+      </div>
 
-        <div class="mb-8 flex gap-4">
-          <PrimaryCTA variant="call" context="service-above-fold" />
-          <PrimaryCTA variant="book" context="service-above-fold" />
+      <!-- 1. Hero Section -->
+      <section class="section-hero">
+        <div class="section-container">
+          <article class="prose prose-lg mx-auto max-w-none">
+            <Content />
+          </article>
+
+          <TrustBadges class="mt-8" />
+
+          <div class="cta-group-mobile-full mx-auto mt-8 max-w-md">
+            <PrimaryCTA variant="call" context="service-above-fold" size="large" />
+            <PrimaryCTA variant="book" context="service-above-fold" size="large" />
+          </div>
         </div>
+      </section>
 
-        <article class="prose prose-lg max-w-none">
-          <Content />
-        </article>
+      <!-- 2. Service Details -->
+      <ServiceDetailsGrid />
 
-        <div class="mt-12">
-          <h2 class="mb-6 text-3xl font-bold">Areas We Serve for {service.data.title}</h2>
+      <!-- 3. Service Areas Section -->
+      <section class="section bg-muted/30">
+        <div class="section-container">
+          <h2 class="mb-8 text-center text-3xl font-bold">Areas We Serve for {service.data.title}</h2>
           {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
-            <div class="mb-8">
+            <div class="mb-10">
               <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
-              <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div class="grid-responsive-4">
                 {locations.map((loc: any) => (
                   <a
                     href={`/services/${serviceSlug}-${cleanSlug(loc.id)}-on/`}
-                    class="rounded-lg border bg-card p-3 text-center transition-colors hover:border-primary"
+                    class="card-compact"
                   >
                     <span class="text-sm font-medium">{loc.data.title}</span>
                   </a>
@@ -262,113 +279,154 @@ if (type === 'service-city' && location && locationSlug) {
             </div>
           ))}
         </div>
+      </section>
 
-        <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+      <!-- 4. Reviews Section -->
+      <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
 
-        <div class="mt-12 rounded-lg border bg-muted p-8">
-          <h2 class="mb-4 text-2xl font-semibold">Need {service.data.title}?</h2>
-          <p class="mb-6 text-muted-foreground">
-            Contact us today to schedule a consultation or request service.
-          </p>
-          <div class="flex gap-4">
-            <PrimaryCTA variant="call" context="service-footer" />
-            <PrimaryCTA variant="book" context="service-footer" />
+      <!-- 5. FAQs -->
+      {pageFAQs.length > 0 && (
+        <FAQSection faqs={pageFAQs} />
+      )}
+
+      <!-- 6. CTA Conversion -->
+      <section class="section bg-muted/30">
+        <div class="section-container">
+          <div class="card-cta mx-auto max-w-3xl text-center">
+            <h2 class="mb-4 text-2xl font-semibold">Need {service.data.title}?</h2>
+            <p class="mb-6 text-muted-foreground">
+              Contact us today to schedule a consultation or request service.
+            </p>
+            <div class="cta-group justify-center">
+              <PrimaryCTA variant="call" context="service-footer" />
+              <PrimaryCTA variant="book" context="service-footer" />
+            </div>
           </div>
         </div>
-      </>
-    ) : location ? (
-      <>
-        <div class="mb-8 flex gap-4 text-sm text-muted-foreground">
-          <a href="/services/" class="hover:text-primary">Services</a>
-          <span>/</span>
-          <a href={`/services/${serviceSlug}/`} class="hover:text-primary">{service.data.title}</a>
-          <span>/</span>
-          {parentRegion && (
-            <>
-              <a href={`/regions/${cleanSlug(parentRegion.id)}/`} class="hover:text-primary">{parentRegion.data.title}</a>
-              <span>/</span>
-            </>
-          )}
-          <a href={`/locations/${locationSlug}/`} class="hover:text-primary">{location.data.title}</a>
+      </section>
+    </>
+  ) : location ? (
+    <>
+      <!-- Breadcrumb -->
+      <div class="border-b bg-muted/30">
+        <div class="section-container py-4">
+          <div class="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            <a href="/services/" class="hover:text-primary">Services</a>
+            <span>/</span>
+            <a href={`/services/${serviceSlug}/`} class="hover:text-primary">{service.data.title}</a>
+            <span>/</span>
+            {parentRegion && (
+              <>
+                <a href={`/regions/${cleanSlug(parentRegion.id)}/`} class="hover:text-primary">{parentRegion.data.title}</a>
+                <span>/</span>
+              </>
+            )}
+            <a href={`/locations/${locationSlug}/`} class="hover:text-primary">{location.data.title}</a>
+          </div>
         </div>
+      </div>
 
-        <h1 class="mb-6 text-4xl font-bold">
-          {service.data.title} in {location.data.title}, ON
-        </h1>
+      <!-- 1. Hero Section -->
+      <section class="section-hero">
+        <div class="section-container">
+          <h1 class="mb-6 text-center text-4xl font-bold sm:text-5xl">
+            {service.data.title} in {location.data.title}, ON
+          </h1>
 
-        <div class="mb-12">
-          <p class="text-xl text-muted-foreground">
+          <p class="mx-auto mb-8 max-w-3xl text-center text-lg text-muted-foreground sm:text-xl">
             Professional {service.data.title.toLowerCase()} services in {location.data.title}, Ontario. {service.data.description}
           </p>
-        </div>
 
-        <div class="mb-12 rounded-lg border-2 border-red-200 bg-red-50 p-6">
-          <h2 class="mb-4 text-xl font-semibold text-red-900">Need Service Now?</h2>
-          <div class="flex flex-wrap gap-4">
-            <PrimaryCTA variant="emergency" context="service-city-hero" />
-            <PrimaryCTA variant="call" context="service-city-hero" />
-            <PrimaryCTA variant="book" context="service-city-hero" />
+          <TrustBadges class="mb-8" />
+
+          <!-- Emergency CTA Block - FIXED: Changed from red alert to warm urgent styling -->
+          <div class="card-urgent mx-auto mb-8 max-w-2xl text-center">
+            <h2 class="mb-4 text-xl font-semibold text-orange-900">Need Service Now?</h2>
+            <div class="cta-group-mobile-full">
+              <PrimaryCTA variant="emergency" context="service-city-hero" />
+              <PrimaryCTA variant="call" context="service-city-hero" />
+              <PrimaryCTA variant="book" context="service-city-hero" />
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="grid gap-8 lg:grid-cols-2">
-          <div class="rounded-lg border bg-card p-8">
-            <h2 class="mb-4 text-2xl font-semibold">About This Service</h2>
-            <p class="mb-4 text-muted-foreground">
-              {service.data.description}
-            </p>
-            <a
-              href={`/services/${serviceSlug}/`}
-              class="text-primary hover:underline"
-            >
-              Learn more about {service.data.title} →
-            </a>
-          </div>
+      <!-- 2. Service Info Section (local_context + service_details) -->
+      <section class="section bg-muted/30">
+        <div class="section-container">
+          <div class="grid-responsive-2">
+            <div class="card-standard">
+              <h2 class="mb-4 text-2xl font-semibold">About This Service</h2>
+              <p class="mb-4 text-muted-foreground">
+                {service.data.description}
+              </p>
+              <a
+                href={`/services/${serviceSlug}/`}
+                class="text-primary hover:underline"
+              >
+                Learn more about {service.data.title} →
+              </a>
+            </div>
 
-          <div class="rounded-lg border bg-card p-8">
-            <h2 class="mb-4 text-2xl font-semibold">Service Area</h2>
-            <p class="mb-4 text-muted-foreground">
-              We provide {service.data.title.toLowerCase()} services throughout {location.data.title} and surrounding areas in {location.data.region}.
-            </p>
-            <a
-              href={`/locations/${locationSlug}/`}
-              class="text-primary hover:underline"
-            >
-              View all services in {location.data.title} →
-            </a>
+            <div class="card-standard">
+              <h2 class="mb-4 text-2xl font-semibold">Service Area</h2>
+              <p class="mb-4 text-muted-foreground">
+                We provide {service.data.title.toLowerCase()} services throughout {location.data.title} and surrounding areas in {location.data.region}.
+              </p>
+              <a
+                href={`/locations/${locationSlug}/`}
+                class="text-primary hover:underline"
+              >
+                View all services in {location.data.title} →
+              </a>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="mt-12">
-          <h2 class="mb-6 text-3xl font-bold">Other HVAC Services in {location.data.title}</h2>
-          <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <!-- 3. Related Services -->
+      <section class="section">
+        <div class="section-container">
+          <h2 class="mb-8 text-center text-3xl font-bold">Other HVAC Services in {location.data.title}</h2>
+          <div class="grid-responsive-4">
             {relatedServices.map((relatedService: any) => (
               <a
                 href={`/services/${cleanSlug(relatedService.id)}-${locationSlug}-on/`}
-                class="rounded-lg border bg-card p-3 text-center transition-colors hover:border-primary"
+                class="card-compact"
               >
                 <span class="text-sm font-medium">{relatedService.data.title}</span>
               </a>
             ))}
           </div>
         </div>
+      </section>
 
-        <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+      <!-- 4. Reviews Section -->
+      <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
 
-        <div class="mt-12 rounded-lg border bg-muted p-8">
-          <h2 class="mb-4 text-2xl font-semibold">
-            Need {service.data.title} in {location.data.title}?
-          </h2>
-          <p class="mb-6 text-muted-foreground">
-            Contact us today to schedule {service.data.title.toLowerCase()} service in {location.data.title}, ON.
-          </p>
-          <div class="flex flex-wrap gap-4">
-            <PrimaryCTA variant="emergency" context="service-city-footer" />
-            <PrimaryCTA variant="call" context="service-city-footer" />
-            <PrimaryCTA variant="book" context="service-city-footer" />
+      <!-- 5. FAQs -->
+      {pageFAQs.length > 0 && (
+        <FAQSection faqs={pageFAQs} />
+      )}
+
+      <!-- 6. CTA Conversion -->
+      <section class="section bg-muted/30">
+        <div class="section-container">
+          <div class="card-cta mx-auto max-w-3xl text-center">
+            <h2 class="mb-4 text-2xl font-semibold">
+              Need {service.data.title} in {location.data.title}?
+            </h2>
+            <p class="mb-6 text-muted-foreground">
+              Contact us today to schedule {service.data.title.toLowerCase()} service in {location.data.title}, ON.
+            </p>
+            <div class="cta-group-mobile-full">
+              <PrimaryCTA variant="emergency" context="service-city-footer" />
+              <PrimaryCTA variant="call" context="service-city-footer" />
+              <PrimaryCTA variant="book" context="service-city-footer" />
+            </div>
           </div>
         </div>
-      </>
-    ) : null}
-  </div>
+      </section>
+    </>
+  ) : null}
 </BaseLayout>
