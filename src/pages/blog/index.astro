@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getLocalBusinessSchema } from '../../lib/schema';
+
+const profile = await getBusinessProfile();
+const schema = getLocalBusinessSchema(profile);
+
+// Get all blog posts sorted by publish date descending
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts.sort((a, b) =>
+  b.data.publishDate.getTime() - a.data.publishDate.getTime()
+);
+---
+
+<BaseLayout
+  title="HVAC Tips & Guides - B.A.P Heating and Cooling Blog"
+  description="Expert HVAC tips, maintenance guides, and industry insights from B.A.P Heating and Cooling. Learn how to keep your home comfortable year-round."
+  schema={schema}
+>
+  <div class="container mx-auto px-4 py-16">
+    <header class="mb-12">
+      <h1 class="mb-4 text-4xl font-bold">HVAC Tips & Guides</h1>
+      <p class="text-xl text-muted-foreground">
+        Expert advice and insights to help you maintain a comfortable, energy-efficient home.
+      </p>
+    </header>
+
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {sortedPosts.map((post) => (
+        <article class="flex flex-col rounded-lg border bg-card p-6 transition-shadow hover:shadow-md">
+          <header class="mb-4">
+            <div class="mb-2 text-sm text-muted-foreground">
+              {post.data.publishDate.toLocaleDateString('en-CA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+            <h2 class="text-2xl font-semibold">
+              <a href={`/blog/${post.slug}/`} class="hover:text-primary">
+                {post.data.title}
+              </a>
+            </h2>
+          </header>
+
+          <p class="mb-4 flex-1 text-muted-foreground">
+            {post.data.description}
+          </p>
+
+          <footer class="flex items-center justify-between">
+            <span class="text-sm text-muted-foreground capitalize">
+              {post.data.category}
+            </span>
+            <a
+              href={`/blog/${post.slug}/`}
+              class="text-sm font-medium text-primary hover:underline"
+            >
+              Read More →
+            </a>
+          </footer>
+        </article>
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <div class="text-center text-muted-foreground">
+        <p>No blog posts yet. Check back soon for HVAC tips and guides!</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

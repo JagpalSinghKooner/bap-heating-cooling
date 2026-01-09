@@ -1,0 +1,173 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReviewsBlock from '../../components/ReviewsBlock.astro';
+import PrimaryCTA from '../../components/PrimaryCTA.astro';
+import { getCollection } from 'astro:content';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getRegionSchema } from '../../lib/schema';
+import { getRegionBreadcrumbs, getBreadcrumbSchema } from '../../lib/breadcrumbs';
+import { resolveFAQs } from '../../lib/faqResolver';
+import { generateFAQSchema } from '../../lib/faqSchema';
+import { getReviewsForPage } from '../../lib/reviewResolver';
+import { generateReviewSchemas } from '../../lib/reviewSchema';
+
+export async function getStaticPaths() {
+  const regions = await getCollection('regions');
+  const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
+  return regions.map((region) => ({
+    params: { slug: cleanSlug(region.id) },
+    props: { region },
+  }));
+}
+
+const { region } = Astro.props;
+const { Content } = await region.render();
+
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
+const title =
+  region.data.seoTitle ||
+  `${region.data.title} - B.A.P Heating and Cooling`;
+const description = region.data.seoDescription || region.data.description;
+const robots = region.data.robots || 'index,follow';
+
+// Get all locations to display city information
+const allLocations = await getCollection('locations');
+const regionCities = allLocations.filter((loc) =>
+  region.data.cities.includes(cleanSlug(loc.id))
+);
+
+// Get all services for P0-1 fix
+const allServices = await getCollection('services');
+
+// Get business profile and schema
+const profile = await getBusinessProfile();
+
+// Get region slug
+const regionSlug = cleanSlug(region.id);
+
+// Load all FAQs
+const allFAQs = await getCollection('faqs');
+
+// Load all reviews
+const allReviews = await getCollection('reviews');
+
+// Get reviews for this page
+const pageReviews = getReviewsForPage(allReviews, {
+  pageType: 'region',
+  regionSlug: regionSlug,
+});
+
+// Generate review schemas (only for verified reviews)
+const reviewSchemas = generateReviewSchemas(pageReviews);
+
+// Generate breadcrumb schema
+const breadcrumbItems = getRegionBreadcrumbs(region.data.title, regionSlug);
+const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems, 'https://bapheating.ca');
+
+// Resolve FAQs for this page
+const pageFAQs = resolveFAQs(allFAQs, {
+  pageType: 'region',
+  regionSlug: regionSlug,
+});
+
+// Generate FAQ schema if FAQs exist
+const faqSchema = generateFAQSchema(pageFAQs);
+
+// Build schema array
+const schemas = [
+  getRegionSchema(profile, {
+    title: region.data.title,
+    description: region.data.description,
+    cities: region.data.cities,
+  }),
+  breadcrumbSchema,
+];
+
+// Add FAQ schema if available
+if (faqSchema) {
+  schemas.push(faqSchema);
+}
+
+// Add review schemas if available
+if (reviewSchemas.length > 0) {
+  schemas.push(...reviewSchemas);
+}
+
+const schema = schemas;
+---
+
+<BaseLayout title={title} description={description} robots={robots} schema={schema}>
+  <div class="container mx-auto px-4 py-16">
+    <div class="mb-8">
+      <a
+        href="/regions/"
+        class="text-sm text-muted-foreground transition-colors hover:text-primary"
+      >
+        ← Back to Regions
+      </a>
+    </div>
+
+    <article class="prose prose-lg mx-auto mb-12 max-w-none">
+      <Content />
+    </article>
+
+    <div class="mb-12 rounded-lg border bg-card p-6">
+      <h2 class="mb-4 text-xl font-semibold">Get In Touch</h2>
+      <div class="flex gap-4">
+        <PrimaryCTA variant="call" context="region-header" />
+        <PrimaryCTA variant="book" context="region-header" />
+      </div>
+    </div>
+
+    <div class="mb-12">
+      <h2 class="mb-6 text-3xl font-bold">
+        Cities We Serve in {region.data.title}
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {regionCities.map((city) => (
+          <a
+            href={`/locations/${cleanSlug(city.id)}/`}
+            class="rounded-lg border bg-card p-4 transition-colors hover:border-primary"
+          >
+            <h3 class="font-semibold">{city.data.title}, ON</h3>
+            <p class="text-sm text-muted-foreground">View all services →</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="mb-12">
+      <h2 class="mb-6 text-3xl font-bold">
+        Services We Offer in {region.data.title}
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {allServices.map((service) => (
+          <a
+            href={`/services/${cleanSlug(service.id)}/`}
+            class="rounded-lg border bg-card p-4 transition-colors hover:border-primary"
+          >
+            <h3 class="font-semibold">{service.data.title}</h3>
+            <p class="text-sm text-muted-foreground">Learn more →</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+
+    <div class="mt-12 rounded-lg border bg-muted p-8">
+      <h2 class="mb-4 text-2xl font-semibold">
+        Need HVAC Service in {region.data.title}?
+      </h2>
+      <p class="mb-6 text-muted-foreground">
+        Contact us today to schedule service anywhere in {region.data.title}.
+      </p>
+      <div class="flex gap-4">
+        <PrimaryCTA variant="call" context="region-footer" />
+        <PrimaryCTA variant="book" context="region-footer" />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { buildLocationPath } from '../lib/slugBuilder';
+
+const locations = await getCollection('locations');
+
+// Group locations by region
+const locationsByRegion: Record<string, typeof locations> = {};
+locations.forEach(location => {
+  const region = location.data.region;
+  if (!locationsByRegion[region]) {
+    locationsByRegion[region] = [];
+  }
+  locationsByRegion[region].push(location);
+});
+
+// Sort locations within each region alphabetically
+Object.keys(locationsByRegion).forEach(region => {
+  locationsByRegion[region].sort((a, b) => a.data.title.localeCompare(b.data.title));
+});
+---
+
+<BaseLayout
+  title="Locations - B.A.P Heating and Cooling"
+  description="Areas we serve with professional heating and cooling services"
+>
+  <div class="container mx-auto px-4 py-16">
+    <h1 class="mb-8 text-4xl font-bold">Service Areas</h1>
+
+    <p class="mb-12 text-xl text-muted-foreground">
+      We proudly serve the following areas across Ontario with professional HVAC services.
+    </p>
+
+    {Object.entries(locationsByRegion).sort(([a], [b]) => a.localeCompare(b)).map(([region, regionLocations]) => (
+      <section class="mb-12">
+        <h2 class="mb-6 text-3xl font-bold">{region}</h2>
+
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {regionLocations.map((location) => (
+            <a
+              href={buildLocationPath(location.id)}
+              class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
+            >
+              <h3 class="mb-3 text-xl font-semibold">{location.data.title}</h3>
+              <p class="text-muted-foreground">{location.data.description}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <div class="mt-12 rounded-lg bg-muted p-8">
+      <h2 class="mb-4 text-2xl font-semibold">Don't see your area?</h2>
+      <p class="text-muted-foreground">
+        Contact us to find out if we service your location. We're always expanding
+        our service area to better serve our customers.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

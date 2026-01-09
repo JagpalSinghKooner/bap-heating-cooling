@@ -1,0 +1,63 @@
+---
+/**
+ * Reviews Index Page
+ * Shows all reviews from all sources (google/facebook/housecallpro/manual)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ReviewsBlock from '../components/ReviewsBlock.astro';
+import PrimaryCTA from '../components/PrimaryCTA.astro';
+import { getCollection } from 'astro:content';
+import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getAllReviewsForReviewsPage } from '../lib/reviewResolver';
+import { generateReviewSchemas } from '../lib/reviewSchema';
+import { getLocalBusinessSchema } from '../lib/schema';
+
+const profile = await getBusinessProfile();
+
+// Load all reviews
+const allReviews = await getCollection('reviews');
+
+// Get reviews for reviews page (all sources, sorted properly)
+const pageReviews = getAllReviewsForReviewsPage(allReviews);
+
+// Generate review schemas (only for verified reviews)
+const reviewSchemas = generateReviewSchemas(pageReviews);
+
+// Build schema array
+const schemas = [getLocalBusinessSchema(profile)];
+
+// Only add review schemas if there are verified reviews
+if (reviewSchemas.length > 0) {
+  schemas.push(...reviewSchemas);
+}
+
+const schema = schemas;
+---
+
+<BaseLayout
+  title="Customer Reviews - B.A.P Heating and Cooling"
+  description="Read reviews from our satisfied customers across Southern Ontario. See what people are saying about our heating and cooling services."
+  schema={schema}
+>
+  <div class="container mx-auto px-4 py-16">
+    <section class="mb-8">
+      <h1 class="mb-4 text-4xl font-bold">Customer Reviews</h1>
+      <p class="text-lg text-muted-foreground">
+        See what our customers are saying about our heating and cooling services.
+      </p>
+    </section>
+
+    <ReviewsBlock reviews={pageReviews} title="All Reviews" />
+
+    <div class="mt-12 rounded-lg border bg-muted p-8">
+      <h2 class="mb-4 text-2xl font-semibold text-center">Ready to Experience Our Service?</h2>
+      <p class="mb-6 text-muted-foreground text-center">
+        Contact us today to schedule your heating and cooling service.
+      </p>
+      <div class="flex justify-center gap-4">
+        <PrimaryCTA variant="call" context="reviews-footer" />
+        <PrimaryCTA variant="book" context="reviews-footer" />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const regions = await getCollection('regions');
+const sortedRegions = regions.sort((a, b) =>
+  a.data.title.localeCompare(b.data.title)
+);
+
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+---
+
+<BaseLayout
+  title="Service Regions - B.A.P Heating and Cooling"
+  description="HVAC service areas across Southern Ontario including Wellington County, Waterloo Region, Halton Region, and more"
+>
+  <div class="container mx-auto px-4 py-16">
+    <h1 class="mb-6 text-4xl font-bold">Our Service Regions</h1>
+    <p class="mb-12 text-xl text-muted-foreground">
+      Professional heating and cooling services across Southern Ontario
+    </p>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {sortedRegions.map((region) => (
+        <a
+          href={`/regions/${cleanSlug(region.id)}/`}
+          class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
+        >
+          <h2 class="mb-2 text-xl font-semibold">{region.data.title}</h2>
+          <p class="text-sm text-muted-foreground">
+            {region.data.description}
+          </p>
+          <p class="mt-4 text-sm text-primary">
+            {region.data.cities.length} {region.data.cities.length === 1 ? 'city' : 'cities'} →
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

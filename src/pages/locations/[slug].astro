@@ -1,0 +1,164 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReviewsBlock from '../../components/ReviewsBlock.astro';
+import PrimaryCTA from '../../components/PrimaryCTA.astro';
+import { getCollection } from 'astro:content';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getLocationSchema } from '../../lib/schema';
+import { getLocationBreadcrumbs, getBreadcrumbSchema } from '../../lib/breadcrumbs';
+import { resolveFAQs } from '../../lib/faqResolver';
+import { generateFAQSchema } from '../../lib/faqSchema';
+import { getReviewsForPage } from '../../lib/reviewResolver';
+import { generateReviewSchemas } from '../../lib/reviewSchema';
+
+export async function getStaticPaths() {
+  const locations = await getCollection('locations');
+  // Helper to remove .md extension
+  const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
+  return locations.map((location) => ({
+    params: { slug: cleanSlug(location.id) },
+    props: { location },
+  }));
+}
+
+const { location } = Astro.props;
+const { Content } = await location.render();
+
+// Helper to remove .md extension
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
+const title = location.data.seoTitle || `${location.data.title} - B.A.P Heating and Cooling`;
+const description = location.data.seoDescription || location.data.description;
+const robots = location.data.robots || 'index,follow';
+
+// Get all services for this location
+const services = await getCollection('services');
+
+// Get region for this location
+const allRegions = (await getCollection('regions'));
+const locationRegion = allRegions.find((r) =>
+  r.data.cities.includes(cleanSlug(location.id))
+);
+
+// Get business profile and schema
+const profile = await getBusinessProfile();
+
+// Get location slug
+const locationSlug = cleanSlug(location.id);
+
+// Load all FAQs
+const allFAQs = await getCollection('faqs');
+
+// Load all reviews
+const allReviews = await getCollection('reviews');
+
+// Get reviews for this page
+const pageReviews = getReviewsForPage(allReviews, {
+  pageType: 'location',
+  locationSlug: locationSlug,
+  citySlug: locationSlug,
+});
+
+// Generate review schemas (only for verified reviews)
+const reviewSchemas = generateReviewSchemas(pageReviews);
+
+// Generate breadcrumb schema
+const breadcrumbItems = getLocationBreadcrumbs(location.data.title, locationSlug);
+const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems, 'https://bapheating.ca');
+
+// Resolve FAQs for this page
+const pageFAQs = resolveFAQs(allFAQs, {
+  pageType: 'location',
+  locationSlug: locationSlug,
+});
+
+// Generate FAQ schema if FAQs exist
+const faqSchema = generateFAQSchema(pageFAQs);
+
+// Build schema array
+const schemas = [
+  getLocationSchema(profile, {
+    title: location.data.title,
+    region: location.data.region,
+    description: location.data.description,
+  }),
+  breadcrumbSchema,
+];
+
+// Add FAQ schema if available
+if (faqSchema) {
+  schemas.push(faqSchema);
+}
+
+// Add review schemas if available
+if (reviewSchemas.length > 0) {
+  schemas.push(...reviewSchemas);
+}
+
+const schema = schemas;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  robots={robots}
+  schema={schema}
+>
+  <div class="container mx-auto px-4 py-16">
+    <div class="mb-8 flex flex-wrap gap-2 text-sm text-muted-foreground">
+      <a href="/locations/" class="hover:text-primary">Locations</a>
+      {locationRegion && (
+        <>
+          <span>/</span>
+          <a href={`/regions/${cleanSlug(locationRegion.id)}/`} class="hover:text-primary">
+            {locationRegion.data.title}
+          </a>
+        </>
+      )}
+      <span>/</span>
+      <span>{location.data.title}, ON</span>
+    </div>
+
+    <article class="prose prose-lg max-w-none mb-12">
+      <Content />
+    </article>
+
+    <div class="mb-12 rounded-lg border bg-card p-6">
+      <h2 class="mb-4 text-xl font-semibold">Get In Touch</h2>
+      <div class="flex flex-wrap gap-4">
+        <PrimaryCTA variant="call" context="location-header" />
+        <PrimaryCTA variant="book" context="location-header" />
+        <PrimaryCTA variant="email" context="location-header" />
+      </div>
+    </div>
+
+    <div class="mb-12">
+      <h2 class="mb-6 text-3xl font-bold">Services Available in {location.data.title}</h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {services.map((service) => (
+          <a
+            href={`/services/${cleanSlug(service.id)}-${cleanSlug(location.id)}-on/`}
+            class="rounded-lg border bg-card p-4 text-sm transition-colors hover:border-primary"
+          >
+            {service.data.title} in {location.data.title}, ON
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+
+    <div class="mt-12 rounded-lg border bg-muted p-8">
+      <h2 class="mb-4 text-2xl font-semibold">Need HVAC Service in {location.data.title}?</h2>
+      <p class="mb-6 text-muted-foreground">
+        Contact us today to schedule service in {location.data.title} and surrounding areas.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <PrimaryCTA variant="call" context="location-footer" />
+        <PrimaryCTA variant="book" context="location-footer" />
+        <PrimaryCTA variant="email" context="location-footer" />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

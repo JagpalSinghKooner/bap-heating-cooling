@@ -1,0 +1,38 @@
+---
+import { getBusinessProfile } from '../lib/getBusinessProfile';
+import type { CTAVariant, CTAContext } from '../lib/ctaResolver';
+import { getCTAConfig } from '../lib/ctaResolver';
+
+interface Props {
+  variant: CTAVariant;
+  context?: CTAContext;
+  class?: string;
+  size?: 'default' | 'large';
+}
+
+const { variant, context = 'unknown', class: className = '', size = 'default' } = Astro.props;
+const profile = await getBusinessProfile();
+const ctaConfig = getCTAConfig(profile, variant);
+
+// Size classes
+const sizeClasses = size === 'large'
+  ? 'px-8 py-4 text-lg'
+  : 'px-6 py-3 text-base';
+
+// Variant-specific styling (minimal, respects existing design system)
+const variantClasses = variant === 'emergency'
+  ? 'bg-red-600 hover:bg-red-700 text-white'
+  : 'bg-primary hover:bg-primary/90 text-primary-foreground';
+---
+
+<a
+  href={ctaConfig.href}
+  class={`inline-block rounded-md font-semibold transition-colors ${sizeClasses} ${variantClasses} ${className}`}
+  data-cta={variant}
+  data-cta-context={context}
+  aria-label={ctaConfig.ariaLabel}
+  target={variant === 'book' ? '_blank' : undefined}
+  rel={variant === 'book' ? 'noopener noreferrer' : undefined}
+>
+  {ctaConfig.label}
+</a>

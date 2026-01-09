@@ -1,0 +1,406 @@
+---
+import '../styles/global.css';
+import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../lib/getBusinessProfile';
+import { getCanonicalUrl } from '../lib/urlGovernance';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonicalURL?: string;
+  robots?: string;
+  schema?: object | object[];
+}
+
+const profile = await getBusinessProfile();
+const companyName = getCompanyName(profile);
+
+const {
+  title = companyName,
+  description = 'Professional heating and cooling services',
+  canonicalURL,
+  robots = 'index,follow',
+  schema,
+} = Astro.props;
+
+// Get canonical URL using governance helper
+const canonicalUrl = canonicalURL || getCanonicalUrl(Astro.url.pathname);
+
+// Environment-based indexing control
+const environment = import.meta.env.PUBLIC_ENVIRONMENT || 'production';
+const isProduction = environment === 'production';
+
+// Override robots for staging
+const effectiveRobots = isProduction ? robots : 'noindex,nofollow';
+
+// GA4 Configuration
+const ga4Id = import.meta.env.PUBLIC_GA4_ID;
+const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
+
+// Map category keys to pillar page slugs
+const categorySlugMap: { [key: string]: string } = {
+  'heating': 'heating',
+  'cooling': 'cooling',
+  'iaq': 'indoor-air-quality',
+  'water-heating': 'water-heating',
+  'commercial': 'commercial',
+  'plans': 'maintenance-plans',
+};
+---
+
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content={effectiveRobots} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- SEO -->
+    <title>{title}</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Structured Data (JSON-LD) -->
+    {schema && (
+      <script type="application/ld+json" set:html={JSON.stringify(
+        Array.isArray(schema) ? schema : [schema]
+      )} />
+    )}
+
+    <!-- Google Analytics 4 -->
+    {enableGA4 && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>
+        <script is:inline define:vars={{ ga4Id }}>
+          // Initialize Google Analytics 4 with consent management
+          const CONSENT_KEY = 'bap_analytics_consent';
+
+          function getAnalyticsConsent() {
+            try {
+              const stored = localStorage.getItem(CONSENT_KEY);
+              if (stored === 'granted' || stored === 'denied') {
+                return stored;
+              }
+            } catch (e) {
+              console.warn('Failed to read analytics consent:', e);
+            }
+            return 'granted'; // Default: granted
+          }
+
+          const consent = getAnalyticsConsent();
+
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+
+          gtag('consent', 'default', {
+            'analytics_storage': consent,
+            'ad_storage': consent,
+            'wait_for_update': 500
+          });
+
+          gtag('js', new Date());
+          gtag('config', ga4Id, {
+            'send_page_view': true,
+            'anonymize_ip': true
+          });
+
+          console.info('GA4 initialized:', ga4Id, 'consent:', consent);
+        </script>
+      </>
+    )}
+  </head>
+  <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-primary focus:text-primary-foreground">
+      Skip to main content
+    </a>
+
+    <div class="flex min-h-screen flex-col">
+      <!-- Header -->
+      <header class="border-b" role="banner">
+        <!-- Utility bar with hours and CTA -->
+        <div class="border-b bg-muted/50">
+          <div class="container mx-auto flex items-center justify-between px-4 py-2 text-sm">
+            <span class="text-muted-foreground">
+              {profile.hours.business_hours} | Emergency Service Available | {profile.hours.response_time_statement}
+            </span>
+            <a
+              href={getPhoneLink(profile)}
+              class="font-semibold text-primary hover:underline"
+            >
+              {profile.contact.primary_cta.short}: {getPhoneDisplay(profile)}
+            </a>
+          </div>
+        </div>
+
+        <nav class="container mx-auto flex items-center justify-between px-4 py-6" role="navigation" aria-label="Main navigation">
+          <a href="/" class="text-2xl font-bold text-primary">
+            {companyName}
+          </a>
+
+          <ul class="flex gap-6">
+            <li>
+              <a
+                href="/"
+                class="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Home
+              </a>
+            </li>
+            {profile.services.navbar_categories.map((category) => {
+              const href = category.key === 'locations' ? '/locations/' :
+                           category.key === 'contact' ? '/contact-us/' :
+                           `/services/${categorySlugMap[category.key]}/`;
+              return (
+                <li>
+                  <a
+                    href={href}
+                    class="text-sm font-medium transition-colors hover:text-primary"
+                  >
+                    {category.name}
+                  </a>
+                </li>
+              );
+            })}
+            <li>
+              <a
+                href="/reviews/"
+                class="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Reviews
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      <!-- Main Content -->
+      <main id="main-content" role="main" class="flex-1">
+        <slot />
+      </main>
+
+      <!-- Footer -->
+      <footer class="border-t bg-muted" role="contentinfo">
+        <div class="container mx-auto px-4 py-8">
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div>
+              <h3 class="mb-4 text-lg font-semibold">{companyName}</h3>
+              <p class="text-sm text-muted-foreground">
+                Professional heating and cooling services for residential and commercial properties.
+              </p>
+              <div class="mt-4 text-sm text-muted-foreground">
+                <p>Established {profile.business.established_year}</p>
+                <p class="mt-2">{profile.warranty.statement}</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="mb-4 text-sm font-semibold">Quick Links</h4>
+              <ul class="space-y-2 text-sm">
+                <li>
+                  <a href="/services/" class="text-muted-foreground hover:text-foreground">
+                    Services
+                  </a>
+                </li>
+                <li>
+                  <a href="/locations/" class="text-muted-foreground hover:text-foreground">
+                    Locations
+                  </a>
+                </li>
+                <li>
+                  <a href="/about-us/" class="text-muted-foreground hover:text-foreground">
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a href="/contact-us/" class="text-muted-foreground hover:text-foreground">
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="mb-4 text-sm font-semibold">Contact</h4>
+              <ul class="space-y-2 text-sm">
+                <li>
+                  <a href={getPhoneLink(profile)} class="text-muted-foreground hover:text-foreground">
+                    {getPhoneDisplay(profile)}
+                  </a>
+                </li>
+                <li>
+                  <a href={getEmailLink(profile)} class="text-muted-foreground hover:text-foreground">
+                    {getEmail(profile)}
+                  </a>
+                </li>
+                {profile.contact.booking.enabled && (
+                  <li class="mt-4">
+                    <a
+                      href={profile.contact.booking.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-block rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      Book Online
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="mb-4 text-sm font-semibold">Follow Us</h4>
+              <ul class="space-y-2 text-sm">
+                {profile.social.facebook && (
+                  <li>
+                    <a
+                      href={profile.social.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-muted-foreground hover:text-foreground"
+                    >
+                      Facebook
+                    </a>
+                  </li>
+                )}
+                {profile.social.instagram && (
+                  <li>
+                    <a
+                      href={profile.social.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-muted-foreground hover:text-foreground"
+                    >
+                      Instagram
+                    </a>
+                  </li>
+                )}
+              </ul>
+              {profile.reputation.google_review_count > 0 && (
+                <div class="mt-4">
+                  <a
+                    href="https://www.google.com/search?q=B.A.P+Heating+%26+Cooling"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    ⭐ {profile.reputation.google_rating} ({profile.reputation.google_review_count}+ reviews)
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div class="mt-8 border-t pt-8">
+            <div class="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
+              <p>&copy; {new Date().getFullYear()} {profile.business.legal_name}. All rights reserved.</p>
+              <div class="flex gap-4">
+                <span>{profile.locations.primary.city}, {profile.locations.primary.province}</span>
+                <span>|</span>
+                <span>{profile.locations.secondary.city}, {profile.locations.secondary.province}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Analytics Event Tracking -->
+    <script>
+      // Auto-track phone clicks, booking clicks, email clicks, and outbound links
+      document.addEventListener('DOMContentLoaded', () => {
+        // Track phone link clicks (including emergency detection)
+        document.querySelectorAll('a[href^="tel:"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target) {
+              const isEmergency = target.getAttribute('data-cta') === 'emergency';
+              const context = target.getAttribute('data-cta-context') || 'unknown';
+
+              if (typeof window.gtag !== 'undefined') {
+                if (isEmergency) {
+                  // Track as emergency call
+                  window.gtag('event', 'emergency_call_click', {
+                    event_category: 'engagement',
+                    event_label: context,
+                    value: 1
+                  });
+                } else {
+                  // Track as regular call
+                  window.gtag('event', 'phone_call_click', {
+                    event_category: 'engagement',
+                    event_label: context,
+                    value: 1
+                  });
+                }
+              }
+            }
+          });
+        });
+
+        // Track email link clicks
+        document.querySelectorAll('a[href^="mailto:"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target) {
+              const context = target.getAttribute('data-cta-context') || 'unknown';
+
+              if (typeof window.gtag !== 'undefined') {
+                window.gtag('event', 'email_click', {
+                  event_category: 'engagement',
+                  event_label: context,
+                  value: 1
+                });
+              }
+            }
+          });
+        });
+
+        // Track booking button clicks
+        document.querySelectorAll('a[href*="housecallpro.com"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target) {
+              const context = target.getAttribute('data-cta-context') ||
+                             target.closest('[data-source]')?.getAttribute('data-source') ||
+                             'unknown';
+              if (typeof window.gtag !== 'undefined') {
+                window.gtag('event', 'booking_click', {
+                  event_category: 'conversion',
+                  event_label: context,
+                  value: 1
+                });
+              }
+            }
+          });
+        });
+
+        // Track outbound links
+        document.querySelectorAll('a[target="_blank"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target && target.hostname !== window.location.hostname && typeof window.gtag !== 'undefined') {
+              window.gtag('event', 'outbound_link', {
+                event_category: 'engagement',
+                event_label: target.href
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

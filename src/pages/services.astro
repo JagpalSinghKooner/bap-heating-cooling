@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { buildServicePath } from '../lib/slugBuilder';
+
+const services = await getCollection('services');
+
+// Group services by category
+const servicesByCategory = {
+  heating: services.filter(s => s.data.category === 'heating').sort((a, b) => a.data.order - b.data.order),
+  cooling: services.filter(s => s.data.category === 'cooling').sort((a, b) => a.data.order - b.data.order),
+  iaq: services.filter(s => s.data.category === 'iaq').sort((a, b) => a.data.order - b.data.order),
+  'water-heating': services.filter(s => s.data.category === 'water-heating').sort((a, b) => a.data.order - b.data.order),
+  commercial: services.filter(s => s.data.category === 'commercial').sort((a, b) => a.data.order - b.data.order),
+  plans: services.filter(s => s.data.category === 'plans').sort((a, b) => a.data.order - b.data.order),
+};
+
+const categoryTitles = {
+  heating: 'Heating Services',
+  cooling: 'Cooling Services',
+  iaq: 'Indoor Air Quality',
+  'water-heating': 'Water Heating',
+  commercial: 'Commercial HVAC',
+  plans: 'Maintenance Plans',
+};
+---
+
+<BaseLayout
+  title="Services - B.A.P Heating and Cooling"
+  description="Comprehensive heating and cooling services including installation, repair, and maintenance"
+>
+  <div class="container mx-auto px-4 py-16">
+    <h1 class="mb-8 text-4xl font-bold">Our Services</h1>
+
+    <p class="mb-12 text-xl text-muted-foreground">
+      We offer a complete range of HVAC services to keep your home or business
+      comfortable year-round.
+    </p>
+
+    {Object.entries(servicesByCategory).map(([category, categoryServices]) => (
+      categoryServices.length > 0 && (
+        <section id={category} class="mb-16">
+          <h2 class="mb-6 text-3xl font-bold">{categoryTitles[category as keyof typeof categoryTitles]}</h2>
+
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {categoryServices.map((service) => (
+              <a
+                href={buildServicePath(service.id)}
+                class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
+              >
+                <h3 class="mb-3 text-xl font-semibold">{service.data.title}</h3>
+                <p class="text-muted-foreground">{service.data.description}</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    ))}
+  </div>
+</BaseLayout>

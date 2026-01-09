@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PrimaryCTA from '../../components/PrimaryCTA.astro';
+import ReviewsBlock from '../../components/ReviewsBlock.astro';
+import { getCollection } from 'astro:content';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getLocalBusinessSchema } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const categories = [
+    {
+      slug: 'heating',
+      title: 'Heating Services',
+      description: 'Professional heating installation, repair, and maintenance services for your home or business.',
+      category: 'heating'
+    },
+    {
+      slug: 'cooling',
+      title: 'Cooling Services',
+      description: 'Expert air conditioning installation, repair, and maintenance to keep you comfortable all summer.',
+      category: 'cooling'
+    },
+    {
+      slug: 'indoor-air-quality',
+      title: 'Indoor Air Quality Services',
+      description: 'Improve your indoor air quality with our professional air filtration, purification, and ventilation solutions.',
+      category: 'iaq'
+    },
+    {
+      slug: 'water-heating',
+      title: 'Water Heating Services',
+      description: 'Reliable water heater installation, repair, and maintenance for consistent hot water.',
+      category: 'water-heating'
+    },
+    {
+      slug: 'commercial',
+      title: 'Commercial HVAC Services',
+      description: 'Comprehensive commercial heating, cooling, and ventilation solutions for businesses of all sizes.',
+      category: 'commercial'
+    },
+    {
+      slug: 'maintenance-plans',
+      title: 'HVAC Maintenance Plans',
+      description: 'Preventive maintenance plans to keep your HVAC system running efficiently year-round.',
+      category: 'plans'
+    },
+  ];
+
+  return categories.map((cat) => ({
+    params: { category: cat.slug },
+    props: cat,
+  }));
+}
+
+const { slug, title, description, category } = Astro.props;
+
+// Load all services and filter by category
+const allServices = await getCollection('services');
+const categoryServices = allServices
+  .filter(s => s.data.category === category)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// Load all locations for service-city links
+const allLocations = await getCollection('locations');
+
+// Load all regions
+const allRegions = await getCollection('regions');
+
+// Group locations by region
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+let locationsByRegion: Map<string, { region: any; locations: any[] }> = new Map();
+
+for (const region of allRegions) {
+  const regionSlug = cleanSlug(region.id);
+  const regionLocations = allLocations.filter((loc) =>
+    region.data.cities.includes(cleanSlug(loc.id))
+  );
+  locationsByRegion.set(regionSlug, {
+    region: region,
+    locations: regionLocations
+  });
+}
+
+// Get business profile
+const profile = await getBusinessProfile();
+
+// Load reviews
+const allReviews = await getCollection('reviews');
+const liveReviews = allReviews.filter(r => r.data.status === 'live');
+
+// Schema
+const schema = getLocalBusinessSchema(profile);
+
+const seoTitle = `${title} - B.A.P Heating and Cooling`;
+const seoDescription = description;
+---
+
+<BaseLayout
+  title={seoTitle}
+  description={seoDescription}
+  robots="index,follow"
+  schema={schema}
+>
+  <div class="container mx-auto px-4 py-16">
+    <div class="mb-8">
+      <a href="/services/" class="text-sm text-muted-foreground hover:text-primary">
+        ← Back to All Services
+      </a>
+    </div>
+
+    <h1 class="mb-6 text-4xl font-bold">{title}</h1>
+
+    <p class="mb-12 text-xl text-muted-foreground">
+      {description}
+    </p>
+
+    <div class="mb-12 flex gap-4">
+      <PrimaryCTA variant="call" context="category-pillar" />
+      <PrimaryCTA variant="book" context="category-pillar" />
+    </div>
+
+    <section class="mb-16">
+      <h2 class="mb-6 text-3xl font-bold">Our {title}</h2>
+
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {categoryServices.map((service) => (
+          <a
+            href={`/services/${cleanSlug(service.id)}/`}
+            class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
+          >
+            <h3 class="mb-3 text-xl font-semibold">{service.data.title}</h3>
+            <p class="text-muted-foreground">{service.data.description}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="mb-6 text-3xl font-bold">Service Areas</h2>
+      <p class="mb-8 text-lg text-muted-foreground">
+        We provide {title.toLowerCase()} throughout Southern Ontario, including:
+      </p>
+
+      {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
+        <div class="mb-8">
+          <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
+          <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {locations.map((loc: any) => (
+              <a
+                href={`/locations/${cleanSlug(loc.id)}/`}
+                class="rounded-lg border bg-card p-3 text-center transition-colors hover:border-primary"
+              >
+                <span class="text-sm font-medium">{loc.data.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <ReviewsBlock reviews={liveReviews.slice(0, 6)} title="What Our Customers Say" />
+
+    <div class="mt-12 rounded-lg border bg-muted p-8">
+      <h2 class="mb-4 text-2xl font-semibold">Ready to Get Started?</h2>
+      <p class="mb-6 text-muted-foreground">
+        Contact us today to schedule service or request a free consultation.
+      </p>
+      <div class="flex gap-4">
+        <PrimaryCTA variant="call" context="category-pillar-footer" />
+        <PrimaryCTA variant="book" context="category-pillar-footer" />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

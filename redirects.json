@@ -1,0 +1,17 @@
+{
+  "redirects": [
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    }
+  ],
+  "notes": [
+    "All redirects must be 301 (permanent) unless explicitly temporary",
+    "Trailing slash enforcement is handled by normalizePathname()",
+    "www -> non-www is handled at DNS/hosting level",
+    "HTTP -> HTTPS is handled at hosting level",
+    "Uppercase -> lowercase is handled by normalizePathname()"
+  ]
+}

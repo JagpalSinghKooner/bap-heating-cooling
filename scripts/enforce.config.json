@@ -1,0 +1,30 @@
+{
+  "uniqueness": {
+    "enabled": true,
+    "thresholds": {
+      "serviceCityVsServiceCity": 0.80,
+      "serviceVsServiceCity": 0.80,
+      "locationVsLocation": 0.75,
+      "blogVsBlog": 0.95,
+      "general": 0.70
+    },
+    "paths": {
+      "services": "src/content/services",
+      "locations": "src/content/locations",
+      "serviceCities": "src/content/service-cities",
+      "blog": "src/content/blog"
+    }
+  },
+  "workflow": {
+    "enabled": true,
+    "requiredStatuses": ["approved", "published"],
+    "strictApprovalMetadata": true
+  },
+  "eeat": {
+    "enabled": true,
+    "strictMode": false,
+    "checkEmergencyUsage": true,
+    "checkProhibitedPhrases": true,
+    "checkAIFluff": true
+  }
+}

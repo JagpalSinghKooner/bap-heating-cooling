@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getArticleSchema } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const blogPosts = await getCollection('blog');
+  return blogPosts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const profile = await getBusinessProfile();
+
+const schema = getArticleSchema(profile, {
+  title: post.data.title,
+  description: post.data.description,
+  slug: post.slug,
+  publishDate: post.data.publishDate,
+  modifiedDate: post.data.modifiedDate,
+  author: post.data.author,
+  image: post.data.image,
+});
+
+const title = post.data.seoTitle || `${post.data.title} - B.A.P Heating and Cooling`;
+const description = post.data.seoDescription || post.data.description;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  robots={post.data.robots}
+  schema={schema}
+>
+  <article class="container mx-auto px-4 py-16">
+    <header class="mb-8">
+      <div class="mb-4 flex items-center gap-4 text-sm text-muted-foreground">
+        <time datetime={post.data.publishDate.toISOString()}>
+          {post.data.publishDate.toLocaleDateString('en-CA', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </time>
+        <span>•</span>
+        <span class="capitalize">{post.data.category}</span>
+        <span>•</span>
+        <span>By {post.data.author}</span>
+      </div>
+
+      <h1 class="mb-4 text-4xl font-bold md:text-5xl">
+        {post.data.title}
+      </h1>
+
+      <p class="text-xl text-muted-foreground">
+        {post.data.description}
+      </p>
+    </header>
+
+    <div class="prose prose-lg mx-auto max-w-3xl">
+      <Content />
+    </div>
+
+    <footer class="mt-12 border-t pt-8">
+      <div class="flex items-center justify-between">
+        <a
+          href="/blog/"
+          class="inline-flex items-center text-primary hover:underline"
+        >
+          ← Back to all posts
+        </a>
+
+        <div class="text-sm text-muted-foreground">
+          {post.data.modifiedDate && (
+            <span>
+              Last updated: {post.data.modifiedDate.toLocaleDateString('en-CA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div class="mt-8 rounded-lg bg-muted p-6">
+        <h2 class="mb-2 text-lg font-semibold">Need HVAC Service?</h2>
+        <p class="mb-4 text-muted-foreground">
+          Contact B.A.P Heating and Cooling for expert service, installation, and maintenance.
+        </p>
+        <div class="flex gap-4">
+          <a
+            href={profile.contact.booking.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-block rounded-md bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Book Service
+          </a>
+          <a
+            href="/contact-us/"
+            class="inline-block rounded-md border border-primary px-6 py-3 font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </footer>
+  </article>
+</BaseLayout>

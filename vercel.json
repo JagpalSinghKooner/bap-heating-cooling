@@ -1,0 +1,146 @@
+{
+  "redirects": [
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.bapheating.ca"
+        }
+      ],
+      "destination": "https://bapheating.ca/:path*",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

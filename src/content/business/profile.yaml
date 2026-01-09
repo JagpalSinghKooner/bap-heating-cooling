@@ -1,0 +1,223 @@
+business:
+  legal_name: "B.A.P Heating & Cooling Services Ltd"
+  trading_name: null
+  established_year: 2000
+  owner_public:
+    name: "Paul Palmer"
+    roles:
+      - "About Us page (named owner)"
+      - "Blog author (always)"
+  tone:
+    style: "Professional and direct"
+    language: "English (Canadian)"
+    avoid_words:
+      - "cheap"
+      - "budget"
+      - "AI slop"
+    seo_note: "Keep copy keyword-friendly and locally relevant."
+
+contact:
+  phone_display: "+1 519-835-4858"
+  phone_e164: "+15198354858"
+  email: "info@bapheating.ca"
+  primary_cta:
+    short: "Call and speak to a person"
+    long: "Call now to speak to a real person 24/7."
+  booking:
+    enabled: true
+    provider: "Housecall Pro"
+    url: "https://book.housecallpro.com/book/BAP-Heating--Cooling-Services/f9fdd1eeb84340c2a2acf5c7f927b4aa"
+
+hours:
+  business_hours: "24/7"
+  emergency_service: true
+  phone_answered_24_7: true
+  target_response_time_minutes: 60
+  response_time_statement: "Typically within 60 minutes across our service area."
+
+locations:
+  primary:
+    name: "B.A.P Heating & Cooling Services Ltd"
+    address_full: "25 Clearview St Unit 6, Guelph, ON N1E 6C4, Canada"
+    city: "Guelph"
+    province: "ON"
+    postal_code: "N1E 6C4"
+    country: "Canada"
+    phone_e164: "+15198354858"
+    email: "info@bapheating.ca"
+  secondary:
+    name: "B.A.P Heating & Cooling Services Ltd Elora"
+    address_full: "6512 Wellington Rd 7, Centre Wellington, ON N0B 1S0, Canada"
+    city: "Centre Wellington (Elora area)"
+    province: "ON"
+    postal_code: "N0B 1S0"
+    country: "Canada"
+    phone_e164: "+15198354858"
+    email: "info@bapheating.ca"
+
+coverage:
+  service_model: "Residential and commercial"
+  exclusions:
+    - "Brampton, ON"
+  regions_enabled: true
+  regions:
+    - name: "Wellington County"
+      locations:
+        - { name: "Guelph", slug: "guelph" }
+        - { name: "Fergus", slug: "fergus" }
+        - { name: "Elora", slug: "elora" }
+        - { name: "Rockwood", slug: "rockwood" }
+        - { name: "Erin", slug: "erin" }
+        - { name: "Eden Mills", slug: "eden-mills" }
+    - name: "Waterloo Region"
+      locations:
+        - { name: "Kitchener", slug: "kitchener" }
+        - { name: "Waterloo", slug: "waterloo" }
+        - { name: "Cambridge", slug: "cambridge" }
+        - { name: "Breslau", slug: "breslau" }
+        - { name: "Elmira", slug: "elmira" }
+    - name: "Halton Region"
+      locations:
+        - { name: "Milton", slug: "milton" }
+        - { name: "Halton Hills", slug: "halton-hills" }
+        - { name: "Georgetown", slug: "georgetown" }
+        - { name: "Burlington", slug: "burlington" }
+        - { name: "Acton", slug: "acton" }
+        - { name: "Oakville", slug: "oakville" }
+    - name: "Peel Region"
+      locations:
+        - { name: "Caledon", slug: "caledon" }
+        - { name: "Bolton", slug: "bolton" }
+    - name: "Hamilton & Brant"
+      locations:
+        - { name: "Hamilton", slug: "hamilton" }
+        - { name: "Brantford", slug: "brantford" }
+        - { name: "Jerseyville", slug: "jerseyville" }
+    - name: "Dufferin County"
+      locations:
+        - { name: "Orangeville", slug: "orangeville" }
+        - { name: "Shelburne", slug: "shelburne" }
+        - { name: "Grand Valley", slug: "grand-valley" }
+
+services:
+  notes:
+    - "All services below are ACTIVE."
+    - "All services are offered for BOTH residential and commercial."
+    - "Emergency and after-hours service is available for all services."
+  navbar_categories:
+    - { name: "Heating", key: "heating" }
+    - { name: "Cooling", key: "cooling" }
+    - { name: "Indoor Air Quality", key: "iaq" }
+    - { name: "Water Heating", key: "water-heating" }
+    - { name: "Commercial", key: "commercial" }
+    - { name: "Maintenance Plans", key: "plans" }
+    - { name: "Locations", key: "locations" }
+    - { name: "Contact", key: "contact" }
+  list:
+    heating:
+      - { title: "Furnace Installation", slug: "furnace-installation" }
+      - { title: "Furnace Repair", slug: "furnace-repair" }
+      - { title: "Furnace Maintenance", slug: "furnace-maintenance" }
+      - { title: "Boiler Installation", slug: "boiler-installation" }
+      - { title: "Boiler Repair", slug: "boiler-repair" }
+      - { title: "Boiler Maintenance", slug: "boiler-maintenance" }
+      - { title: "Heat Pump Installation", slug: "heat-pump-installation" }
+      - { title: "Heat Pump Repair", slug: "heat-pump-repair" }
+      - { title: "Heat Pump Maintenance", slug: "heat-pump-maintenance" }
+      - { title: "Ductless Mini-Split", slug: "ductless-mini-split" }
+    cooling:
+      - { title: "Air Conditioner Installation", slug: "air-conditioner-installation" }
+      - { title: "Air Conditioner Repair", slug: "air-conditioner-repair" }
+      - { title: "Air Conditioner Maintenance", slug: "air-conditioner-maintenance" }
+    iaq:
+      - { title: "Humidifiers", slug: "humidifiers" }
+      - { title: "Dehumidifiers", slug: "dehumidifiers" }
+      - { title: "Air Filtration & Air Purifiers", slug: "air-filtration-air-purifiers" }
+      - { title: "HRV/ERV Ventilation", slug: "hrv-erv-ventilation" }
+    water_heating:
+      - { title: "Tank Water Heaters", slug: "tank-water-heaters" }
+      - { title: "Tankless Water Heaters", slug: "tankless-water-heaters" }
+    commercial:
+      - { title: "Rooftop Units", slug: "rooftop-units" }
+      - { title: "Commercial HVAC", slug: "commercial-hvac" }
+    plans:
+      - { title: "Maintenance Plans", slug: "maintenance-plans" }
+
+brands_and_capability:
+  install_brands: "All brands (premium, mid-range, and value)"
+  service_brands: "All major brands"
+  certifications_statement: "Certified across major brands and recognised on the Better Business Bureau."
+  rooftop_units_industries: "All industries"
+  project_types: "New builds and renovations (HVAC-related work only)"
+
+trust_and_compliance:
+  licenses:
+    note: "Licence numbers will be added by owner; keep fields in place."
+    tssa:
+      numbers:
+        - "TSSA-LICENCE-NUMBER-PLACEHOLDER-1"
+        - "TSSA-LICENCE-NUMBER-PLACEHOLDER-2"
+    other:
+      - "OTHER-LICENCE-NUMBER-PLACEHOLDER"
+  wsib: true
+  insured_statement: "Fully insured (maximum coverage)."
+
+pricing_and_offers:
+  estimates_free: true
+  diagnostic_free: true
+  financing:
+    available: true
+    statement: "Financing available through multiple finance companies in Canada."
+  rebates:
+    paperwork_supported: true
+    statement: "We handle rebate paperwork from start to finish."
+
+warranty_and_guarantees:
+  warranty_statement: "10-year warranty on parts and labour."
+  guarantee_primary:
+    title: "No-Surprise Guarantee"
+    copy: "You approve the work before we start. We explain the options clearly and keep pricing transparent."
+  guarantee_secondary:
+    title: "Workmanship Guarantee"
+    copy: "If something we installed or repaired is not performing as it should, we will make it right."
+  transparency_policy: true
+
+reputation:
+  google_rating: 4.8
+  google_review_count: 407
+  review_statement: "Rated 4.8 stars from 407 Google reviews."
+  live_reviews:
+    enabled: true
+    note: "Integrate Google Reviews feed for always-live testimonials (no manual copying)."
+
+social:
+  instagram: "https://www.instagram.com/bapheatingservices"
+  facebook: "https://www.facebook.com/Bapheating/"
+
+warranty:
+  parts_and_labour_years: 10
+  statement: "10-year parts and labour warranty on all new installations"
+
+seo_url_rules:
+  combined_pages:
+    suffix: "-on"
+    example: "/services/furnace-installation-guelph-on/"
+    rule: "Do NOT embed 'on' inside serviceSlug or citySlug; append '-on' only at the end of the combined slug."
+
+copy_blocks:
+  short_description: "B.A.P Heating & Cooling Services Ltd provides 24/7 residential and commercial HVAC service across Guelph and surrounding communities, with emergency response typically within 60 minutes."
+  long_description: "B.A.P Heating & Cooling Services Ltd has served homeowners and businesses since 2000 with dependable heating, cooling, and indoor air quality solutions. We work on all major brands, provide transparent recommendations, and offer 24/7 emergency service with response typically within 60 minutes across our service area. We also support financing options and handle rebate paperwork from start to finish."
+  primary_cta_copy: "**Call us now:** +1 519-835-4858"
+  secondary_cta_copy: "Prefer to book online? Use our Housecall Pro scheduling link."
+  trust_highlights:
+    - "24/7 service and emergency support"
+    - "Typically within 60 minutes across our service area"
+    - "Free estimates and free diagnostics"
+    - "10-year warranty on parts and labour"
+    - "Transparent pricing and clear options"
+    - "Rated 4.8 stars from 407 Google reviews"
+    - "Fully insured and WSIB covered"
+  about_us_owner_mention: "B.A.P Heating & Cooling Services Ltd is led by **Paul Palmer**, serving Ontario communities with professional, direct, and reliable HVAC service."
+  service_in_city_intro_template: "B.A.P Heating & Cooling Services Ltd provides **{Service Title}** in **{City Name}, ON**, with 24/7 emergency support and response typically within 60 minutes across our service area. Call +1 519-835-4858 to speak to a person."
+  locations_page_intro: "We serve Wellington County, Waterloo Region, Halton Region, Peel Region, Hamilton & Brant, and Dufferin County with 24/7 HVAC service."
+  services_page_intro: "Heating, cooling, indoor air quality, water heating, and commercial HVAC services, delivered 24/7 with transparent recommendations and strong warranties."

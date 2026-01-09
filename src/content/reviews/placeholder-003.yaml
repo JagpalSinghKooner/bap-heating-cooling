@@ -1,0 +1,14 @@
+source: manual
+verified: false
+authorName: Customer C
+rating: 4
+text: Knowledgeable team and fair pricing.
+status: live
+priority: 0
+
+# Workflow metadata
+workflowStatus: 'published'
+reviewedBy: 'System Migration (Step 9.5)'
+reviewedDate: '2026-01-09'
+approvedBy: 'System Migration (Step 9.5)'
+approvedDate: '2026-01-09'
