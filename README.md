@@ -1,6 +1,6 @@
 # B.A.P Heating & Cooling — Master AI Agent Rulebook
 
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Status:** LOCKED — This is the single source of truth for all AI agents
 **Last Updated:** 2026-01-09
 
@@ -32,19 +32,20 @@ Violations will result in immediate rejection and rebuild.
 10. [Brand & Language Standards](#10-brand--language-standards)
 11. [SEO & Metadata Requirements](#11-seo--metadata-requirements)
 12. [Internal Linking & Schema](#12-internal-linking--schema)
-13. [Business Profile Data](#13-business-profile-data)
-14. [Enforcement & Validation](#14-enforcement--validation)
-15. [Quick Reference Checklists](#15-quick-reference-checklists)
+13. [Emergency Content Governance](#13-emergency-content-governance)
+14. [Business Profile Data](#14-business-profile-data)
+15. [Enforcement & Validation](#15-enforcement--validation)
+16. [Quick Reference Checklists](#16-quick-reference-checklists)
 
 ---
 
 ## 1. PROJECT OVERVIEW
 
 ### Business
-- **Legal Name:** B.A.P Heating & Cooling Services Ltd
-- **Owner:** Paul Palmer
-- **Established:** 2000
-- **Service Model:** 24/7 Residential & Commercial HVAC
+- **Legal Name:** `{business.legal_name}` from business profile
+- **Owner:** `{business.owner_public.name}` from business profile
+- **Established:** `{business.established_year}` from business profile
+- **Service Model:** `{coverage.service_model}` from business profile
 - **Service Area:** Wellington County, Waterloo Region, Halton Region, Peel Region, Hamilton & Brant, Dufferin County, ON
 
 ### Website Purpose
@@ -191,7 +192,7 @@ Content MUST NOT be added in:
 - `service_collection` → services_overview (filter: featured=true OR priority=true)
 - `reviews_collection` → reviews_carousel (filter: verified=true, sort: rating DESC)
 - `region_collection` → service_areas
-- `faq_collection` → faqs (filter: appliesTo.pageTypes contains 'homepage')
+- `faq_collection` → faqs (filter: scopes contains 'global')
 
 ---
 
@@ -223,8 +224,8 @@ Content MUST NOT be added in:
 **Data Sources:**
 - `service_collection` → hero, service_description, service_details
 - `business_profile` → service_areas, cta_conversion
-- `reviews_collection` → reviews (filter: service=current_service_slug)
-- `faq_collection` → faqs (filter: appliesTo.services contains current_service_slug)
+- `reviews_collection` → reviews (filter: serviceSlug=current_service_slug)
+- `faq_collection` → faqs (filter: scopes contains 'service:{slug}')
 
 **Uniqueness Driver:** Service slug + service-specific content fields (description, details, pricing_guidance)
 
@@ -260,8 +261,8 @@ Content MUST NOT be added in:
 - `location_collection` → hero, location_overview, local_trust_signals
 - `region_collection` → region_context, nearby_locations
 - `service_collection` + `location_collection` → services_in_location
-- `reviews_collection` → reviews (filter: location=current_location_slug)
-- `faq_collection` → faqs (filter: appliesTo.locations contains current_location)
+- `reviews_collection` → reviews (filter: locationSlug=current_location_slug)
+- `faq_collection` → faqs (filter: scopes contains 'location:{slug}')
 
 **Uniqueness Driver:** Location slug + location-specific content (overview, serviceArea, region context)
 
@@ -297,7 +298,7 @@ Content MUST NOT be added in:
 - `location_collection` → cities_in_region
 - `service_collection` → services_overview
 - `reviews_collection` → reviews (filter: locations in current region)
-- `faq_collection` → faqs (filter: appliesTo.regions contains current_region)
+- `faq_collection` → faqs (filter: scopes contains 'region:{slug}')
 
 **Uniqueness Driver:** Region slug + cities list + region-specific content
 
@@ -416,18 +417,33 @@ workflowStatus: "published"
 - `region:{slug}` — Applies to specific region (e.g., `region:waterloo-region`)
 - `service-city:{serviceSlug}:{locationSlug}` — Most specific (e.g., `service-city:furnace-installation:guelph`)
 
-**Matching Algorithm:**
+### FAQ Matching Algorithm
 
-For a given page, an FAQ matches if:
-1. Page type is in scope (if specified)
-2. Service is in scope (if page has service context)
-3. Location is in scope (if page has location context)
-4. Region is in scope (if page has region context)
+For a given page, an FAQ matches if at least one scope in the `scopes` array matches the page context:
+1. Service scope matches (if page has service context)
+2. Location scope matches (if page has location context)
+3. Region scope matches (if page has region context)
+4. Global scope always matches
 
-**Prioritization:**
-1. Most specific scope first (service-city > service+region > service > location > region > page-type > global)
-2. Within same specificity, sort by `priority` field (ascending)
-3. Alphabetical by question (tertiary sort)
+### FAQ Prioritization (EXACT ALGORITHM)
+
+FAQs are sorted by:
+1. **Scope priority** (ascending - lower number = higher priority):
+   - service-city scope = 1 (highest priority)
+   - service scope = 2
+   - location scope = 3
+   - region scope = 4
+   - global scope = 5 (lowest priority)
+2. **FAQ priority field** (descending - higher number = higher priority)
+3. **FAQ ID** (ascending - alphabetical, for deterministic ordering)
+
+**Example:**
+- FAQ A: scopes = ["service:furnace-repair"], priority = 10
+- FAQ B: scopes = ["service:furnace-repair"], priority = 5
+- FAQ C: scopes = ["global"], priority = 20
+
+On a furnace-repair service page, order is: **A, B, C**
+(Both A and B have scope priority 2, but A has higher FAQ priority 10 > 5)
 
 ### FAQ Display Limits
 
@@ -462,9 +478,13 @@ Each dimension scored 0-100%.
 |------------|-------------------|-------------------|
 | Service Page A vs Service Page B | 90% | Different services = completely different technical content |
 | Location Page A vs Location Page B | 75% | Different cities = unique local context + reviews + FAQs |
+| Service-City vs Service-City (same service) | 80% | Different cities = unique local context, reviews, FAQs |
+| Service-City vs Service (same service) | 80% | Different purposes: service-city adds local context |
 | Service Page vs Location Page | 85% | Different page purposes and structures |
 | Blog Article A vs Blog Article B | 95% | Completely unique topics and research |
 | Homepage vs All Other Pages | 90% | Unique structure and aggregated data |
+
+**Source:** `scripts/enforce.config.json`
 
 ### STRICTLY FORBIDDEN PATTERNS (Automatic Rejection)
 
@@ -562,29 +582,59 @@ Use reviews with city-specific details.
 
 ### Workflow States
 
-All content MUST progress through these states:
+All content collections include `workflowStatus` field with these possible values:
 
-1. **DRAFT** — Content is being created, not ready for review
-2. **INTERNAL_REVIEW** — First-pass quality review by content team
-3. **SEO_REVIEW** — SEO and technical compliance review
-4. **APPROVED** — Passed all reviews, ready for publication
-5. **PUBLISHED** — Live on production site
-6. **ARCHIVED** — Unpublished, retained for records
+1. **draft** — Content is being created, not ready for review
+2. **internal_review** — First-pass quality review by content team
+3. **seo_review** — SEO and technical compliance review
+4. **approved** — Passed all reviews, ready for publication
+5. **published** — Live on production site
+6. **archived** — Unpublished, retained for records
 
-### Workflow Schema Fields
+### Workflow Truth Table
 
-All content collections include:
+| State | Allowed in Repo? | Eligible for Production Build? | Requires Approval Metadata? |
+|-------|-----------------|-------------------------------|---------------------------|
+| draft | ✅ Yes | ❌ No | ❌ No |
+| internal_review | ✅ Yes | ❌ No | ❌ No |
+| seo_review | ✅ Yes | ❌ No | ❌ No |
+| approved | ✅ Yes | ✅ Yes | ✅ Yes (approvedBy, approvedDate) |
+| published | ✅ Yes | ✅ Yes | ✅ Yes (approvedBy, approvedDate) |
+| archived | ✅ Yes | ❌ No | ❌ No |
+
+### Workflow Behavior
+
+**Drafts in Repository:**
+- Content may remain in `draft`, `internal_review`, or `seo_review` states in the repository
+- These states DO NOT block builds
+- Draft content is excluded from production page generation
+- Enforcement warns about draft count but does not fail build
+
+**Production-Eligible Content:**
+- Only `approved` and `published` content is included in production builds
+- Production-eligible content MUST have `approvedBy` and `approvedDate` fields
+- Missing approval metadata on approved/published content = build failure
+
+**Enforcement Rules:**
 ```yaml
-workflowStatus: "draft" # Required
-reviewedBy: "Content Lead" # Optional
-reviewedDate: "2026-01-09" # ISO date
-approvedBy: "SEO Lead" # Optional
-approvedDate: "2026-01-09" # ISO date
+# Draft state - ALLOWED, not built
+workflowStatus: "draft"
+# No approval metadata required
+
+# Approved state - ALLOWED, built to production
+workflowStatus: "approved"
+approvedBy: "Content Lead" # REQUIRED
+approvedDate: "2026-01-09" # REQUIRED (ISO 8601 format)
+
+# Published state - ALLOWED, built to production
+workflowStatus: "published"
+approvedBy: "SEO Lead" # REQUIRED
+approvedDate: "2026-01-09" # REQUIRED (ISO 8601 format)
 ```
 
 ### Pre-Publication Validation Checklist
 
-Before ANY content advances to Published:
+Before ANY content advances to Approved or Published:
 
 **Content Quality:**
 - [ ] Meets minimum word count for page type
@@ -716,12 +766,17 @@ Every AI-generated content piece MUST:
 - Spelling: colour, labour, neighbour, centre
 - Terminology: furnace (not "heater"), air conditioner (not "AC unit")
 - Units: Celsius, metric measurements
-- Legal: Ontario regulations, Canadian standards
+- Legal: Ontario regulations, Canadian standards (NOT generic "local regulations")
 
 **Prohibited Spellings:**
 - ❌ color, labor, neighbor, center (US English)
 - ❌ Fahrenheit references
 - ❌ US regulatory references
+
+**Ontario HVAC Specificity:**
+- Reference TSSA (Technical Standards and Safety Authority) for Ontario-specific licensing
+- Mention Ontario building codes where relevant
+- Use Ontario-specific terminology for permits and compliance
 
 ### Tone Standards (LOCKED)
 
@@ -831,7 +886,10 @@ All internal links MUST:
 - Provide context for why user should click
 - Be naturally integrated into content
 - Not be keyword-stuffed
-- Not exceed 10 internal links per 500 words
+
+**Link Density Guidance (not enforced):**
+- Target: 5-10 internal links per 500 words
+- Avoid excessive linking (>15 links per 500 words)
 
 ### Schema Markup Compliance
 
@@ -858,17 +916,73 @@ All internal links MUST:
 
 ---
 
-## 13. BUSINESS PROFILE DATA
+## 13. EMERGENCY CONTENT GOVERNANCE
+
+### Emergency Keyword Rules
+
+**Allowed Page Types for "Emergency" Keyword:**
+1. Homepage (emergency_cta section only)
+2. Emergency service page (`/emergency/`)
+3. Service pages (emergency_notice section if service is 24/7 available)
+
+**Prohibited:**
+- ❌ "Emergency" in H1 or H2 tags on non-emergency pages
+- ❌ "Emergency" in location page titles
+- ❌ "Emergency" in blog article titles (unless emergency-focused article)
+- ❌ "Emergency" in meta titles for non-emergency pages
+
+### Emergency Keyword Limits by Page Type
+
+| Page Type | Max "Emergency" Mentions | Allowed Locations |
+|-----------|-------------------------|-------------------|
+| Homepage | 3-5 | emergency_cta section, trust_signals |
+| Emergency Page | Unlimited | All sections |
+| Service Page (24/7) | 2-3 | emergency_notice section, CTA |
+| Service Page (non-24/7) | 0 | Not allowed |
+| Location Page | 1-2 | trust_signals only (if 24/7 in area) |
+| Blog Article | 0-1 | Only if emergency-focused content |
+
+### Emergency CTA Placement
+
+**Emergency CTA Variant (Red, Urgent):**
+- Homepage: emergency_cta section
+- Emergency page: hero + cta_conversion
+- Service-city pages: hero CTA block
+- Service pages (24/7 only): optional emergency_notice
+
+**Standard CTA (Non-Emergency):**
+- All other pages
+- All footer CTAs
+
+### Emergency Content Requirements
+
+When mentioning emergency service:
+- MUST reference actual 24/7 availability from business profile
+- MUST include `{hours.response_time_statement}` or paraphrase
+- MUST NOT promise specific response times unless verified in business profile
+- MUST link to `/emergency/` page for full emergency service details
+
+**Example (Correct):**
+> "We provide 24/7 emergency furnace repair. {hours.response_time_statement}"
+
+**Example (Incorrect):**
+> "Emergency furnace repair available!" (No context, overpromises)
+
+---
+
+## 14. BUSINESS PROFILE DATA
+
+**All business data is sourced from `src/content/business/business-profile.yaml`**
 
 ### Contact Information
-- **Phone:** +1 519-835-4858
-- **Email:** info@bapheating.ca
-- **Hours:** 24/7
-- **Emergency Service:** Yes
-- **Response Time:** Typically within 60 minutes
+- **Phone:** `{contact.phone_display}`
+- **Email:** `{contact.email}`
+- **Hours:** `{hours.business_hours}`
+- **Emergency Service:** `{hours.emergency_service}` (boolean)
+- **Response Time:** `{hours.response_time_statement}`
 
 ### Service Area
-**Regions Served:**
+**Regions Served:** `{coverage.regions}` (6 regions)
 1. Wellington County (6 cities including Guelph, Fergus, Elora)
 2. Waterloo Region (5 cities including Kitchener, Waterloo, Cambridge)
 3. Halton Region (6 cities including Milton, Burlington, Oakville)
@@ -876,7 +990,7 @@ All internal links MUST:
 5. Hamilton & Brant (3 cities including Hamilton, Brantford)
 6. Dufferin County (3 cities including Orangeville, Shelburne)
 
-**Total Cities Served:** 25
+**Total Cities Served:** 25 (count from coverage.regions)
 
 ### Services Offered
 **Heating (10 services):**
@@ -902,23 +1016,29 @@ All internal links MUST:
 **Maintenance (1 service):**
 - Maintenance Plans
 
-**Total Services:** 22
+**Total Services:** 22 (count from services.list)
 
-### Trust Signals
-- Established: 2000
-- Licensed & Insured (TSSA)
-- WSIB covered
-- 10-year warranty on parts and labour
-- Google Rating: 4.8 stars (407 reviews)
-- Free estimates and diagnostics
+### Trust Signals (Single Source)
+- **Established:** `{business.established_year}`
+- **Licensed & Insured:** `{trust_and_compliance.insured_statement}`
+- **WSIB:** `{trust_and_compliance.wsib}` (boolean)
+- **Warranty:** `{warranty_and_guarantees.warranty_statement}`
+- **Google Rating:** `{reputation.google_rating}` stars
+- **Review Count:** `{reputation.google_review_count}` reviews
+- **Free Estimates:** `{pricing_and_offers.estimates_free}` (boolean)
+- **Free Diagnostics:** `{pricing_and_offers.diagnostic_free}` (boolean)
 
 ### Financing & Rebates
-- Financing available through multiple finance companies in Canada
-- Rebate paperwork supported from start to finish
+- **Financing Available:** `{pricing_and_offers.financing.available}` (boolean)
+- **Financing Statement:** `{pricing_and_offers.financing.statement}`
+- **Rebate Support:** `{pricing_and_offers.rebates.paperwork_supported}` (boolean)
+- **Rebate Statement:** `{pricing_and_offers.rebates.statement}`
+
+**CRITICAL:** Do NOT hardcode numeric values like "Established: 2000" or "4.8 stars (407 reviews)" in content. Reference business profile fields or templates will inject values.
 
 ---
 
-## 14. ENFORCEMENT & VALIDATION
+## 15. ENFORCEMENT & VALIDATION
 
 ### Build-Time Enforcement
 
@@ -926,8 +1046,20 @@ All internal links MUST:
 - Uniqueness score calculation for all content
 - City-name swap detection
 - FAQ/review scoping validation
-- Workflow status verification
+- Workflow status verification (approved/published have approval metadata)
 - E-E-A-T linting
+
+**Build Will NOT Fail If:**
+- Draft content exists (drafts are allowed in repo)
+- Content is in internal_review or seo_review state
+- Draft content lacks approval metadata
+
+**Build WILL Fail If:**
+- Content is marked approved or published without approvedBy/approvedDate
+- Uniqueness score below threshold for production-eligible content
+- City-name swap pattern detected in approved/published content
+- Prohibited phrases in approved/published content
+- Invalid date formats in approval metadata
 
 **Build Failure Example:**
 ```
@@ -962,9 +1094,10 @@ Build aborted. Fix issues and retry.
    - Flags content below threshold
 
 2. **Workflow Enforcement**
-   - Verifies all content has `workflowStatus: "published"`
-   - Blocks build if draft content detected
-   - Validates approval metadata present
+   - Counts draft vs approved vs published content
+   - Validates approval metadata for approved/published content
+   - Warns about draft count but does not block build
+   - Blocks build if approved/published content lacks approval metadata
 
 3. **E-E-A-T Linting**
    - Checks for prohibited words/phrases
@@ -973,12 +1106,42 @@ Build aborted. Fix issues and retry.
    - Verifies factual claim citations
 
 **Exit Code:**
-- `0` = All checks passed
-- `1` = Violations detected, build blocked
+- `0` = All checks passed (drafts allowed)
+- `1` = Violations detected, build blocked (only for approved/published content issues)
+
+### Enforcement Configuration
+
+**File:** `scripts/enforce.config.json`
+
+```json
+{
+  "uniqueness": {
+    "enabled": true,
+    "thresholds": {
+      "serviceCityVsServiceCity": 0.80,
+      "serviceVsServiceCity": 0.80,
+      "locationVsLocation": 0.75,
+      "blogVsBlog": 0.95,
+      "general": 0.70
+    }
+  },
+  "workflow": {
+    "enabled": true,
+    "requiredStatuses": ["approved", "published"],
+    "strictApprovalMetadata": true
+  },
+  "eeat": {
+    "enabled": true,
+    "checkEmergencyUsage": true,
+    "checkProhibitedPhrases": true,
+    "checkAIFluff": true
+  }
+}
+```
 
 ---
 
-## 15. QUICK REFERENCE CHECKLISTS
+## 16. QUICK REFERENCE CHECKLISTS
 
 ### ✅ Content Creation Checklist
 
@@ -1034,10 +1197,10 @@ Before creating ANY content:
 - [ ] Question is clear and user-focused
 - [ ] Answer is concise (50-200 words)
 - [ ] Answer provides actionable information
-- [ ] Scope field correctly set (global, service:{slug}, location:{slug}, etc.)
-- [ ] Priority field set (lower = higher priority)
+- [ ] Scopes array correctly set (e.g., ["global"], ["service:furnace-repair"], etc.)
+- [ ] Priority field set (higher number = higher priority within same scope)
 - [ ] Status set to "live"
-- [ ] workflowStatus set to "published"
+- [ ] workflowStatus set to "draft" (for new FAQs) or "published" (for approved FAQs)
 - [ ] No duplicate questions across inappropriate scopes
 - [ ] Canadian English spelling throughout
 - [ ] No keyword stuffing
@@ -1054,7 +1217,7 @@ Before creating ANY content:
 - [ ] Review date present (ISO format)
 - [ ] Scope fields correct (locationSlug, serviceSlug, citySlug)
 - [ ] Status set to "live"
-- [ ] workflowStatus set to "published"
+- [ ] workflowStatus set to "draft" (for new reviews) or "published" (for approved reviews)
 - [ ] No fabricated reviews
 - [ ] Review includes city-specific details (if city-scoped)
 
@@ -1093,11 +1256,12 @@ Before creating ANY content:
    - Paragraph spinning = automatic rejection
    - Template intro/outro = maximum 1 sentence
 
-3. **WORKFLOW MUST BE FOLLOWED**
-   - All content starts in "draft" state
-   - Must pass internal review → SEO review → approved → published
-   - No bypassing workflow stages
-   - No auto-publishing
+3. **WORKFLOW ALLOWS DRAFTS**
+   - All new content starts in "draft" state
+   - Drafts are allowed in repository without blocking builds
+   - Only approved/published content is built to production
+   - Approved/published content requires approval metadata
+   - No bypassing workflow stages for production content
 
 4. **AI OUTPUT REQUIRES HUMAN REVIEW**
    - AI is a tool, not a replacement
@@ -1105,7 +1269,17 @@ Before creating ANY content:
    - All factual claims must be verified
    - Canadian English spelling required
 
-5. **WHEN IN DOUBT, ASK**
+5. **BUSINESS DATA IS SINGLE SOURCE**
+   - All numeric claims reference business profile
+   - No hardcoded values in content
+   - Templates inject business profile data
+
+6. **FAQ SYSTEM USES SCOPES ARRAY**
+   - Use `scopes: ["global", "service:slug", "location:slug"]`
+   - NOT `appliesTo.pageTypes` or similar
+   - Higher FAQ priority number = higher priority within same scope
+
+7. **WHEN IN DOUBT, ASK**
    - Don't guess or interpret rules creatively
    - Refer to detailed documentation in `/docs/`
    - Escalate uncertainties to content lead or architect
@@ -1128,7 +1302,7 @@ Before creating ANY content:
 **This README is LOCKED. Changes require architectural review and approval.**
 
 **Last Updated:** 2026-01-09
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Status:** Production-Ready
 
 ---
