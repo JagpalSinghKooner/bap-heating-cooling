@@ -300,6 +300,18 @@ const blog = defineCollection({
   }),
 });
 
+const seasonalMessages = defineCollection({
+  type: 'content',
+  schema: z.object({
+    season: z.enum(['winter', 'spring', 'summer', 'fall']),
+    startDate: z.string(), // MM-DD format
+    endDate: z.string(), // MM-DD format
+    message: z.string(),
+    icon: z.enum(['snowflake', 'sun', 'flame', 'leaf']).optional(),
+    enabled: z.boolean().default(true),
+  }),
+});
+
 export const collections = {
   services,
   locations,
@@ -308,4 +320,5 @@ export const collections = {
   faqs,      // NEW: FAQ system for dynamic FAQ display
   reviews,   // NEW: Reviews collection for testimonials
   blog,      // NEW: Blog collection for content marketing
+  'seasonal-messages': seasonalMessages, // NEW: Seasonal messages for callout bar
 };

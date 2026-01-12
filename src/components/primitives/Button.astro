@@ -1,0 +1,63 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'emergency' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+  target?: '_blank' | '_self';
+  rel?: string;
+  'data-cta-context'?: string;
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  href,
+  type = 'button',
+  class: className = '',
+  target,
+  rel,
+  'data-cta-context': dataCtaContext,
+} = Astro.props;
+
+const variantClasses = {
+  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground',
+  secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground',
+  ghost: 'bg-transparent hover:bg-muted text-foreground',
+  emergency: 'bg-brand-orange hover:bg-brand-orange-dark text-white',
+  outline: 'border-2 border-current bg-transparent hover:bg-current/10',
+};
+
+const sizeClasses = {
+  sm: 'px-4 py-2 text-sm',
+  md: 'px-6 py-3 text-base',
+  lg: 'px-8 py-4 text-lg',
+};
+
+const baseClasses = 'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all shadow-sm hover:shadow-md';
+
+const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+
+const Tag = href ? 'a' : 'button';
+---
+
+{Tag === 'a' ? (
+  <a
+    href={href}
+    class={classes}
+    target={target}
+    rel={rel}
+    data-cta-context={dataCtaContext}
+  >
+    <slot />
+  </a>
+) : (
+  <button
+    type={type}
+    class={classes}
+    data-cta-context={dataCtaContext}
+  >
+    <slot />
+  </button>
+)}

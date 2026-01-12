@@ -1,0 +1,167 @@
+---
+/**
+ * Gallery Section - Before & After
+ * Interactive split-screen image comparisons showing project outcomes
+ * Uses universal Card structure with edge-to-edge images
+ */
+
+import Section from '../primitives/Section.astro';
+import Card from '../primitives/Card.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Badge from '../primitives/Badge.astro';
+
+const projects = [
+  {
+    id: 'furnace-install',
+    title: 'Same-Day Furnace Replacement',
+    category: 'Furnace Replacement',
+    outcome: 'Energy bills reduced by 20%',
+    beforeImage: 'https://placehold.co/800x600/94a3b8/1e293b.png?text=Old+Furnace',
+    afterImage: 'https://placehold.co/800x600/1e40af/ffffff.png?text=New+Furnace',
+  },
+  {
+    id: 'heatpump-install',
+    title: 'Heat Pump Installation',
+    category: 'Heat Pump',
+    outcome: 'Heating costs cut by 35%',
+    beforeImage: 'https://placehold.co/800x600/94a3b8/1e293b.png?text=Old+System',
+    afterImage: 'https://placehold.co/800x600/1e40af/ffffff.png?text=Heat+Pump',
+  },
+  {
+    id: 'ac-install',
+    title: 'High-Efficiency AC Install',
+    category: 'Air Conditioning',
+    outcome: 'Cooling costs down by 25%',
+    beforeImage: 'https://placehold.co/800x600/94a3b8/1e293b.png?text=Old+AC',
+    afterImage: 'https://placehold.co/800x600/1e40af/ffffff.png?text=New+AC',
+  },
+];
+---
+
+<Section variant="brand">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+    <p class="eyebrow mb-3">Real Results</p>
+    <h2 class="section-title">Projects That Deliver Measurable Outcomes</h2>
+    <p class="section-description mx-auto max-w-2xl">
+      Real installations from real homes. Professional HVAC service that reduces your energy costs and improves comfort. Drag the slider to compare before and after.
+    </p>
+  </div>
+
+  <!-- Gallery Grid -->
+  <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+    {projects.map((project) => (
+      <Card interactive>
+        <!-- Image Area: Edge-to-Edge with Comparison Slider -->
+        <div class="relative aspect-[4/3] overflow-hidden bg-muted" data-comparison-slider>
+          <!-- Before Image (Background) -->
+          <img
+            src={project.beforeImage}
+            alt={`${project.title} - Before`}
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+
+          <!-- After Image (Foreground with clip) -->
+          <div
+            class="absolute inset-0 overflow-hidden"
+            style="clip-path: inset(0 50% 0 0);"
+            data-after-container
+          >
+            <img
+              src={project.afterImage}
+              alt={`${project.title} - After`}
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+
+          <!-- Slider Handle -->
+          <div
+            class="absolute top-0 bottom-0 w-1 cursor-ew-resize bg-white shadow-lg"
+            style="left: 50%;"
+            data-slider-handle
+          >
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl">
+              <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Labels -->
+          <div class="absolute top-4 left-4 z-10">
+            <Badge variant="default" size="sm">Before</Badge>
+          </div>
+          <div class="absolute top-4 right-4 z-10">
+            <Badge variant="primary" size="sm">After</Badge>
+          </div>
+        </div>
+
+        <!-- Text Area: Padded Content -->
+        <CardBody padding="md">
+          <div class="mb-2">
+            <Badge variant="default" size="sm">{project.category}</Badge>
+          </div>
+          <h3 class="mb-2 text-lg font-bold text-foreground">{project.title}</h3>
+          <p class="text-sm font-semibold text-primary">{project.outcome}</p>
+        </CardBody>
+      </Card>
+    ))}
+  </div>
+</Section>
+
+<script>
+  // Image comparison slider functionality
+  document.addEventListener('astro:page-load', () => {
+    const sliders = document.querySelectorAll('[data-comparison-slider]');
+
+    sliders.forEach((slider) => {
+      const handle = slider.querySelector('[data-slider-handle]') as HTMLElement;
+      const afterContainer = slider.querySelector('[data-after-container]') as HTMLElement;
+
+      if (!handle || !afterContainer) return;
+
+      let isDragging = false;
+
+      const updatePosition = (e: MouseEvent | TouchEvent) => {
+        const rect = slider.getBoundingClientRect();
+        const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const position = ((x - rect.left) / rect.width) * 100;
+        const clampedPosition = Math.max(0, Math.min(100, position));
+
+        handle.style.left = `${clampedPosition}%`;
+        afterContainer.style.clipPath = `inset(0 ${100 - clampedPosition}% 0 0)`;
+      };
+
+      const startDrag = (e: MouseEvent | TouchEvent) => {
+        isDragging = true;
+        e.preventDefault();
+        updatePosition(e);
+      };
+
+      const stopDrag = () => {
+        isDragging = false;
+      };
+
+      const onMove = (e: MouseEvent | TouchEvent) => {
+        if (!isDragging) return;
+        updatePosition(e);
+      };
+
+      // Mouse events
+      handle.addEventListener('mousedown', startDrag);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', stopDrag);
+
+      // Touch events
+      handle.addEventListener('touchstart', startDrag, { passive: false });
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', stopDrag);
+
+      // Click to position
+      slider.addEventListener('click', (e: Event) => {
+        if (e.target === handle || handle.contains(e.target as Node)) return;
+        updatePosition(e as MouseEvent);
+      });
+    });
+  });
+</script>

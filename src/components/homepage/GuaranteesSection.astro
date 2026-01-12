@@ -1,0 +1,88 @@
+---
+/**
+ * Guarantees Section - Risk Removal
+ * Lowers final hesitation before FAQ + CTA
+ * Uses universal Card structure with placeholder images
+ */
+
+import Section from '../primitives/Section.astro';
+import Card from '../primitives/Card.astro';
+import CardMedia from '../primitives/CardMedia.astro';
+import CardBody from '../primitives/CardBody.astro';
+
+const guarantees = [
+  {
+    title: '10-Year Parts & Labour Warranty',
+    description: 'Comprehensive coverage on all installations and repairs. Your investment is protected for the long haul.',
+    imageUrl: 'https://placehold.co/800x600/1e40af/ffffff.png?text=Warranty',
+  },
+  {
+    title: 'Workmanship Guarantee',
+    description: 'Every job is completed to the highest professional standards. We stand behind our work, period.',
+    imageUrl: 'https://placehold.co/800x600/10b981/ffffff.png?text=Quality',
+  },
+  {
+    title: 'Satisfaction Promise',
+    description: 'Your comfort and peace of mind matter. If you\'re not happy, we\'re not done.',
+    imageUrl: 'https://placehold.co/800x600/f59e0b/ffffff.png?text=Satisfaction',
+  },
+  {
+    title: 'No-Surprise Pricing',
+    description: 'Upfront quotes with no hidden fees. You know exactly what you\'re paying before we start.',
+    imageUrl: 'https://placehold.co/800x600/06b6d4/ffffff.png?text=Pricing',
+  },
+];
+
+const trustBadges = [
+  { name: 'TSSA Certified', icon: '✓' },
+  { name: 'Carrier Authorized Partner', icon: '★' },
+  { name: 'Licensed & Insured', icon: '🛡️' },
+];
+---
+
+<Section variant="default">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+    <p class="eyebrow mb-3">Your Investment is Protected</p>
+    <h2 class="section-title">If it's not right, we make it right. Period.</h2>
+    <p class="section-description mx-auto max-w-2xl">
+      We back every job with industry-leading guarantees and warranties. You can move forward with complete confidence — your satisfaction is guaranteed.
+    </p>
+  </div>
+
+  <!-- Guarantees Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 lg:gap-8">
+    {guarantees.map((guarantee) => (
+      <Card interactive class="h-full">
+        <!-- Image Area: Edge-to-Edge -->
+        <CardMedia
+          src={guarantee.imageUrl}
+          alt={guarantee.title}
+        />
+
+        <!-- Text Area: Padded Content -->
+        <CardBody padding="lg">
+          <h3 class="mb-2 text-lg font-bold text-foreground">
+            {guarantee.title}
+          </h3>
+          <p class="text-sm text-muted-foreground">
+            {guarantee.description}
+          </p>
+        </CardBody>
+      </Card>
+    ))}
+  </div>
+
+  <!-- Trust Badges -->
+  <div class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+      <p class="text-sm font-semibold text-muted-foreground">Certified & Trusted:</p>
+      {trustBadges.map((badge) => (
+        <div class="flex items-center gap-2">
+          <span class="text-xl" aria-hidden="true">{badge.icon}</span>
+          <span class="text-sm font-medium text-foreground">{badge.name}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</Section>

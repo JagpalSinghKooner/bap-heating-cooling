@@ -130,24 +130,24 @@
    ============================================ */
 
 @layer components {
-  /* Section Base */
+  /* Section Base - Standard vertical rhythm */
   .section {
-    @apply py-12 sm:py-16 lg:py-20;
+    @apply py-14 md:py-20 lg:py-24;
   }
 
-  /* Section Compact (between related blocks) */
+  /* Section Compact (trust strips, tight sections) */
   .section-compact {
-    @apply py-8 sm:py-10 lg:py-12;
+    @apply py-6 sm:py-8 md:py-10;
   }
 
-  /* Section Container */
+  /* Section Container (max-w-6xl standard) */
   .section-container {
-    @apply container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
   }
 
   /* Hero Section */
   .section-hero {
-    @apply py-16 sm:py-20 lg:py-24;
+    @apply py-16 md:py-20 lg:py-24;
   }
 }
 

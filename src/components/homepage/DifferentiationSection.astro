@@ -1,0 +1,68 @@
+---
+/**
+ * Differentiation Section - "We Are Not..."
+ * Addresses common customer objections and differentiates from competitors
+ */
+
+import Section from '../primitives/Section.astro';
+
+const differentiators = [
+  {
+    title: 'No unnecessary upsells',
+    description: 'We recommend only what your system actually needs — no pressure to buy services or products you don\'t require.',
+    icon: '✓',
+  },
+  {
+    title: 'No subcontractors',
+    description: 'Our own certified technicians show up to your home — never subcontracted work from unknown third parties.',
+    icon: '👥',
+  },
+  {
+    title: 'No hidden fees',
+    description: 'Transparent pricing before we start — you know exactly what you\'re paying with no surprises at the end.',
+    icon: '💰',
+  },
+  {
+    title: 'No high-pressure sales',
+    description: 'We explain your options clearly and let you decide — no forced contracts or aggressive sales tactics.',
+    icon: '🤝',
+  },
+];
+---
+
+<Section variant="muted">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+    <p class="eyebrow mb-3">How We're Different</p>
+    <h2 class="section-title">We Are Not Like Other HVAC Companies</h2>
+    <p class="section-description mx-auto max-w-2xl">
+      Honest service, honest pricing, honest recommendations. No games, no pressure — just professional HVAC service you can trust.
+    </p>
+  </div>
+
+  <!-- Differentiators Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 lg:gap-8">
+    {differentiators.map((item) => (
+      <div class="flex items-start gap-4 rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+          <span class="text-2xl" aria-hidden="true">{item.icon}</span>
+        </div>
+        <div class="flex-1">
+          <h3 class="mb-2 text-lg font-bold text-foreground">
+            {item.title}
+          </h3>
+          <p class="text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Bottom Emphasis -->
+  <div class="mt-10 text-center">
+    <p class="text-lg font-semibold text-foreground">
+      Just straightforward, professional service from technicians who respect your home and your time.
+    </p>
+  </div>
+</Section>

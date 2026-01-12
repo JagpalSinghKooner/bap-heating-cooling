@@ -1,104 +1,202 @@
 ---
 /**
  * Service Categories Section
- * Gateway to main service categories - UI only, no new content
+ * Premium, intent-based service pathways with image-led cards
+ *
+ * Design Philosophy:
+ * - Image-left / content-right layout
+ * - Question-based headings for clarity
+ * - CTA-style service links (not pills)
+ * - Visual hierarchy through typography
+ * - Premium feel through restraint
  */
 
-// Icon placeholder URLs
-const iconPlaceholders = {
-  heating: 'https://placehold.co/80x80/f97316/ffffff.png?text=🔥',
-  cooling: 'https://placehold.co/80x80/3b82f6/ffffff.png?text=❄️',
-  air: 'https://placehold.co/80x80/10b981/ffffff.png?text=💨',
-  water: 'https://placehold.co/80x80/06b6d4/ffffff.png?text=💧',
+import Section from '../primitives/Section.astro';
+
+// Simple placeholder images (no text overlays)
+const imagePlaceholders = {
+  repair: 'https://placehold.co/800x600/e8e8e8/999999.png?text=',
+  replacement: 'https://placehold.co/800x600/e8e8e8/999999.png?text=',
+  comfort: 'https://placehold.co/800x600/e8e8e8/999999.png?text=',
+  commercial: 'https://placehold.co/800x600/e8e8e8/999999.png?text=',
 } as const;
 
-type IconKey = keyof typeof iconPlaceholders;
-
-// Map service categories to visual presentation
-const serviceCategories: Array<{
-  title: string;
+type ServicePathway = {
+  heading: string;
   description: string;
-  href: string;
-  icon: IconKey;
-  color: string;
-}> = [
+  image: string;
+  primaryServices: Array<{ title: string; href: string }>;
+  secondaryServices: Array<{ title: string; href: string }>;
+};
+
+const servicePathways: ServicePathway[] = [
   {
-    title: 'Heating',
-    description: 'Furnace, boiler, and heat pump services',
-    href: '/services/heating/',
-    icon: 'heating',
-    color: 'orange',
+    heading: 'Something not working?',
+    description: 'We diagnose and repair heating and cooling systems across all major brands.',
+    image: imagePlaceholders.repair,
+    primaryServices: [
+      { title: 'Furnace Repair', href: '/services/furnace-repair/' },
+      { title: 'Air Conditioner Repair', href: '/services/air-conditioner-repair/' },
+    ],
+    secondaryServices: [
+      { title: 'Emergency HVAC Service', href: '/services/emergency-hvac/' },
+      { title: 'Boiler Repair', href: '/services/boiler-repair/' },
+      { title: 'Heat Pump Repair', href: '/services/heat-pump-repair/' },
+    ],
   },
   {
-    title: 'Cooling',
-    description: 'Air conditioning installation and repair',
-    href: '/services/cooling/',
-    icon: 'cooling',
-    color: 'blue',
+    heading: 'Replacing your system?',
+    description: 'New installations backed by transparent recommendations and 10-year warranty.',
+    image: imagePlaceholders.replacement,
+    primaryServices: [
+      { title: 'Furnace Installation', href: '/services/furnace-installation/' },
+      { title: 'Air Conditioner Installation', href: '/services/air-conditioner-installation/' },
+    ],
+    secondaryServices: [
+      { title: 'Heat Pump Installation', href: '/services/heat-pump-installation/' },
+      { title: 'Boiler Installation', href: '/services/boiler-installation/' },
+      { title: 'Ductless Mini-Split', href: '/services/ductless-mini-split/' },
+    ],
   },
   {
-    title: 'Indoor Air Quality',
-    description: 'Air filtration and ventilation systems',
-    href: '/services/indoor-air-quality/',
-    icon: 'air',
-    color: 'green',
+    heading: 'Improve comfort & efficiency',
+    description: 'Solutions for better air quality, ventilation, and year-round comfort.',
+    image: imagePlaceholders.comfort,
+    primaryServices: [
+      { title: 'Air Filtration & Air Purifiers', href: '/services/air-filtration-air-purifiers/' },
+      { title: 'HRV/ERV Ventilation', href: '/services/hrv-erv-ventilation/' },
+    ],
+    secondaryServices: [
+      { title: 'Humidifiers', href: '/services/humidifiers/' },
+      { title: 'Dehumidifiers', href: '/services/dehumidifiers/' },
+    ],
   },
   {
-    title: 'Water Heating',
-    description: 'Tank and tankless water heater services',
-    href: '/services/water-heating/',
-    icon: 'water',
-    color: 'cyan',
+    heading: 'Commercial HVAC',
+    description: 'Service and maintenance for businesses across all industries.',
+    image: imagePlaceholders.commercial,
+    primaryServices: [
+      { title: 'Commercial HVAC', href: '/services/commercial-hvac/' },
+      { title: 'Maintenance Plans', href: '/services/maintenance-plans/' },
+    ],
+    secondaryServices: [
+      { title: 'Rooftop Units', href: '/services/rooftop-units/' },
+      { title: 'Ductless Mini-Split', href: '/services/ductless-mini-split/' },
+    ],
   },
 ];
 ---
 
-<section class="section bg-white">
-  <div class="section-container">
-    <!-- Section Header -->
-    <div class="mb-12 text-center">
-      <p class="eyebrow mb-3">Our Services</p>
-      <h2 class="section-title">Complete HVAC Solutions</h2>
-      <p class="section-description mx-auto max-w-2xl">
-        Professional heating, cooling, and air quality services for residential and commercial properties
-      </p>
-    </div>
+<Section variant="default">
+  <!-- Section Header -->
+  <div class="mb-12 text-center sm:mb-16">
+    <p class="eyebrow mb-3">How We Help</p>
+    <h2 class="section-title mb-4">When your home isn't comfortable, you need answers — not pressure</h2>
+    <p class="mx-auto max-w-3xl text-base leading-relaxed text-muted-foreground">
+      We help homeowners and businesses across Guelph diagnose problems, explore options, and choose HVAC solutions that make sense for their space and budget.
+    </p>
+  </div>
 
-    <!-- Service Category Cards -->
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {serviceCategories.map((category) => (
-        <a
-          href={category.href}
-          class="group card-standard flex flex-col items-center text-center transition-all hover:shadow-lg hover:-translate-y-1"
-        >
-          <!-- Icon -->
-          <div class="mb-4 h-20 w-20 overflow-hidden rounded-full">
-            <img
-              src={iconPlaceholders[category.icon]}
-              alt=""
-              class="h-full w-full object-cover transition-transform group-hover:scale-110"
-            />
-          </div>
+  <!-- Service Pathway Cards -->
+  <div class="space-y-12 sm:space-y-16">
+    {servicePathways.map((pathway) => (
+      <div class="flex flex-col gap-6 md:flex-row md:gap-8 lg:gap-12">
+        <!-- Image (Left) -->
+        <div class="md:w-1/2">
+          <img
+            src={pathway.image}
+            alt=""
+            class="h-full w-full rounded-lg object-cover"
+            loading="lazy"
+          />
+        </div>
 
-          <!-- Title -->
-          <h3 class="mb-2 text-lg font-bold text-foreground">
-            {category.title}
+        <!-- Content (Right) -->
+        <div class="flex flex-col justify-center md:w-1/2">
+          <!-- Heading -->
+          <h3 class="mb-3 text-2xl font-bold text-foreground sm:text-3xl">
+            {pathway.heading}
           </h3>
 
           <!-- Description -->
-          <p class="mb-4 text-sm text-muted-foreground">
-            {category.description}
+          <p class="mb-6 text-base leading-relaxed text-muted-foreground">
+            {pathway.description}
           </p>
 
-          <!-- CTA Arrow -->
-          <div class="mt-auto flex items-center gap-2 text-sm font-semibold text-primary">
-            <span>Explore services</span>
-            <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+          <!-- Primary Service CTAs -->
+          <div class="mb-4 flex flex-col gap-3">
+            {pathway.primaryServices.map((service) => (
+              <a
+                href={service.href}
+                class="group inline-flex items-center gap-2 text-lg font-semibold text-primary transition-colors hover:text-primary/80"
+              >
+                <span aria-hidden="true">→</span>
+                <span>{service.title}</span>
+              </a>
+            ))}
           </div>
-        </a>
-      ))}
+
+          <!-- Secondary Service Links -->
+          <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            {pathway.secondaryServices.map((service, index) => (
+              <>
+                <a
+                  href={service.href}
+                  class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                >
+                  <span aria-hidden="true">→</span>
+                  <span>{service.title}</span>
+                </a>
+                {index < pathway.secondaryServices.length - 1 && (
+                  <span aria-hidden="true">·</span>
+                )}
+              </>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Intent-Based Guidance -->
+  <div class="mt-16 border-t border-border pt-10">
+    <p class="mb-6 text-center text-sm font-semibold text-muted-foreground">Need help deciding?</p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <a href="tel:+15198354858" class="group flex items-center gap-3 rounded-lg border border-border bg-background p-4 transition-all hover:border-primary hover:shadow-md">
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
+          <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-foreground">Not sure what you need?</p>
+          <p class="text-xs text-muted-foreground">Call for guidance</p>
+        </div>
+      </a>
+
+      <a href="https://book.housecallpro.com/book/BAP-Heating--Cooling-Services/f9fdd1eeb84340c2a2acf5c7f927b4aa" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-3 rounded-lg border border-border bg-background p-4 transition-all hover:border-primary hover:shadow-md">
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
+          <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-foreground">System replacement?</p>
+          <p class="text-xs text-muted-foreground">Schedule a quote</p>
+        </div>
+      </a>
+
+      <a href="tel:+15198354858" class="group flex items-center gap-3 rounded-lg border border-brand-orange bg-brand-orange/5 p-4 transition-all hover:border-brand-orange hover:shadow-md">
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-orange/10">
+          <svg class="h-5 w-5 text-brand-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-foreground">No heat right now?</p>
+          <p class="text-xs text-muted-foreground">24/7 emergency service</p>
+        </div>
+      </a>
     </div>
   </div>
-</section>
+</Section>

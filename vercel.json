@@ -199,6 +199,48 @@
       "note": "Enforce trailing slash"
     },
     {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/",
+      "permanent": true,
+      "note": "Enforce trailing slash"
+    },
+    {
       "source": "/:path*",
       "has": [
         {

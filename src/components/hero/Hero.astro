@@ -1,12 +1,11 @@
 ---
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Button from '../primitives/Button.astro';
 
 interface Props {
   eyebrow?: string;
   headline: string;
   description?: string;
-  showRatingCard?: boolean;
-  showTrustBadges?: boolean;
   context?: string;
 }
 
@@ -14,20 +13,17 @@ const {
   eyebrow = 'Professional HVAC Services',
   headline,
   description,
-  showRatingCard = true,
-  showTrustBadges = true,
   context = 'hero'
 } = Astro.props;
 
 const profile = await getBusinessProfile();
-const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
 ---
 
 <section class="relative overflow-hidden bg-gradient-to-r from-brand-blue to-brand-blue-dark">
   <!-- Background Image with Overlay -->
   <div class="absolute inset-0 z-0">
     <img
-      src="https://placehold.co/1600x900/1e40af/ffffff.png?text=HVAC+Background"
+      src="https://placehold.co/1600x900/1e40af/ffffff.png?text=."
       alt=""
       class="h-full w-full object-cover"
     />
@@ -36,103 +32,101 @@ const yearsInBusiness = new Date().getFullYear() - profile.business.established_
   </div>
 
   <!-- Content -->
-  <div class="relative z-10 container mx-auto px-4 py-16 md:py-20 lg:py-24">
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-      <!-- Left Column: Content -->
-      <div class="flex flex-col justify-center text-white">
-        <!-- Eyebrow -->
-        {eyebrow && (
-          <p class="mb-4 text-sm font-semibold uppercase tracking-wider text-white/90">
-            {eyebrow}
-          </p>
-        )}
+  <div class="relative z-10 mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+    <div class="mx-auto max-w-4xl text-center text-white">
+      <!-- Eyebrow - Enhanced Visibility -->
+      {eyebrow && (
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>{eyebrow}</span>
+        </div>
+      )}
 
-        <!-- Headline -->
-        <h1 class="mb-6 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-          {headline}
-        </h1>
+      <!-- Headline - Optimized -->
+      <h1 class="mb-4 text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
+        {headline}
+      </h1>
 
-        <!-- Description -->
-        {description && (
-          <p class="mb-8 text-lg text-white/90 sm:text-xl lg:text-2xl">
-            {description}
-          </p>
-        )}
+      <!-- Description - Optimized -->
+      {description && (
+        <p class="mb-8 text-base leading-relaxed text-white/95 sm:text-lg md:text-xl">
+          {description}
+        </p>
+      )}
 
-        <!-- CTAs -->
-        <div class="mb-8 flex flex-col gap-4 sm:flex-row">
-          <!-- Primary CTA -->
-          <a
-            href={profile.contact.booking.enabled ? profile.contact.booking.url : `tel:${profile.contact.phone_e164}`}
-            class="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-8 py-4 text-lg font-bold text-white shadow-xl transition-all hover:bg-brand-orange-dark hover:shadow-2xl hover:translate-y-[-2px]"
+      <!-- CTAs - Call Primary, Book Secondary -->
+      <div class="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <!-- Primary CTA: Call -->
+        <Button
+          variant="emergency"
+          size="lg"
+          href={`tel:${profile.contact.phone_e164}`}
+          data-cta-context={context}
+          class="w-full rounded-full shadow-2xl transition-all hover:translate-y-[-2px] hover:shadow-3xl sm:w-auto"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          <span class="font-bold">Call {profile.contact.phone_display}</span>
+        </Button>
+
+        <!-- Secondary CTA: Book Online -->
+        {profile.contact.booking.enabled && (
+          <Button
+            variant="outline"
+            size="lg"
+            href={profile.contact.booking.url}
+            target="_blank"
+            rel="noopener noreferrer"
             data-cta-context={context}
-            target={profile.contact.booking.enabled ? "_blank" : undefined}
-            rel={profile.contact.booking.enabled ? "noopener noreferrer" : undefined}
+            class="w-full rounded-full border-2 border-white bg-transparent text-white transition-all hover:bg-white hover:text-brand-blue sm:w-auto"
           >
-            <span>Schedule Service</span>
+            <span class="font-semibold">Book Online</span>
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-          </a>
-
-          <!-- Secondary CTA -->
-          <a
-            href="/services/"
-            class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white bg-transparent px-8 py-4 text-lg font-bold text-white transition-all hover:bg-white hover:text-brand-blue"
-            data-cta-context={context}
-          >
-            <span>Our Services</span>
-          </a>
-        </div>
-
-        <!-- Trust Strip -->
-        {showTrustBadges && (
-          <div class="flex flex-wrap items-center gap-6 text-sm text-white/90">
-            <div class="flex items-center gap-2">
-              <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span class="font-semibold">{profile.reputation.google_rating} Rating</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span class="font-semibold">{yearsInBusiness}+ Years</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span class="font-semibold">Licensed & Insured</span>
-            </div>
-          </div>
+          </Button>
         )}
       </div>
 
-      <!-- Right Column: Floating Rating Card (Desktop) -->
-      {showRatingCard && (
-        <div class="hidden lg:flex lg:items-end lg:justify-end">
-          <div class="rounded-2xl bg-white p-6 shadow-2xl">
-            <div class="flex items-center gap-4">
-              <div class="flex h-16 w-16 items-center justify-center rounded-full bg-muted/30">
-                {/* Google G Icon */}
-                <svg viewBox="0 0 24 24" class="h-10 w-10" aria-hidden="true">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-              </div>
-              <div>
-                <div class="mb-1 text-3xl font-bold text-foreground">{profile.reputation.google_rating}</div>
-                <div class="text-sm font-semibold text-muted-foreground">Google Rating</div>
-                <div class="text-xs text-muted-foreground">{profile.reputation.google_review_count}+ Reviews</div>
-              </div>
-            </div>
-          </div>
+      <!-- Trust Proof Chips - Compact Premium Design (Option A) -->
+      <div class="flex flex-wrap items-center justify-center gap-3 text-sm sm:gap-4">
+        <!-- Chip 1: Google Rating -->
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+          <svg class="h-4 w-4 flex-shrink-0 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span class="font-bold">{profile.reputation.google_rating}★</span>
+          <span class="text-white/80">·</span>
+          <span class="font-medium text-white/90">{profile.reputation.google_review_count}+ reviews</span>
         </div>
-      )}
+
+        <!-- Chip 2: Years in Business -->
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-semibold">Serving since {profile.business.established_year}</span>
+        </div>
+
+        <!-- Chip 3: Licensed & Insured -->
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span class="font-semibold">Licensed & Insured</span>
+        </div>
+
+        <!-- Chip 4: WSIB Compliant -->
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-semibold">WSIB Compliant</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>

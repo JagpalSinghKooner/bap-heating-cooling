@@ -1,0 +1,98 @@
+---
+/**
+ * Emotion-Led Services Section
+ * Image-left, content-right service pathway cards
+ *
+ * LAYOUT:
+ * - Desktop: Image LEFT (40%), Content RIGHT (60%)
+ * - Mobile: Image TOP (full width), Content BELOW
+ *
+ * BEHAVIOR:
+ * - No accordion, no drawer - all services visible
+ * - Direct links to service pages (SEO crawlable)
+ * - Service pills wrap cleanly on all screen sizes
+ * - All services from governance document
+ */
+
+import Section from '../primitives/Section.astro';
+import ServicePathwayCard from '../primitives/ServicePathwayCard.astro';
+
+// Define pathways with their services (mapped from governance document)
+const pathways = [
+  {
+    id: 'not-working',
+    title: 'Something not working?',
+    description: 'From no heat in winter to AC failures in summer, we diagnose and repair all major HVAC systems quickly and transparently.',
+    imageSrc: 'https://placehold.co/600x400/1e40af/ffffff?text=HVAC+Repair',
+    imageAlt: 'HVAC technician diagnosing furnace problem',
+    services: [
+      { name: 'Furnace Repair', href: '/services/furnace-repair/' },
+      { name: 'Air Conditioner Repair', href: '/services/air-conditioner-repair/' },
+      { name: 'Boiler Repair', href: '/services/boiler-repair/' },
+      { name: 'Heat Pump Repair', href: '/services/heat-pump-repair/' },
+    ],
+  },
+  {
+    id: 'replacing-system',
+    title: 'Replacing your system?',
+    description: 'Old system beyond repair? We provide clear options, transparent quotes, and professional installation for all major brands.',
+    imageSrc: 'https://placehold.co/600x400/059669/ffffff?text=New+Installation',
+    imageAlt: 'Technician installing new HVAC equipment',
+    services: [
+      { name: 'Furnace Installation', href: '/services/furnace-installation/' },
+      { name: 'Air Conditioner Installation', href: '/services/air-conditioner-installation/' },
+      { name: 'Heat Pump Installation', href: '/services/heat-pump-installation/' },
+      { name: 'Boiler Installation', href: '/services/boiler-installation/' },
+    ],
+  },
+  {
+    id: 'comfort-efficiency',
+    title: 'Improve comfort & efficiency',
+    description: 'Uneven temperatures, dry air, or high energy bills? We optimize indoor air quality and system efficiency for year-round comfort.',
+    imageSrc: 'https://placehold.co/600x400/7c3aed/ffffff?text=Indoor+Comfort',
+    imageAlt: 'Comfortable living room with optimal air quality',
+    services: [
+      { name: 'Humidifiers', href: '/services/humidifiers/' },
+      { name: 'Dehumidifiers', href: '/services/dehumidifiers/' },
+      { name: 'Air Filtration & Air Purifiers', href: '/services/air-filtration-air-purifiers/' },
+      { name: 'HRV/ERV Ventilation', href: '/services/hrv-erv-ventilation/' },
+    ],
+  },
+  {
+    id: 'commercial',
+    title: 'Commercial HVAC',
+    description: 'Keep your business running with reliable commercial HVAC service, maintenance plans, and rooftop unit expertise.',
+    imageSrc: 'https://placehold.co/600x400/dc2626/ffffff?text=Commercial+HVAC',
+    imageAlt: 'Commercial rooftop HVAC unit',
+    services: [
+      { name: 'Commercial HVAC', href: '/services/commercial-hvac/' },
+      { name: 'Rooftop Units', href: '/services/rooftop-units/' },
+      { name: 'Maintenance Plans', href: '/services/maintenance-plans/' },
+      { name: 'Ductless Mini-Split', href: '/services/ductless-mini-split/' },
+    ],
+  },
+] as const;
+---
+
+<Section variant="default">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+    <h2 class="section-title mb-3">How Can We Help Today?</h2>
+    <p class="section-description mx-auto max-w-2xl text-muted-foreground">
+      Professional HVAC services for homes and businesses across Guelph and surrounding areas.
+    </p>
+  </div>
+
+  <!-- Service Pathway Cards (Image-Left, Content-Right) -->
+  <div class="mx-auto space-y-6 md:space-y-8">
+    {pathways.map((pathway) => (
+      <ServicePathwayCard
+        title={pathway.title}
+        description={pathway.description}
+        imageSrc={pathway.imageSrc}
+        imageAlt={pathway.imageAlt}
+        services={pathway.services}
+      />
+    ))}
+  </div>
+</Section>

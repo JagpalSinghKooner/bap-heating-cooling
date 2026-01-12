@@ -6,13 +6,13 @@
  */
 
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Section from '../primitives/Section.astro';
 
 const profile = await getBusinessProfile();
-const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
 ---
 
-<section class="border-y border-border/50 bg-muted/30 py-4 sm:py-6">
-  <div class="section-container">
+<Section variant="compact">
+  <div>
     <div class="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
       <!-- Google Rating -->
       <div class="flex items-center gap-3 text-center justify-center md:justify-start">
@@ -26,7 +26,7 @@ const yearsInBusiness = new Date().getFullYear() - profile.business.established_
           </svg>
         </div>
         <div class="text-sm font-semibold text-foreground sm:text-base">
-          {profile.reputation.google_rating} Google Rating
+          {profile.reputation.google_review_count}+ verified Google reviews ({profile.reputation.google_rating}★)
         </div>
       </div>
 
@@ -39,7 +39,7 @@ const yearsInBusiness = new Date().getFullYear() - profile.business.established_
           </svg>
         </div>
         <div class="text-sm font-semibold text-foreground sm:text-base">
-          {yearsInBusiness}+ Years in Business
+          Serving Wellington County since {profile.business.established_year}
         </div>
       </div>
 
@@ -52,7 +52,7 @@ const yearsInBusiness = new Date().getFullYear() - profile.business.established_
           </svg>
         </div>
         <div class="text-sm font-semibold text-foreground sm:text-base">
-          Licensed & Insured
+          Licensed, insured & WSIB compliant
         </div>
       </div>
 
@@ -70,4 +70,4 @@ const yearsInBusiness = new Date().getFullYear() - profile.business.established_
       </div>
     </div>
   </div>
-</section>
+</Section>

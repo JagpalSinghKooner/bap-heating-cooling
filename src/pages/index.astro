@@ -2,15 +2,16 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/hero/Hero.astro';
 import ReviewsBlock from '../components/ReviewsBlock.astro';
-import TrustStripSection from '../components/homepage/TrustStripSection.astro';
+import Button from '../components/primitives/Button.astro';
 import ServiceCategoriesSection from '../components/homepage/ServiceCategoriesSection.astro';
-import ServiceIntentBand from '../components/homepage/ServiceIntentBand.astro';
 import TrustSignalsSection from '../components/homepage/TrustSignalsSection.astro';
+import DifferentiationSection from '../components/homepage/DifferentiationSection.astro';
+import TeamSection from '../components/homepage/TeamSection.astro';
+import GallerySection from '../components/homepage/GallerySection.astro';
 import ProcessSection from '../components/homepage/ProcessSection.astro';
-import MidPageConversionAnchor from '../components/homepage/MidPageConversionAnchor.astro';
 import ServiceAreasSection from '../components/homepage/ServiceAreasSection.astro';
-import EmergencyCTASection from '../components/homepage/EmergencyCTASection.astro';
 import FinancingTeaserSection from '../components/homepage/FinancingTeaserSection.astro';
+import GuaranteesSection from '../components/homepage/GuaranteesSection.astro';
 import FAQSection from '../components/shared/FAQSection.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
@@ -57,86 +58,88 @@ const schema = schemas;
   description="Professional heating and cooling services for your home and business"
   schema={schema}
 >
-  <!-- 1. Hero Section -->
+  <!-- 1. Hero Section + Trust Signals (Problem + promise + primary CTAs) -->
   <Hero
-    eyebrow="24/7 Emergency HVAC Services"
+    eyebrow="Professional HVAC Services"
     headline="Expert Heating & Cooling Solutions for Your Home"
-    description="Professional HVAC services with 24/7 emergency support. Licensed, insured, and trusted by homeowners across Ontario."
-    showRatingCard={true}
-    showTrustBadges={false}
+    description="24/7 emergency support. Licensed, insured, and trusted by homeowners across Guelph, Wellington County, and Waterloo Region."
     context="homepage-hero"
   />
 
-  <!-- 1A. Trust Strip (NEW - Above fold trust signals) -->
-  <TrustStripSection />
-
-  <!-- 2. Service Categories (Gateway to main services) -->
+  <!-- 2. Services Overview (What we do - services) -->
   <ServiceCategoriesSection />
 
-  <!-- 2A. Service Intent Band (NEW - Reinforces conversion after browse) -->
-  <ServiceIntentBand />
-
-  <!-- 3. Trust Signals (Why Choose Us) -->
+  <!-- 3. Why Choose Us (Trust signals - benefits / guarantees) -->
   <TrustSignalsSection />
 
-  <!-- 4. How It Works (Process section) -->
+  <!-- 4. Team / Experts Section (Who will show up at my home?) -->
+  <TeamSection />
+
+  <!-- 5. Gallery / Before & After (What does the work actually look like?) -->
+  <GallerySection />
+
+  <!-- 6. How We Work (Process - how does this work?) -->
   <ProcessSection />
 
-  <!-- 4A. Mid-Page Conversion Anchor (NEW - Catch scrollers) -->
-  <MidPageConversionAnchor />
-
-  <!-- 5. Service Areas (REFACTORED - Compact accordion) -->
-  <ServiceAreasSection />
-
-  <!-- 6. Reviews (ENHANCED - Larger cards, better prominence) -->
+  <!-- 7. Testimonials (Social proof - what others say) -->
   <ReviewsBlock reviews={siteReviews} title="What Our Customers Say" />
 
-  <!-- 7. Emergency CTA (ENHANCED - Full-width alert band) -->
-  <EmergencyCTASection />
-
-  <!-- 8. Financing (ENHANCED - Better visual treatment) -->
+  <!-- 8. Pricing / Financing (Can I afford it?) -->
   <FinancingTeaserSection />
 
-  <!-- 9. FAQs -->
+  <!-- 9. Service Area (Do you serve my area?) -->
+  <ServiceAreasSection />
+
+  <!-- 10. Guarantees / Risk Removal (What risk do I take if I say yes?) -->
+  <GuaranteesSection />
+
+  <!-- 10.5. Differentiation - How We're Different -->
+  <DifferentiationSection />
+
+  <!-- 11. FAQs (What questions do I still have?) -->
   {pageFAQs.length > 0 && (
     <FAQSection faqs={pageFAQs} />
   )}
 
-  <!-- 10. Final CTA (ENHANCED - Clear endpoint) -->
-  <section class="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 py-16 sm:py-20 lg:py-24">
-    <div class="section-container relative z-10">
+  <!-- 12. Final CTA (How do I book now?) -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 py-14 md:py-20 lg:py-24">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="mx-auto max-w-4xl text-center text-white">
         <h2 class="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
           Ready to Get Started?
         </h2>
         <p class="mb-8 text-lg text-white/90 sm:text-xl lg:text-2xl">
-          Contact us today for expert heating and cooling services
+          No pressure. No obligation. We'll explain your options clearly and help you make the right choice for your home.
         </p>
         <div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <a
+          <Button
+            variant="secondary"
+            size="lg"
             href={`tel:${profile.contact.phone_e164}`}
-            class="inline-flex items-center justify-center gap-2 rounded-md bg-white px-8 py-4 text-lg font-bold text-primary shadow-xl transition-all hover:bg-gray-100 hover:shadow-2xl"
             data-cta-context="homepage-footer"
+            class="bg-white text-primary hover:bg-gray-100 shadow-xl hover:shadow-2xl"
           >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
             <span>Call {profile.contact.phone_display}</span>
-          </a>
+          </Button>
 
           {profile.contact.booking.enabled && (
-            <a
+            <Button
+              variant="outline"
+              size="lg"
               href={profile.contact.booking.url}
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center justify-center gap-2 rounded-md border-2 border-white bg-transparent px-8 py-4 text-lg font-bold text-white transition-all hover:bg-white hover:text-primary"
               data-cta-context="homepage-footer"
+              class="border-white text-white hover:bg-white hover:text-primary"
             >
               <span>Schedule Online</span>
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </a>
+            </Button>
           )}
         </div>
       </div>

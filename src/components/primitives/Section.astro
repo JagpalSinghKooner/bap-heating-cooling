@@ -1,0 +1,63 @@
+---
+/**
+ * Section Wrapper Component
+ * Enforces consistent vertical rhythm across the entire site
+ *
+ * USAGE:
+ * - Wrap every section with this component
+ * - Use variants to control background styling
+ * - Do NOT add custom py-* or my-* to outer wrappers
+ *
+ * Default spacing:
+ * - Mobile: py-14 (56px)
+ * - md+: py-20 (80px)
+ * - lg+: py-24 (96px)
+ *
+ * Container:
+ * - max-w-6xl centered with responsive padding
+ * - px-4 sm:px-6 lg:px-8
+ */
+
+interface Props {
+  variant?: 'default' | 'muted' | 'brand' | 'accent' | 'compact';
+  id?: string;
+  class?: string;
+  container?: boolean;
+}
+
+const {
+  variant = 'default',
+  id,
+  class: className = '',
+  container = true,
+} = Astro.props;
+
+// Variant background styles
+const variantStyles = {
+  default: 'bg-background',
+  muted: 'bg-gradient-to-br from-muted/30 to-muted/10',
+  brand: 'bg-gradient-to-br from-primary/5 to-primary/10',
+  accent: 'bg-gradient-to-r from-orange-500 to-orange-400',
+  compact: 'bg-muted/30 border-y border-border/50',
+};
+
+// Variant spacing (most use standard, compact is different)
+const spacingStyles = variant === 'compact'
+  ? 'py-6 sm:py-8 md:py-10'
+  : 'py-14 md:py-20 lg:py-24';
+
+const bgStyle = variantStyles[variant];
+---
+
+<section
+  class={`${bgStyle} ${spacingStyles} ${className}`}
+  id={id}
+>
+  {container ? (
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <slot />
+    </div>
+  ) : (
+    <slot />
+  )}
+</section>

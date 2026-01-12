@@ -3,7 +3,7 @@ import '../styles/global.css';
 import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../lib/getBusinessProfile';
 import { getCanonicalUrl } from '../lib/urlGovernance';
 import logo from '../images/bapheatingandcoolingltd.webp';
-import TopBar from '../components/header/TopBar.astro';
+import SeasonalCalloutBar from '../components/header/SeasonalCalloutBar.astro';
 import Header from '../components/header/Header.astro';
 
 export interface Props {
@@ -122,9 +122,11 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
     </a>
 
     <div class="flex min-h-screen flex-col">
-      <!-- Header -->
-      <header class="sticky top-0 z-50" role="banner">
-        <TopBar />
+      <!-- Seasonal Callout Bar (sticky only) -->
+      <SeasonalCalloutBar />
+
+      <!-- Header (non-sticky) -->
+      <header role="banner">
         <Header />
       </header>
 
@@ -135,7 +137,7 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
 
       <!-- Footer -->
       <footer class="border-t bg-muted" role="contentinfo">
-        <div class="container mx-auto px-4 py-8 sm:py-12">
+        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <!-- Company Info -->
             <div class="sm:col-span-2 lg:col-span-1">
@@ -364,6 +366,37 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
               window.gtag('event', 'outbound_link', {
                 event_category: 'engagement',
                 event_label: target.href
+              });
+            }
+          });
+        });
+
+        // Track service area region link clicks
+        document.querySelectorAll('a[data-cta-context="service-areas-region"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target && typeof window.gtag !== 'undefined') {
+              const regionName = target.getAttribute('data-region-name') || 'unknown';
+              window.gtag('event', 'service_area_region_click', {
+                event_category: 'navigation',
+                event_label: regionName,
+                value: 1
+              });
+            }
+          });
+        });
+
+        // Track service area city link clicks
+        document.querySelectorAll('a[data-cta-context="service-areas-city"]').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLAnchorElement;
+            if (target && typeof window.gtag !== 'undefined') {
+              const cityName = target.getAttribute('data-city-name') || 'unknown';
+              const regionName = target.getAttribute('data-region-name') || 'unknown';
+              window.gtag('event', 'service_area_city_click', {
+                event_category: 'navigation',
+                event_label: `${regionName} - ${cityName}`,
+                value: 1
               });
             }
           });

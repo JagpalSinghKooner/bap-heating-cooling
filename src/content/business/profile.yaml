@@ -1,7 +1,7 @@
 business:
   legal_name: "B.A.P Heating & Cooling Services Ltd"
   trading_name: null
-  established_year: 2000
+  established_year: 1994
   owner_public:
     name: "Paul Palmer"
     roles:
@@ -155,10 +155,11 @@ trust_and_compliance:
     note: "Licence numbers will be added by owner; keep fields in place."
     tssa:
       numbers:
-        - "TSSA-LICENCE-NUMBER-PLACEHOLDER-1"
-        - "TSSA-LICENCE-NUMBER-PLACEHOLDER-2"
+        - "000076639116"
     other:
-      - "OTHER-LICENCE-NUMBER-PLACEHOLDER"
+      - "HRAI"
+      - "HRAI Heatpump Champion"
+      - "Better Business Bureau"
   wsib: true
   insured_statement: "Fully insured (maximum coverage)."
 

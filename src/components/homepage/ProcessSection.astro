@@ -1,78 +1,97 @@
 ---
 /**
  * Process Section (How It Works)
- * Simple 4-step process - UI only, no new marketing content
+ * Vertical timeline layout for better narrative flow
  */
+
+import IconBadge from '../primitives/IconBadge.astro';
+import Section from '../primitives/Section.astro';
+import Card from '../primitives/Card.astro';
 
 const processSteps = [
   {
     number: '1',
     title: 'Call or Book Online',
-    description: 'Reach out via phone or online booking',
+    timeAnchor: '2 minutes',
+    description: 'Reach out via phone or online booking - we respond quickly and schedule at your convenience.',
     iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=📞',
   },
   {
     number: '2',
     title: 'Technician Dispatched',
-    description: 'Licensed professional arrives on schedule',
+    timeAnchor: 'Same-day in most cases',
+    description: 'Licensed professional arrives on schedule with the tools and parts needed for your job. Same-day service across our coverage area.',
     iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=🚗',
   },
   {
     number: '3',
-    title: 'Diagnose & Options',
-    description: 'Clear assessment and upfront pricing',
+    title: 'Clear Options Provided',
+    timeAnchor: 'No pressure',
+    description: 'Clear assessment and upfront pricing - you know exactly what you\'re getting before we start. You approve the work before we begin.',
     iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=🔧',
   },
   {
     number: '4',
     title: 'Repair or Install',
-    description: 'Quality work with warranty protection',
+    timeAnchor: 'Often same visit',
+    description: 'Quality work completed right, often on the same visit. Backed by our 10-year parts and labour guarantee.',
     iconUrl: 'https://placehold.co/80x80/1e40af/ffffff.png?text=✅',
   },
 ];
 ---
 
-<section class="section bg-white">
-  <div class="section-container">
-    <!-- Section Header -->
-    <div class="mb-12 text-center">
-      <p class="eyebrow mb-3">Our Process</p>
-      <h2 class="section-title">How It Works</h2>
+<Section variant="default">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+      <p class="eyebrow mb-3">Simple & Straightforward</p>
+      <h2 class="section-title">How We Work With You</h2>
       <p class="section-description mx-auto max-w-2xl">
-        From initial contact to completed service, we make HVAC service straightforward
+        From first contact to finished job, we make HVAC service clear and stress-free. No surprises, no pressure - just professional service you can count on.
       </p>
-    </div>
+  </div>
 
-    <!-- Process Steps -->
-    <div class="relative">
-      {/* Connection Line (Desktop) */}
-      <div class="absolute left-0 top-12 hidden h-0.5 w-full bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 lg:block" aria-hidden="true" />
+  <!-- Vertical Timeline -->
+  <div class="relative mx-auto max-w-3xl">
+      {/* Vertical Line */}
+      <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/20 via-primary/40 to-primary/20 sm:left-8" aria-hidden="true" />
 
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+      <div class="space-y-8">
         {processSteps.map((step) => (
-          <div class="relative flex flex-col items-center text-center">
+          <div class="relative flex gap-6 sm:gap-8">
             {/* Step Number Badge */}
-            <div class="relative z-10 mb-4 flex h-24 w-24 items-center justify-center">
-              <div class="absolute inset-0 rounded-full bg-white border-4 border-primary shadow-lg" />
-              <img
-                src={step.iconUrl}
-                alt=""
-                class="relative z-20 h-16 w-16 rounded-full"
-              />
+            <div class="relative z-10 flex-shrink-0">
+              <IconBadge size="lg" variant="white" class="border-4 border-primary shadow-lg">
+                <img
+                  src={step.iconUrl}
+                  alt=""
+                  class="h-12 w-12 rounded-full"
+                />
+              </IconBadge>
             </div>
 
-            {/* Title */}
-            <h3 class="mb-2 text-lg font-bold text-foreground">
-              {step.title}
-            </h3>
-
-            {/* Description */}
-            <p class="text-sm text-muted-foreground">
-              {step.description}
-            </p>
+            {/* Content Card */}
+            <Card class="flex-1 p-6">
+              <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 text-4xl font-bold text-primary/20">
+                  {step.number}
+                </span>
+                <div class="flex-1">
+                  <div class="mb-2 flex flex-wrap items-center gap-2">
+                    <h3 class="card-title text-xl">
+                      {step.title}
+                    </h3>
+                    <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      {step.timeAnchor}
+                    </span>
+                  </div>
+                  <p class="text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
         ))}
       </div>
-    </div>
   </div>
-</section>
+</Section>

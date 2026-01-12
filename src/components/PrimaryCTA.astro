@@ -2,6 +2,7 @@
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import type { CTAVariant, CTAContext } from '../lib/ctaResolver';
 import { getCTAConfig } from '../lib/ctaResolver';
+import Button from './primitives/Button.astro';
 
 interface Props {
   variant: CTAVariant;
@@ -14,25 +15,18 @@ const { variant, context = 'unknown', class: className = '', size = 'default' } 
 const profile = await getBusinessProfile();
 const ctaConfig = getCTAConfig(profile, variant);
 
-// Size classes
-const sizeClasses = size === 'large'
-  ? 'px-8 py-4 text-lg'
-  : 'px-6 py-3 text-base';
-
-// Variant-specific styling (minimal, respects existing design system)
-const variantClasses = variant === 'emergency'
-  ? 'bg-red-600 hover:bg-red-700 text-white'
-  : 'bg-primary hover:bg-primary/90 text-primary-foreground';
+const buttonVariant = variant === 'emergency' ? 'emergency' : 'primary';
+const buttonSize = size === 'large' ? 'lg' : 'md';
 ---
 
-<a
+<Button
+  variant={buttonVariant}
+  size={buttonSize}
   href={ctaConfig.href}
-  class={`inline-block rounded-md font-semibold transition-colors ${sizeClasses} ${variantClasses} ${className}`}
-  data-cta={variant}
   data-cta-context={context}
-  aria-label={ctaConfig.ariaLabel}
+  class={className}
   target={variant === 'book' ? '_blank' : undefined}
   rel={variant === 'book' ? 'noopener noreferrer' : undefined}
 >
   {ctaConfig.label}
-</a>
+</Button>

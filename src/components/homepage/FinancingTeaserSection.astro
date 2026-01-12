@@ -1,5 +1,9 @@
 ---
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Button from '../primitives/Button.astro';
+import Card from '../primitives/Card.astro';
+import Badge from '../primitives/Badge.astro';
+import Section from '../primitives/Section.astro';
 
 const profile = await getBusinessProfile();
 
@@ -9,17 +13,16 @@ if (!profile.pricing_and_offers?.financing?.available) {
 }
 ---
 
-<section class="section bg-gradient-to-br from-primary/5 to-primary/10">
-  <div class="section-container">
-    <div class="mx-auto max-w-4xl">
-      <div class="rounded-2xl border-2 border-primary/20 bg-white p-8 shadow-lg lg:p-12">
+<Section variant="brand">
+  <div class="mx-auto max-w-4xl">
+      <Card class="shadow-lg border-2 border-primary/20 bg-primary/5 p-8">
         <div class="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Left Column: Content */}
           <div class="flex flex-col justify-center">
-            <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+            <Badge variant="primary" size="md" class="mb-4">
               <span class="text-xl" aria-hidden="true">💳</span>
               <span>Financing Available</span>
-            </div>
+            </Badge>
 
             <h2 class="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
               Flexible Payment Options
@@ -29,15 +32,16 @@ if (!profile.pricing_and_offers?.financing?.available) {
               {profile.pricing_and_offers.financing.statement}
             </p>
 
-            <a
+            <Button
+              variant="primary"
+              size="md"
               href="/financing/"
-              class="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90"
             >
               <span>Explore Financing Options</span>
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </a>
+            </Button>
           </div>
 
           {/* Right Column: Visual/Benefits */}
@@ -45,11 +49,21 @@ if (!profile.pricing_and_offers?.financing?.available) {
             <div class="grid gap-4">
               <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
                 <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <span class="text-xl" aria-hidden="true">💰</span>
+                </div>
+                <div>
+                  <p class="font-semibold text-foreground">Most monthly payments are less than your phone bill</p>
+                  <p class="text-sm text-muted-foreground">Affordable plans that fit your budget</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
                   <span class="text-xl" aria-hidden="true">✓</span>
                 </div>
                 <div>
-                  <p class="font-semibold text-foreground">Competitive Rates</p>
-                  <p class="text-sm text-muted-foreground">Affordable monthly payments</p>
+                  <p class="font-semibold text-foreground">0% options available for qualified homeowners</p>
+                  <p class="text-sm text-muted-foreground">Interest-free financing on approved credit</p>
                 </div>
               </div>
 
@@ -58,24 +72,13 @@ if (!profile.pricing_and_offers?.financing?.available) {
                   <span class="text-xl" aria-hidden="true">⚡</span>
                 </div>
                 <div>
-                  <p class="font-semibold text-foreground">Quick Approval</p>
-                  <p class="text-sm text-muted-foreground">Fast application process</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span class="text-xl" aria-hidden="true">💰</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-foreground">Multiple Options</p>
-                  <p class="text-sm text-muted-foreground">Plans to fit your budget</p>
+                  <p class="font-semibold text-foreground">No payment until installation is complete</p>
+                  <p class="text-sm text-muted-foreground">You pay only after the work is done right</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </Card>
   </div>
-</section>
+</Section>

@@ -1,0 +1,39 @@
+---
+/**
+ * CardMedia Component
+ *
+ * IMAGE AREA RULES:
+ * - Image must be edge-to-edge
+ * - NO padding around images
+ * - Image touches the card edges on all sides
+ * - Image is the visual anchor of the card
+ * - Aspect ratio: 4:3 (controlled)
+ */
+
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  class: className = '',
+} = Astro.props;
+
+// Enforce 4:3 aspect ratio
+const aspectRatio = 'aspect-[4/3]';
+
+// Edge-to-edge: no padding, object-cover for proper fit
+const classes = `${aspectRatio} w-full overflow-hidden ${className}`;
+---
+
+<div class={classes}>
+  <img
+    src={src}
+    alt={alt}
+    class="h-full w-full object-cover"
+    loading="lazy"
+  />
+</div>

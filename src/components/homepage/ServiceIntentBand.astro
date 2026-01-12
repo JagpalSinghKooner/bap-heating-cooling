@@ -6,6 +6,7 @@
  */
 
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Button from '../primitives/Button.astro';
 
 const profile = await getBusinessProfile();
 
@@ -46,16 +47,17 @@ const featuredService = {
 
         {/* CTA */}
         <div class="flex-shrink-0">
-          <a
+          <Button
+            variant="emergency"
+            size="lg"
             href={featuredService.href}
-            class="inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-6 py-3 text-base font-bold text-white shadow-md transition-all hover:bg-brand-orange-dark hover:shadow-lg sm:px-8 sm:py-4 sm:text-lg"
             data-cta-context="service-intent-band"
           >
             <span>Learn More</span>
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-          </a>
+          </Button>
         </div>
       </div>
     </div>

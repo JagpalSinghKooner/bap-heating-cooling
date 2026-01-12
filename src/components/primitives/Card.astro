@@ -1,0 +1,48 @@
+---
+/**
+ * Universal Card Component
+ *
+ * STRUCTURE (MANDATORY):
+ * <Card>
+ *   <CardMedia />   // image, no padding
+ *   <CardBody />    // padded text content
+ * </Card>
+ *
+ * No variants that change structure.
+ * No section-specific overrides.
+ * No padding hacks.
+ */
+
+interface Props {
+  interactive?: boolean;
+  class?: string;
+}
+
+const {
+  interactive = false,
+  class: className = '',
+} = Astro.props;
+
+// One border radius
+const borderRadius = 'rounded-lg'; // --radius-md (8px)
+
+// One border style
+const border = 'border border-border';
+
+// One shadow style
+const shadow = 'shadow-sm';
+
+// One hover behavior (only if interactive)
+const hoverClasses = interactive
+  ? 'transition-all duration-300 hover:shadow-md hover:-translate-y-0.5'
+  : '';
+
+// One focus state (for keyboard navigation)
+const focusClasses = 'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2';
+
+const classes = `${borderRadius} ${border} ${shadow} bg-card text-card-foreground overflow-hidden ${hoverClasses} ${focusClasses} ${className}`;
+---
+
+<div class={classes}>
+  <slot />
+</div>
