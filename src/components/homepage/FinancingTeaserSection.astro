@@ -1,8 +1,10 @@
 ---
+/**
+ * Financing Teaser Section - Full Width Design
+ * Addresses the fear: "Can I afford this?"
+ */
+
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
-import Button from '../primitives/Button.astro';
-import Card from '../primitives/Card.astro';
-import Badge from '../primitives/Badge.astro';
 import Section from '../primitives/Section.astro';
 
 const profile = await getBusinessProfile();
@@ -11,74 +13,69 @@ const profile = await getBusinessProfile();
 if (!profile.pricing_and_offers?.financing?.available) {
   return null;
 }
+
+const financingHighlights = [
+  {
+    stat: '$79/mo',
+    label: 'Payments as low as',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  },
+  {
+    stat: '0% APR',
+    label: 'Options available',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  },
+  {
+    stat: '60 sec',
+    label: 'Quick approval',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  },
+  {
+    stat: '100%',
+    label: 'Approval rate',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`,
+  },
+];
 ---
 
-<Section variant="brand">
-  <div class="mx-auto max-w-4xl">
-      <Card class="shadow-lg border-2 border-primary/20 bg-primary/5 p-8">
-        <div class="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Left Column: Content */}
-          <div class="flex flex-col justify-center">
-            <Badge variant="primary" size="md" class="mb-4">
-              <span class="text-xl" aria-hidden="true">💳</span>
-              <span>Financing Available</span>
-            </Badge>
+<Section variant="muted">
+  <!-- Section Header -->
+  <div class="mb-10 text-center sm:mb-12">
+    <p class="eyebrow mb-3">Flexible Payment Options</p>
+    <h2 class="section-title mx-auto mb-4 max-w-3xl">
+      Get comfort now, pay over time
+    </h2>
+    <p class="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
+      Don't let budget concerns leave you uncomfortable. We offer flexible financing so you can get the heating or cooling system you need today.
+    </p>
+  </div>
 
-            <h2 class="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
-              Flexible Payment Options
-            </h2>
-
-            <p class="mb-6 text-lg text-muted-foreground">
-              {profile.pricing_and_offers.financing.statement}
-            </p>
-
-            <Button
-              variant="primary"
-              size="md"
-              href="/financing/"
-            >
-              <span>Explore Financing Options</span>
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Button>
-          </div>
-
-          {/* Right Column: Visual/Benefits */}
-          <div class="flex items-center justify-center">
-            <div class="grid gap-4">
-              <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span class="text-xl" aria-hidden="true">💰</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-foreground">Most monthly payments are less than your phone bill</p>
-                  <p class="text-sm text-muted-foreground">Affordable plans that fit your budget</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span class="text-xl" aria-hidden="true">✓</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-foreground">0% options available for qualified homeowners</p>
-                  <p class="text-sm text-muted-foreground">Interest-free financing on approved credit</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 rounded-lg bg-muted/30 p-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span class="text-xl" aria-hidden="true">⚡</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-foreground">No payment until installation is complete</p>
-                  <p class="text-sm text-muted-foreground">You pay only after the work is done right</p>
-                </div>
-              </div>
-            </div>
-          </div>
+  <!-- Stats Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    {financingHighlights.map((item) => (
+      <div class="group rounded-2xl bg-background p-6 text-center shadow-sm transition-all duration-300 hover:shadow-lg">
+        <!-- Icon -->
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span class="h-7 w-7" set:html={item.icon} />
         </div>
-      </Card>
+        <!-- Stat -->
+        <div class="mb-1 text-2xl font-bold text-foreground">{item.stat}</div>
+        <!-- Label -->
+        <div class="text-sm text-muted-foreground">{item.label}</div>
+      </div>
+    ))}
+  </div>
+
+  <!-- CTA -->
+  <div class="mt-10 text-center">
+    <a
+      href="/financing/"
+      class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg"
+    >
+      <span>See financing options</span>
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
   </div>
 </Section>

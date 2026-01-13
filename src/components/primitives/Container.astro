@@ -1,20 +1,30 @@
 ---
+/**
+ * Container Component - Global Layout Contract
+ * HVAC Industry Standard: 1280px max-width (xl)
+ *
+ * MANDATORY: All content must be wrapped in Container or Section (which includes Container)
+ * - Enforces consistent horizontal constraints
+ * - Provides responsive padding
+ * - Aligns to design token: --container-max-width (80rem / 1280px)
+ */
+
 interface Props {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   class?: string;
 }
 
 const {
-  maxWidth = 'lg',
+  maxWidth = 'xl', // Default to 1280px for HVAC industry standard
   class: className = '',
 } = Astro.props;
 
 const maxWidthClasses = {
-  sm: 'max-w-3xl',
-  md: 'max-w-5xl',
-  lg: 'max-w-6xl',
-  xl: 'max-w-7xl',
-  full: 'max-w-full',
+  sm: 'max-w-3xl',    // 768px - Narrow content
+  md: 'max-w-5xl',    // 1024px - Standard content
+  lg: 'max-w-6xl',    // 1152px - Wide content
+  xl: 'max-w-7xl',    // 1280px - HVAC industry standard (default)
+  full: 'max-w-full', // No constraint - use sparingly
 };
 
 const baseClasses = 'container mx-auto px-4 sm:px-6 lg:px-8';

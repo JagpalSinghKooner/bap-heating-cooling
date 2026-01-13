@@ -56,23 +56,23 @@ const profile = await getBusinessProfile();
         </p>
       )}
 
-      <!-- CTAs - Call Primary, Book Secondary -->
+      <!-- CTAs - Optimized for Conversion -->
       <div class="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <!-- Primary CTA: Call -->
+        <!-- Primary CTA: Call (Larger, More Prominent) -->
         <Button
           variant="emergency"
           size="lg"
           href={`tel:${profile.contact.phone_e164}`}
           data-cta-context={context}
-          class="w-full rounded-full shadow-2xl transition-all hover:translate-y-[-2px] hover:shadow-3xl sm:w-auto"
+          class="group w-full rounded-full shadow-2xl transition-all hover:scale-105 hover:shadow-3xl sm:w-auto"
         >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <svg class="h-6 w-6 transition-transform group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
           </svg>
           <span class="font-bold">Call {profile.contact.phone_display}</span>
         </Button>
 
-        <!-- Secondary CTA: Book Online -->
+        <!-- Secondary CTA: Book Online (Benefit-Focused) -->
         {profile.contact.booking.enabled && (
           <Button
             variant="outline"
@@ -81,52 +81,124 @@ const profile = await getBusinessProfile();
             target="_blank"
             rel="noopener noreferrer"
             data-cta-context={context}
-            class="w-full rounded-full border-2 border-white bg-transparent text-white transition-all hover:bg-white hover:text-brand-blue sm:w-auto"
+            class="group w-full rounded-full border-2 border-white bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white hover:text-brand-blue sm:w-auto"
           >
-            <span class="font-semibold">Book Online</span>
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <span class="font-semibold">Book Free Estimate</span>
+            <svg class="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Button>
         )}
       </div>
 
-      <!-- Trust Proof Chips - Compact Premium Design (Option A) -->
-      <div class="flex flex-wrap items-center justify-center gap-3 text-sm sm:gap-4">
-        <!-- Chip 1: Google Rating -->
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-          <svg class="h-4 w-4 flex-shrink-0 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-          <span class="font-bold">{profile.reputation.google_rating}★</span>
-          <span class="text-white/80">·</span>
-          <span class="font-medium text-white/90">{profile.reputation.google_review_count}+ reviews</span>
-        </div>
+      <!-- REMOVED: Rotating urgency banner - felt manipulative and added clutter -->
 
-        <!-- Chip 2: Years in Business -->
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <!-- Availability Indicator -->
+      <div class="mb-6 flex items-center justify-center">
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2.5 backdrop-blur-sm">
+          <svg class="h-5 w-5 flex-shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="font-semibold">Serving since {profile.business.established_year}</span>
+          <span id="availability-text" class="text-sm font-semibold text-white">
+            Loading availability...
+          </span>
         </div>
+      </div>
 
-        <!-- Chip 3: Licensed & Insured -->
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span class="font-semibold">Licensed & Insured</span>
-        </div>
-
-        <!-- Chip 4: WSIB Compliant -->
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-semibold">WSIB Compliant</span>
-        </div>
+      <!-- Trust Indicators - Simple, non-repetitive -->
+      <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 sm:gap-6 sm:text-base">
+        <span class="flex items-center gap-1.5">
+          <svg class="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+          Licensed & Insured
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+          TSSA Certified
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+          Same-Day Service
+        </span>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  // Dynamic availability indicator
+  function updateAvailability() {
+    const availabilityEl = document.getElementById('availability-text');
+    if (!availabilityEl) return;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+
+    // Business hours: Mon-Fri 8am-6pm, Sat 9am-4pm, Sun closed
+    let nextAvailable = '';
+
+    // Check if current time is during business hours
+    const isWeekday = currentDay >= 1 && currentDay <= 5;
+    const isSaturday = currentDay === 6;
+    const isSunday = currentDay === 0;
+
+    if (isSunday) {
+      // Sunday - next available is Monday
+      nextAvailable = 'Monday 8:00 AM';
+    } else if (isSaturday) {
+      if (currentHour < 9) {
+        nextAvailable = 'Today 9:00 AM';
+      } else if (currentHour < 16) {
+        // During Saturday hours
+        const nextSlot = Math.ceil((currentHour + 1) / 2) * 2;
+        if (nextSlot <= 16) {
+          nextAvailable = `Today ${nextSlot > 12 ? nextSlot - 12 : nextSlot}:00 ${nextSlot >= 12 ? 'PM' : 'AM'}`;
+        } else {
+          nextAvailable = 'Monday 8:00 AM';
+        }
+      } else {
+        // After Saturday hours
+        nextAvailable = 'Monday 8:00 AM';
+      }
+    } else if (isWeekday) {
+      if (currentHour < 8) {
+        nextAvailable = 'Today 8:00 AM';
+      } else if (currentHour < 18) {
+        // During business hours - show next 2-hour window
+        const nextSlot = Math.ceil((currentHour + 1) / 2) * 2;
+        if (nextSlot <= 18) {
+          nextAvailable = `Today ${nextSlot > 12 ? nextSlot - 12 : nextSlot}:00 ${nextSlot >= 12 ? 'PM' : 'AM'}`;
+        } else {
+          // After hours, show tomorrow
+          if (currentDay === 5) {
+            // Friday after hours
+            nextAvailable = 'Monday 8:00 AM';
+          } else {
+            nextAvailable = 'Tomorrow 8:00 AM';
+          }
+        }
+      } else {
+        // After business hours
+        if (currentDay === 5) {
+          // Friday after hours
+          nextAvailable = 'Monday 8:00 AM';
+        } else {
+          nextAvailable = 'Tomorrow 8:00 AM';
+        }
+      }
+    }
+
+    availabilityEl.innerHTML = `<span class="text-green-400 font-bold">●</span> Next available: ${nextAvailable}`;
+  }
+
+  // Initialize on page load
+  function initHeroEffects() {
+    updateAvailability();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeroEffects);
+  } else {
+    initHeroEffects();
+  }
+</script>

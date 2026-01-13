@@ -1,21 +1,27 @@
 ---
 /**
- * Section Wrapper Component
+ * Section Wrapper Component - Global Layout Contract
  * Enforces consistent vertical rhythm across the entire site
  *
+ * ARCHITECTURE:
+ * - Section element: Full-bleed backgrounds (extends to viewport edges)
+ * - Inner container: Content constrained to 1280px (max-w-7xl)
+ * - This allows colored/image backgrounds while keeping content readable
+ *
  * USAGE:
- * - Wrap every section with this component
+ * - Wrap every homepage section with this component
  * - Use variants to control background styling
  * - Do NOT add custom py-* or my-* to outer wrappers
+ * - Do NOT nest additional containers inside Section
  *
- * Default spacing:
- * - Mobile: py-14 (56px)
- * - md+: py-20 (80px)
- * - lg+: py-24 (96px)
+ * SPACING (matches design tokens):
+ * - Mobile: py-14 (56px / 3.5rem)
+ * - Tablet: py-20 (80px / 5rem)
+ * - Desktop: py-24 (96px / 6rem)
  *
- * Container:
- * - max-w-6xl centered with responsive padding
- * - px-4 sm:px-6 lg:px-8
+ * CONTAINER:
+ * - max-w-7xl (1280px) - HVAC industry standard
+ * - Responsive padding: px-4 sm:px-6 lg:px-8
  */
 
 interface Props {
@@ -54,7 +60,7 @@ const bgStyle = variantStyles[variant];
   id={id}
 >
   {container ? (
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <slot />
     </div>
   ) : (

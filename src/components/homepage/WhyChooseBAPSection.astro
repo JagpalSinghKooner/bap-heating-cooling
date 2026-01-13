@@ -1,0 +1,99 @@
+---
+/**
+ * Why Choose BAP Section - Consolidated Trust & Differentiation
+ * Combines: Company story + Stats + Key differentiators
+ * One cohesive section instead of 3 separate ones
+ */
+
+import Section from '../primitives/Section.astro';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+const profile = await getBusinessProfile();
+
+const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
+
+// Key differentiators - the 4 most compelling, no redundancy
+const differentiators = [
+  {
+    title: 'Family-Owned Since 1994',
+    description: 'Three decades serving Guelph families. We live here, work here, and stake our reputation on every job.',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
+  },
+  {
+    title: 'Upfront Pricing, No Surprises',
+    description: 'You see the full price before we start. No hidden fees, no "additional costs discovered" mid-job.',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  },
+  {
+    title: 'Our Own Certified Technicians',
+    description: 'Every tech works directly for us. Background-checked, licensed, trained in-house. No random subcontractors.',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
+  },
+  {
+    title: '10-Year Warranty Included',
+    description: 'Every installation includes comprehensive parts and labour coverage. Your investment is protected.',
+    icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  },
+];
+
+// Certifications - inline trust badges
+const certifications = ['TSSA Certified', 'Carrier Authorized', 'Fully Insured', 'WSIB Covered'];
+---
+
+<Section variant="muted">
+  <!-- Header with Stats -->
+  <div class="mb-10 text-center">
+      <p class="eyebrow mb-3">Why Homeowners Trust Us</p>
+      <h2 class="section-title mx-auto mb-4 max-w-3xl">
+        Local family business, big-company expertise
+      </h2>
+      <p class="mx-auto mb-8 max-w-2xl text-base text-muted-foreground">
+        We're not a call center dispatching strangers. We're your neighbors who've built our reputation one satisfied customer at a time.
+      </p>
+
+      <!-- Stats Row - Contextual -->
+      <div class="flex flex-wrap items-center justify-center gap-6 text-center sm:gap-10">
+        <div>
+          <div class="text-3xl font-bold text-foreground sm:text-4xl">{yearsInBusiness}+</div>
+          <div class="text-sm text-muted-foreground">Years in Business</div>
+        </div>
+        <div class="hidden h-10 w-px bg-border sm:block"></div>
+        <div>
+          <div class="text-3xl font-bold text-foreground sm:text-4xl">10,000+</div>
+          <div class="text-sm text-muted-foreground">Homes Serviced</div>
+        </div>
+        <div class="hidden h-10 w-px bg-border sm:block"></div>
+        <div>
+          <div class="text-3xl font-bold text-foreground sm:text-4xl">24/7</div>
+          <div class="text-sm text-muted-foreground">Emergency Service</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Differentiators Grid -->
+    <div class="mb-10 grid gap-4 sm:grid-cols-2">
+      {differentiators.map((item) => (
+        <div class="flex gap-4 rounded-xl border border-border bg-background p-5 transition-shadow hover:shadow-md">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span class="h-6 w-6" set:html={item.icon} />
+          </div>
+          <div>
+            <h3 class="mb-1 font-bold text-foreground">{item.title}</h3>
+            <p class="text-sm text-muted-foreground">{item.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Certifications - Simple inline -->
+    <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+      {certifications.map((cert) => (
+        <span class="flex items-center gap-1.5">
+          <svg class="h-4 w-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          {cert}
+        </span>
+      ))}
+    </div>
+</Section>

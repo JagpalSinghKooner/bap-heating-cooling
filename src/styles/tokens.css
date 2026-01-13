@@ -1,3 +1,22 @@
+/**
+ * Design Tokens - B.A.P Heating & Cooling
+ * HVAC Industry-Standard Design System
+ *
+ * COLOR PALETTE STRATEGY:
+ * - Primary (Blue): Trust, cooling, professionalism, reliability
+ * - Secondary (Orange): Warmth, heating, urgency, comfort
+ * - This creates visual heating/cooling distinction for services
+ *
+ * STORYBOOK INTEGRATION:
+ * All tokens are CSS custom properties and can be imported into Storybook
+ * for live component documentation and theme switching.
+ *
+ * USAGE:
+ * - Use semantic color names (primary, muted, accent) for most UI
+ * - Use brand colors (brand-blue, brand-orange) for HVAC-specific context
+ * - All tokens are HSL-based for easy manipulation and theming
+ */
+
 @layer base {
   :root {
     /* Colors - Light Mode */
@@ -21,37 +40,48 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
-    /* Brand Colors */
+    /* Brand Colors - HVAC Industry Standards */
+    /* Blue = Trust, Cooling, Professionalism */
     --brand-blue: 207 90% 54%;
     --brand-blue-dark: 207 90% 44%;
+    /* Orange = Warmth, Heating, Urgency */
     --brand-orange: 24 95% 53%;
     --brand-orange-dark: 24 95% 43%;
 
-    /* Border Radius */
+    /* Semantic Colors - Service Industry Standards */
+    --success: 142 71% 45%;           /* Green: confirmations, completed work */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;            /* Amber: important notices, service reminders */
+    --warning-foreground: 0 0% 100%;
+
+    /* Border Radius - Professional Service Industry Standards */
+    /* Balanced: not too rounded (unprofessional), not too sharp (harsh) */
     --radius-sm: 6px;      /* Small elements: badges, compact cards */
     --radius-md: 8px;      /* Standard: buttons, cards (default) */
     --radius-lg: 16px;     /* Large surfaces: featured cards, hero elements */
     --radius-full: 9999px; /* Circular: icon badges, pills */
     --radius: 0.5rem;      /* Legacy fallback (8px) */
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    /* Shadows - Professional Depth Hierarchy */
+    /* Subtle elevation for trust and clarity, avoiding dated heavy shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);                                       /* Minimal: subtle borders */
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);         /* Default: cards, buttons */
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);   /* Medium: hover states, dropdowns */
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* Large: modals, featured cards */
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); /* Extra large: overlays */
 
-    /* Typography Scale */
-    --text-xs: 0.75rem;      /* 12px */
-    --text-sm: 0.875rem;     /* 14px */
-    --text-base: 1rem;       /* 16px */
-    --text-lg: 1.125rem;     /* 18px */
-    --text-xl: 1.25rem;      /* 20px */
-    --text-2xl: 1.5rem;      /* 24px */
-    --text-3xl: 1.875rem;    /* 30px */
-    --text-4xl: 2.25rem;     /* 36px */
-    --text-5xl: 3rem;        /* 48px */
-    --text-6xl: 3.75rem;     /* 60px */
+    /* Typography Scale - Fluid Responsive Sizing */
+    /* Uses clamp() for smooth scaling across all screen sizes */
+    --text-xs: 0.75rem;                           /* 12px - Fixed for small UI elements */
+    --text-sm: 0.875rem;                          /* 14px - Fixed for small text */
+    --text-base: 1rem;                            /* 16px - Fixed base minimum for iOS */
+    --text-lg: clamp(1.063rem, 1vw + 0.875rem, 1.125rem);     /* 17px → 18px */
+    --text-xl: clamp(1.125rem, 1.5vw + 0.875rem, 1.25rem);    /* 18px → 20px */
+    --text-2xl: clamp(1.25rem, 2vw + 0.75rem, 1.5rem);        /* 20px → 24px */
+    --text-3xl: clamp(1.5rem, 3vw + 0.75rem, 1.875rem);       /* 24px → 30px */
+    --text-4xl: clamp(1.75rem, 4vw + 0.75rem, 2.25rem);       /* 28px → 36px */
+    --text-5xl: clamp(2rem, 5vw + 1rem, 3rem);                /* 32px → 48px */
+    --text-6xl: clamp(2.5rem, 6vw + 1rem, 3.75rem);           /* 40px → 60px */
 
     /* Line Heights */
     --leading-tight: 1.25;
@@ -66,14 +96,22 @@
     --font-semibold: 600;
     --font-bold: 700;
 
-    /* Section Spacing (vertical rhythm) */
-    --section-padding-mobile: 3rem;   /* 48px */
-    --section-padding-tablet: 4rem;   /* 64px */
-    --section-padding-desktop: 5rem;  /* 80px */
+    /* Section Spacing - Global Vertical Rhythm (MANDATORY for all sections) */
+    /* Industry standard spacing for professional service websites */
+    --section-padding-mobile: 3.5rem;   /* 56px - py-14 */
+    --section-padding-tablet: 5rem;     /* 80px - py-20 */
+    --section-padding-desktop: 6rem;    /* 96px - py-24 */
 
-    /* Container Spacing */
-    --container-padding-x: 1rem;      /* 16px mobile */
-    --container-max-width: 80rem;     /* 1280px */
+    /* Compact variant for tight sections (trust strips, etc.) */
+    --section-padding-compact-mobile: 1.5rem;   /* 24px - py-6 */
+    --section-padding-compact-tablet: 2rem;     /* 32px - py-8 */
+    --section-padding-compact-desktop: 2.5rem;  /* 40px - py-10 */
+
+    /* Container Spacing - Global Layout Contract */
+    /* MANDATORY: All content must be constrained to these widths */
+    --container-padding-x: 1rem;          /* 16px mobile, increased at breakpoints */
+    --container-max-width: 80rem;         /* 1280px - Optimal for HVAC service sites */
+    --container-max-width-narrow: 60rem;  /* 960px - For focused content */
 
     /* Card Spacing */
     --card-padding-sm: 1rem;          /* 16px */

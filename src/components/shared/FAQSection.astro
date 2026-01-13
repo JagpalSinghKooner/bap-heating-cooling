@@ -1,4 +1,8 @@
 ---
+/**
+ * FAQ Section - Clean, Simple Design
+ * Just the questions and answers - no redundant CTAs
+ */
 import AccordionItem from './AccordionItem.astro';
 import Section from '../primitives/Section.astro';
 import type { CollectionEntry } from 'astro:content';
@@ -9,19 +13,31 @@ export interface Props {
   class?: string;
 }
 
-const { faqs, title = 'Frequently Asked Questions', class: className = '' } = Astro.props;
+const { faqs, title = 'Common Questions', class: className = '' } = Astro.props;
 ---
 
 {faqs.length > 0 && (
   <Section variant="muted" class={className}>
-    <h2 class="mb-8 text-center text-3xl font-bold sm:mb-10 lg:text-4xl">{title}</h2>
-    <div class="mx-auto max-w-3xl space-y-4">
-        {faqs.map((faq) => (
-          <AccordionItem
-            question={faq.data.question}
-            answer={faq.data.answer}
-          />
-        ))}
+    <!-- Section Header -->
+    <div class="mb-10 text-center">
+      <p class="eyebrow mb-3">FAQ</p>
+      <h2 class="section-title mx-auto mb-4 max-w-3xl">
+        {title}
+      </h2>
+      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+        Quick answers to questions we hear most.
+      </p>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="mx-auto max-w-3xl space-y-3">
+      {faqs.map((faq, index) => (
+        <AccordionItem
+          question={faq.data.question}
+          answer={faq.data.answer}
+          index={index}
+        />
+      ))}
     </div>
   </Section>
 )}

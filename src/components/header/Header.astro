@@ -17,8 +17,8 @@ const categorySlugMap: { [key: string]: string } = {
 };
 ---
 
-<nav class="border-b bg-white" role="navigation" aria-label="Main navigation">
-  <div class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+<nav id="main-nav" class="sticky top-0 z-50 border-b bg-white transition-all duration-300" role="navigation" aria-label="Main navigation">
+  <div class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8 transition-all duration-300">
     <!-- Desktop/Tablet Layout: Flexbox for proper spacing -->
     <div class="flex items-center justify-between gap-4">
       <!-- Logo (Left - Fixed Width) -->
@@ -90,12 +90,17 @@ const categorySlugMap: { [key: string]: string } = {
         <button
           id="mobile-menu-button"
           type="button"
-          class="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary lg:hidden"
+          class="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary lg:hidden min-h-[44px] min-w-[44px]"
           aria-expanded="false"
           aria-label="Toggle navigation menu"
         >
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <!-- Hamburger Icon -->
+          <svg id="hamburger-icon" class="h-6 w-6 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <!-- Close Icon (hidden by default) -->
+          <svg id="close-icon" class="hidden h-6 w-6 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -103,7 +108,7 @@ const categorySlugMap: { [key: string]: string } = {
   </div>
 
   <!-- Mobile Navigation Menu (Full Width) -->
-  <div id="mobile-menu" class="hidden border-t bg-white lg:hidden">
+  <div id="mobile-menu" class="hidden border-t bg-white lg:hidden overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0" data-menu-closed>
     <div class="container mx-auto px-4">
       <ul class="space-y-1 pb-3 pt-4">
         {profile.services.navbar_categories.map((category) => {
@@ -138,38 +143,92 @@ const categorySlugMap: { [key: string]: string } = {
   document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
 
-    if (menuButton && mobileMenu) {
+    if (menuButton && mobileMenu && hamburgerIcon && closeIcon) {
+      const openMenu = () => {
+        mobileMenu.classList.remove('hidden');
+        // Trigger reflow to enable CSS transition
+        void mobileMenu.offsetHeight;
+        mobileMenu.classList.remove('max-h-0', 'opacity-0');
+        mobileMenu.classList.add('max-h-[500px]', 'opacity-100');
+        mobileMenu.removeAttribute('data-menu-closed');
+        menuButton.setAttribute('aria-expanded', 'true');
+
+        // Toggle icons
+        hamburgerIcon.classList.add('hidden');
+        closeIcon.classList.remove('hidden');
+      };
+
+      const closeMenu = () => {
+        mobileMenu.classList.remove('max-h-[500px]', 'opacity-100');
+        mobileMenu.classList.add('max-h-0', 'opacity-0');
+        mobileMenu.setAttribute('data-menu-closed', '');
+        menuButton.setAttribute('aria-expanded', 'false');
+
+        // Toggle icons
+        hamburgerIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+
+        // Hide after animation completes
+        setTimeout(() => {
+          if (mobileMenu.hasAttribute('data-menu-closed')) {
+            mobileMenu.classList.add('hidden');
+          }
+        }, 300);
+      };
+
       menuButton.addEventListener('click', () => {
         const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
-
-        // Toggle menu visibility
         if (isExpanded) {
-          mobileMenu.classList.add('hidden');
-          menuButton.setAttribute('aria-expanded', 'false');
+          closeMenu();
         } else {
-          mobileMenu.classList.remove('hidden');
-          menuButton.setAttribute('aria-expanded', 'true');
+          openMenu();
         }
       });
 
       // Close menu when clicking a link
       const menuLinks = mobileMenu.querySelectorAll('a');
       menuLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden');
-          menuButton.setAttribute('aria-expanded', 'false');
-        });
+        link.addEventListener('click', closeMenu);
       });
 
       // Close menu when clicking outside
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (!menuButton.contains(target) && !mobileMenu.contains(target)) {
-          mobileMenu.classList.add('hidden');
-          menuButton.setAttribute('aria-expanded', 'false');
+          const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+          if (isExpanded) {
+            closeMenu();
+          }
         }
       });
     }
   });
+
+  // Sticky header scroll behavior
+  const nav = document.getElementById('main-nav');
+  let lastScroll = 0;
+  const scrollThreshold = 100; // Pixels to scroll before adding effects
+
+  if (nav) {
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+
+      if (currentScroll > scrollThreshold) {
+        // Add shadow and slight padding reduction when scrolled
+        nav.classList.add('shadow-md');
+        nav.querySelector('div')?.classList.remove('py-4');
+        nav.querySelector('div')?.classList.add('py-2');
+      } else {
+        // Remove effects when at top
+        nav.classList.remove('shadow-md');
+        nav.querySelector('div')?.classList.add('py-4');
+        nav.querySelector('div')?.classList.remove('py-2');
+      }
+
+      lastScroll = currentScroll;
+    });
+  }
 </script>

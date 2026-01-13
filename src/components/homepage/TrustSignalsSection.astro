@@ -1,88 +1,72 @@
 ---
 /**
- * Trust Signals Section - About / Built on Trust
- * Refactored: Concise, warm, neighbourly, fast to scan
- * Answers one question: "Can I trust these people in my home?"
+ * Trust Signals Section - Premium About/Team Section
+ * Emotion-driven design with stats, social proof, and trust indicators
  */
 
 import Section from '../primitives/Section.astro';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+const profile = await getBusinessProfile();
+
+const stats = [
+  {
+    number: '30+',
+    label: 'Years in Business',
+    description: 'Serving Guelph families since 1994',
+    icon: 'calendar',
+  },
+  {
+    number: '407+',
+    label: '5-Star Reviews',
+    description: '4.8★ rating on Google',
+    icon: 'star',
+  },
+  {
+    number: '10,000+',
+    label: 'Homes Serviced',
+    description: 'Your neighbors trust us',
+    icon: 'home',
+  },
+  {
+    number: '24/7',
+    label: 'Emergency Service',
+    description: 'Always here when you need us',
+    icon: 'clock',
+  },
+];
+
+const trustValues = [
+  {
+    title: 'Family-Owned & Local',
+    description: 'We live and work in your community. When you call us, you\'re supporting a local family business.',
+    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>',
+  },
+  {
+    title: 'No Pressure, Just Honest Advice',
+    description: 'We explain your options clearly and let you decide. No pushy sales tactics, ever.',
+    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+  },
+  {
+    title: 'Treat Your Home Like Our Own',
+    description: 'Clean, respectful technicians who wear boot covers and clean up completely after every job.',
+    icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>',
+  },
+];
 ---
 
-<Section variant="muted">
-  <!-- 2-Column Layout -->
-  <div class="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center">
-    <!-- Left Column: Headline + Short Paragraph + Trust Bullets + Trust Chips -->
-    <div class="space-y-6">
-      <!-- Headline -->
-      <h2 class="text-3xl font-bold text-foreground lg:text-4xl">
-        Local HVAC experts you can trust in your home
-      </h2>
-
-      <!-- Body Copy: One short paragraph -->
-      <p class="text-lg text-muted-foreground leading-relaxed">
-        B.A.P Heating & Cooling is a local, family-run HVAC company focused on keeping homes comfortable year-round. Our technicians show up on time, explain your options clearly, and treat your home with the same care they would their own.
-      </p>
-
-      <!-- Trust Bullets: 3 proof-driven points -->
-      <ul class="space-y-3" role="list">
-        <li class="flex items-start gap-3">
-          <svg class="h-6 w-6 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-          <span class="text-base font-medium text-foreground">Licensed, insured & TSSA certified</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <svg class="h-6 w-6 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-          <span class="text-base font-medium text-foreground">Clear pricing with no pressure</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <svg class="h-6 w-6 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-          <span class="text-base font-medium text-foreground">Work backed by real warranties</span>
-        </li>
-      </ul>
-
-      <!-- Trust Chips: Optional highlights below bullets -->
-      <div class="flex flex-wrap gap-3 pt-2">
-        <div class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 border border-primary/20">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span class="text-sm font-medium text-foreground">24/7 Emergency Service</span>
+<Section variant="default">
+  <!-- Simple Stats Row -->
+  <div class="flex flex-wrap items-center justify-center gap-8 text-center sm:gap-12 lg:gap-16">
+    {stats.map((stat) => (
+      <div>
+        <div class="text-3xl font-bold text-foreground sm:text-4xl">
+          {stat.number}
         </div>
-        <div class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 border border-primary/20">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span class="text-sm font-medium text-foreground">10-Year Warranty</span>
-        </div>
-        <div class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 border border-primary/20">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span class="text-sm font-medium text-foreground">Family-Owned Business</span>
+        <div class="text-sm text-muted-foreground">
+          {stat.label}
         </div>
       </div>
-    </div>
-
-    <!-- Right Column: Team Photo Placeholder -->
-    <div class="relative">
-      <div class="relative overflow-hidden rounded-lg bg-muted shadow-md aspect-[4/3]">
-        <!-- Placeholder container - ready for team photo -->
-        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
-          <div class="text-center px-6">
-            <svg class="h-16 w-16 mx-auto mb-3 text-primary/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p class="text-sm font-medium text-muted-foreground">Team photo coming soon</p>
-          </div>
-        </div>
-        <!-- When ready, replace with: -->
-        <!-- <img src="/path/to/team-photo.jpg" alt="B.A.P Heating & Cooling team" class="h-full w-full object-cover" /> -->
-      </div>
-    </div>
+    ))}
   </div>
 </Section>

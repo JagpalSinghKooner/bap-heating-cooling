@@ -5,6 +5,8 @@ import { getCanonicalUrl } from '../lib/urlGovernance';
 import logo from '../images/bapheatingandcoolingltd.webp';
 import SeasonalCalloutBar from '../components/header/SeasonalCalloutBar.astro';
 import Header from '../components/header/Header.astro';
+import FloatingCTA from '../components/primitives/FloatingCTA.astro';
+import ExitIntentModal from '../components/shared/ExitIntentModal.astro';
 
 export interface Props {
   title?: string;
@@ -286,6 +288,12 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
           </div>
         </div>
       </footer>
+
+      <!-- Floating Mobile CTA -->
+      <FloatingCTA variant="call" />
+
+      <!-- Exit Intent Modal -->
+      <ExitIntentModal />
     </div>
 
     <!-- Analytics Event Tracking -->

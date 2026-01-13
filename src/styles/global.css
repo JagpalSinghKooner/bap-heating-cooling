@@ -1,3 +1,23 @@
+/**
+ * Global Styles - B.A.P Heating & Cooling
+ * HVAC Industry-Standard Component Library
+ *
+ * DESIGN TOKEN ARCHITECTURE:
+ * - All spacing, colors, shadows, and radii come from tokens.css
+ * - Components use semantic class names that map to tokens
+ * - Storybook-ready: tokens can be imported for live documentation
+ *
+ * LAYOUT CONTRACT (MANDATORY):
+ * - All sections use Section primitive (full-bleed backgrounds)
+ * - All content constrained to max-w-7xl (1280px) via Container primitive
+ * - No manual py-* or max-w-* in section files
+ *
+ * COMPONENT STRATEGY:
+ * - Single source of truth per component type (Button, Card, Badge)
+ * - Variants controlled by utility classes, not scattered custom styles
+ * - Professional HVAC aesthetic: trust, clarity, no "AI slop"
+ */
+
 @import './tokens.css';
 
 @tailwind base;
@@ -19,35 +39,43 @@
 
 /* ============================================
    CARD COMPONENTS
+   Professional service industry styling
+   All radii and shadows use design tokens
    ============================================ */
 
 @layer components {
-  /* Base Card */
+  /* Base Card - Foundation for all card variants */
+  /* TOKENS: --radius-lg (16px), border-border, bg-card */
   .card-base {
     @apply rounded-lg border border-border bg-card text-card-foreground;
   }
 
   /* Standard Card (content/features) */
+  /* TOKENS: --shadow-sm, --shadow-md (hover) */
   .card-standard {
     @apply card-base p-6 shadow-sm transition-shadow hover:shadow-md;
   }
 
   /* Featured Card (conversion blocks with brand emphasis) */
+  /* TOKENS: primary colors, --shadow-md */
   .card-featured {
     @apply card-base border-2 border-primary/20 bg-primary/5 p-8 shadow-md;
   }
 
   /* CTA Conversion Card */
+  /* TOKENS: muted colors, --shadow-sm */
   .card-cta {
     @apply card-base bg-muted/50 p-8 shadow-sm;
   }
 
   /* Compact Card (service area links) */
+  /* TOKENS: --shadow-sm, primary hover */
   .card-compact {
     @apply card-base p-3 text-center transition-colors hover:border-primary hover:shadow-sm;
   }
 
-  /* Urgent Card (replaces red emergency alert styling) */
+  /* Urgent Card (emergency services, heating failures) */
+  /* HVAC-specific: Use orange (warmth/urgency), not red (too aggressive) */
   .card-urgent {
     @apply card-base border-orange-200 bg-orange-50 p-6 shadow-md;
   }
@@ -130,19 +158,22 @@
    ============================================ */
 
 @layer components {
-  /* Section Base - Standard vertical rhythm */
+  /* Section Base - Standard vertical rhythm (HVAC Industry Standard) */
+  /* MATCHES TOKEN: --section-padding-* */
   .section {
-    @apply py-14 md:py-20 lg:py-24;
+    @apply py-14 md:py-20 lg:py-24; /* 56px / 80px / 96px */
   }
 
   /* Section Compact (trust strips, tight sections) */
+  /* MATCHES TOKEN: --section-padding-compact-* */
   .section-compact {
-    @apply py-6 sm:py-8 md:py-10;
+    @apply py-6 sm:py-8 md:py-10; /* 24px / 32px / 40px */
   }
 
-  /* Section Container (max-w-6xl standard) */
+  /* Section Container (HVAC Industry Standard: 1280px max-width) */
+  /* MATCHES TOKEN: --container-max-width (80rem / 1280px) */
   .section-container {
-    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
   /* Hero Section */

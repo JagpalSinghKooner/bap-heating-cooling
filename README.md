@@ -758,6 +758,33 @@ Every AI-generated content piece MUST:
 
 ---
 
+### Component Development Requirements
+
+**MANDATORY:** All new components and component modifications MUST be created using the **frontend-design skill**.
+
+**Rationale:**
+- Most existing components have poor design and UX
+- Generic AI-generated components lack design quality and visual polish
+- The frontend-design skill is specialized for production-grade, distinctive interfaces
+
+**Enforcement:**
+- ✅ Use `/frontend-design` skill for ALL component creation
+- ✅ Use `/frontend-design` skill for ALL component redesigns
+- ❌ DO NOT create components using generic AI responses
+- ❌ DO NOT manually code components without frontend-design skill involvement
+
+**Applies To:**
+- New Astro components in `src/components/`
+- Component modifications and redesigns
+- Section components for page layouts
+- Interactive UI elements
+- Form components and CTAs
+
+**Exception:**
+- Minor bug fixes or content updates to existing components (no structural/design changes)
+
+---
+
 ## 10. BRAND & LANGUAGE STANDARDS
 
 ### Language Standards (MANDATORY)

@@ -1,7 +1,8 @@
 ---
 /**
  * Seasonal Callout Bar
- * Sticky bar at the top of the page displaying seasonal messages
+ * Dismissible sticky bar at the top of the page displaying seasonal offers
+ * Features: countdown timer, urgency messaging, localStorage persistence
  * Automatically activates the correct seasonal message based on current date
  */
 
@@ -49,6 +50,28 @@ if (!activeMessage) {
 
 const { message, icon } = activeMessage.data;
 
+// Calculate end date for countdown (end of seasonal period)
+const getCountdownEndDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const endDate = activeMessage.data.endDate; // format: MM-DD
+  const [month, day] = endDate.split('-').map(Number);
+
+  // If seasonal message wraps year (e.g., winter)
+  if (activeMessage.data.startDate > endDate) {
+    // If we're past the end date, it means we're in the next year
+    if (now.getMonth() + 1 < month) {
+      return new Date(year, month - 1, day, 23, 59, 59);
+    }
+    // Otherwise we're before the year wrap
+    return new Date(year + 1, month - 1, day, 23, 59, 59);
+  }
+
+  return new Date(year, month - 1, day, 23, 59, 59);
+};
+
+const countdownEnd = getCountdownEndDate().toISOString();
+
 // Icon SVGs
 const icons = {
   snowflake: `<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20M2 12h20M5.6 5.6l12.8 12.8M5.6 18.4L18.4 5.6M8 12l8 0M12 8v8" /></svg>`,
@@ -60,46 +83,40 @@ const icons = {
 const iconSvg = icon ? icons[icon] : '';
 ---
 
-<div class="seasonal-callout-bar sticky top-0 z-50 bg-brand-blue text-white">
-  <div class="mx-auto max-w-6xl px-4 py-2.5 sm:px-6 lg:px-8">
+<div
+  id="seasonal-banner"
+  class="seasonal-callout-bar sticky top-0 z-50 bg-gradient-to-r from-brand-blue to-brand-blue/90 text-white shadow-md transition-all duration-300"
+  data-countdown-end={countdownEnd}
+>
+  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-4">
-      <!-- Left: Seasonal Message -->
-      <div class="flex items-center gap-2 text-sm font-semibold">
-        {iconSvg && <span set:html={iconSvg} />}
-        <span>{message}</span>
+      <!-- Left: Seasonal Message + Countdown -->
+      <div class="flex flex-1 items-center gap-3 sm:gap-4">
+        {iconSvg && <span class="hidden sm:inline-flex" set:html={iconSvg} />}
+        <div class="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-3">
+          <span class="text-sm font-bold sm:text-base">{message}</span>
+          <div class="flex items-center gap-2 text-xs sm:text-sm">
+            <span class="font-semibold text-yellow-300">⏰ Ends in:</span>
+            <span id="countdown" class="font-mono font-bold tabular-nums text-yellow-300">
+              Loading...
+            </span>
+          </div>
+        </div>
       </div>
 
-      <!-- Right: CTAs -->
-      <div class="flex items-center gap-3">
-        <!-- Primary CTA: Call -->
-        <a
-          href={`tel:${profile.contact.phone_e164}`}
-          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-brand-blue transition-all hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
-          data-cta-context="seasonal-callout"
-          aria-label={`Call us at ${profile.contact.phone_display}`}
+      <!-- Right: Dismiss Only (CTAs removed to reduce competition with hero) -->
+      <div class="flex items-center">
+        <!-- Dismiss Button -->
+        <button
+          id="dismiss-banner"
+          type="button"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
+          aria-label="Dismiss banner"
         >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          <span class="hidden sm:inline">Call Now</span>
-          <span class="sm:hidden">Call</span>
-        </a>
-
-        <!-- Secondary CTA: Book Online -->
-        {profile.contact.booking.enabled && (
-          <a
-            href={profile.contact.booking.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="hidden sm:inline-flex items-center gap-2 rounded-md border-2 border-white px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-white hover:text-brand-blue focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
-            data-cta-context="seasonal-callout"
-          >
-            <span>Book Online</span>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
-        )}
+        </button>
       </div>
     </div>
   </div>
@@ -110,4 +127,111 @@ const iconSvg = icon ? icons[icon] : '';
     /* Ensure no layout shift */
     will-change: transform;
   }
+
+  .seasonal-callout-bar.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
 </style>
+
+<script>
+  // Seasonal banner dismiss and countdown functionality
+  const STORAGE_KEY = 'bap_seasonal_banner_dismissed';
+  const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+  function initSeasonalBanner() {
+    const banner = document.getElementById('seasonal-banner');
+    const dismissBtn = document.getElementById('dismiss-banner');
+    const countdownEl = document.getElementById('countdown');
+
+    if (!banner || !dismissBtn || !countdownEl) return;
+
+    // Check if banner was previously dismissed
+    const dismissedData = localStorage.getItem(STORAGE_KEY);
+    if (dismissedData) {
+      try {
+        const { timestamp, endDate } = JSON.parse(dismissedData);
+        const now = Date.now();
+
+        // If dismissed recently AND it's for the same campaign, keep it hidden
+        const bannerEndDate = banner.getAttribute('data-countdown-end');
+        if (now - timestamp < DISMISS_DURATION && endDate === bannerEndDate) {
+          banner.classList.add('hidden');
+          return;
+        }
+      } catch (e) {
+        // Invalid data, clear it
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    // Dismiss button handler
+    dismissBtn.addEventListener('click', () => {
+      const bannerEndDate = banner.getAttribute('data-countdown-end');
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          timestamp: Date.now(),
+          endDate: bannerEndDate,
+        })
+      );
+
+      banner.classList.add('hidden');
+
+      // Track dismissal
+      if (typeof window.gtag !== 'undefined') {
+        window.gtag('event', 'seasonal_banner_dismissed', {
+          event_category: 'engagement',
+          event_label: 'seasonal_promotion',
+        });
+      }
+    });
+
+    // Countdown timer
+    function updateCountdown() {
+      if (!banner || !countdownEl) return;
+
+      const endDate = banner.getAttribute('data-countdown-end');
+      if (!endDate) return;
+
+      const end = new Date(endDate).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        if (countdownEl) countdownEl.textContent = 'Expired';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      // Format countdown display
+      if (days > 0) {
+        if (countdownEl) countdownEl.textContent = `${days}d ${hours}h ${minutes}m`;
+      } else if (hours > 0) {
+        if (countdownEl) countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+      } else if (minutes > 0) {
+        if (countdownEl) countdownEl.textContent = `${minutes}m ${seconds}s`;
+      } else {
+        if (countdownEl) countdownEl.textContent = `${seconds}s`;
+      }
+
+      // Update every second
+      requestAnimationFrame(() => setTimeout(updateCountdown, 1000));
+    }
+
+    // Start countdown
+    updateCountdown();
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSeasonalBanner);
+  } else {
+    initSeasonalBanner();
+  }
+</script>

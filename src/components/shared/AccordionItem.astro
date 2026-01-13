@@ -1,41 +1,172 @@
 ---
+/**
+ * Accordion Item - Premium FAQ Item with Smooth Animations
+ * Premium accordion design with gradient backgrounds and smooth transitions
+ */
 export interface Props {
   question: string;
   answer: string;
+  index?: number;
 }
 
-const { question, answer } = Astro.props;
+const { question, answer, index = 0 } = Astro.props;
+
+// Rotate gradient backgrounds
+const gradients = [
+  'from-blue-500/5 to-cyan-500/5',
+  'from-green-500/5 to-emerald-500/5',
+  'from-purple-500/5 to-pink-500/5',
+  'from-orange-500/5 to-yellow-500/5',
+];
+const gradient = gradients[index % gradients.length];
 ---
 
-<div class="card-base">
+<div class={`group overflow-hidden rounded-2xl border-2 border-border bg-gradient-to-br ${gradient} shadow-md transition-all duration-300 hover:border-primary/30 hover:shadow-xl`} data-accordion-item>
   <button
-    class="flex w-full items-center justify-between p-4 text-left font-semibold transition-colors hover:bg-muted/30"
+    class="flex w-full items-center justify-between gap-4 p-6 text-left transition-colors hover:bg-background/20"
     aria-expanded="false"
     data-accordion-trigger
   >
-    <span>{question}</span>
-    <span aria-hidden="true" class="text-xl transition-transform">+</span>
+    <span class="flex-1 text-lg font-bold text-foreground sm:text-xl">
+      {question}
+    </span>
+    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 transition-all duration-300 group-hover:bg-primary/20" data-icon-container>
+      <!-- Plus Icon (default) -->
+      <svg
+        class="h-6 w-6 text-primary transition-all duration-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        data-plus-icon
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+      </svg>
+      <!-- Minus Icon (when expanded) -->
+      <svg
+        class="absolute h-6 w-6 text-primary opacity-0 transition-all duration-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        data-minus-icon
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+      </svg>
+    </div>
   </button>
-  <div class="hidden px-4 pb-4" data-accordion-content>
-    <p class="text-muted-foreground">{answer}</p>
+  <div
+    class="grid transition-all duration-300 ease-out"
+    style="grid-template-rows: 0fr;"
+    data-accordion-content
+  >
+    <div class="overflow-hidden">
+      <div class="border-t border-border/50 bg-background/30 px-6 pb-6 pt-4">
+        <p class="text-base leading-relaxed text-muted-foreground">
+          {answer}
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-accordion-trigger]').forEach(trigger => {
+  function initFAQAccordion() {
+    const triggers = document.querySelectorAll('[data-accordion-trigger]');
+    if (!triggers.length) return;
+
+    // Remove existing listeners by cloning and replacing
+    triggers.forEach((trigger) => {
+      const newTrigger = trigger.cloneNode(true) as HTMLElement;
+      trigger.parentNode?.replaceChild(newTrigger, trigger);
+    });
+
+    // Re-query after replacement
+    const newTriggers = document.querySelectorAll('[data-accordion-trigger]');
+
+    newTriggers.forEach(trigger => {
       trigger.addEventListener('click', () => {
-        const content = trigger.nextElementSibling;
+        const currentItem = trigger.closest('[data-accordion-item]');
+        const currentContent = currentItem?.querySelector('[data-accordion-content]') as HTMLElement | null;
+        const currentPlusIcon = trigger.querySelector('[data-plus-icon]') as HTMLElement | null;
+        const currentMinusIcon = trigger.querySelector('[data-minus-icon]') as HTMLElement | null;
         const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
 
-        trigger.setAttribute('aria-expanded', String(!isExpanded));
-        content?.classList.toggle('hidden');
+        if (!currentContent) return;
 
-        const icon = trigger.querySelector('span:last-child');
-        if (icon) {
-          icon.textContent = isExpanded ? '+' : '−';
+        // Close all other accordions first
+        newTriggers.forEach((otherTrigger) => {
+          if (otherTrigger !== trigger) {
+            const otherItem = otherTrigger.closest('[data-accordion-item]');
+            const otherContent = otherItem?.querySelector('[data-accordion-content]') as HTMLElement | null;
+            const otherPlusIcon = otherTrigger.querySelector('[data-plus-icon]') as HTMLElement | null;
+            const otherMinusIcon = otherTrigger.querySelector('[data-minus-icon]') as HTMLElement | null;
+
+            otherTrigger.setAttribute('aria-expanded', 'false');
+            if (otherContent) {
+              otherContent.style.gridTemplateRows = '0fr';
+            }
+            if (otherPlusIcon) {
+              otherPlusIcon.style.opacity = '1';
+              otherPlusIcon.style.transform = 'rotate(0deg)';
+            }
+            if (otherMinusIcon) {
+              otherMinusIcon.style.opacity = '0';
+              otherMinusIcon.style.transform = 'rotate(-90deg)';
+            }
+          }
+        });
+
+        // Toggle current accordion
+        if (isExpanded) {
+          // Collapse current
+          trigger.setAttribute('aria-expanded', 'false');
+          currentContent.style.gridTemplateRows = '0fr';
+          if (currentPlusIcon) {
+            currentPlusIcon.style.opacity = '1';
+            currentPlusIcon.style.transform = 'rotate(0deg)';
+          }
+          if (currentMinusIcon) {
+            currentMinusIcon.style.opacity = '0';
+            currentMinusIcon.style.transform = 'rotate(-90deg)';
+          }
+        } else {
+          // Expand current
+          trigger.setAttribute('aria-expanded', 'true');
+          currentContent.style.gridTemplateRows = '1fr';
+          if (currentPlusIcon) {
+            currentPlusIcon.style.opacity = '0';
+            currentPlusIcon.style.transform = 'rotate(90deg)';
+          }
+          if (currentMinusIcon) {
+            currentMinusIcon.style.opacity = '1';
+            currentMinusIcon.style.transform = 'rotate(0deg)';
+          }
         }
       });
     });
-  });
+  }
+
+  // Initialize on page load
+  document.addEventListener('astro:page-load', initFAQAccordion);
+
+  // Also initialize on DOMContentLoaded for initial page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFAQAccordion);
+  } else {
+    initFAQAccordion();
+  }
 </script>
+
+<style>
+  [data-accordion-content] {
+    transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-plus-icon],
+  [data-minus-icon] {
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  [data-icon-container] {
+    position: relative;
+  }
+</style>
