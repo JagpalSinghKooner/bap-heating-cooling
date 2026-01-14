@@ -1,0 +1,16 @@
+source: manual
+verified: false
+authorName: Lisa W.
+rating: 5
+text: We needed a complete furnace replacement in our older home. B.A.P provided multiple options at different price points and helped us choose what made sense for our budget. The 10-year warranty gave us peace of mind. Very professional from start to finish.
+serviceSlug: furnace-installation
+reviewDate: '2025-09-12'
+status: live
+priority: 5
+
+# Workflow metadata
+workflowStatus: 'published'
+reviewedBy: 'System Migration'
+reviewedDate: '2026-01-14'
+approvedBy: 'System Migration'
+approvedDate: '2026-01-14'

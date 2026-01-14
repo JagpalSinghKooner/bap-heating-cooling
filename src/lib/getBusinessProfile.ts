@@ -47,6 +47,7 @@ export type BusinessProfile = {
       country: string;
       phone_e164: string;
       email: string;
+      google_maps_embed?: string;
     };
     secondary: {
       name: string;
@@ -57,6 +58,7 @@ export type BusinessProfile = {
       country: string;
       phone_e164: string;
       email: string;
+      google_maps_embed?: string;
     };
   };
   coverage: {

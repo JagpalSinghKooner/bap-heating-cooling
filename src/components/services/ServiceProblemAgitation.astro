@@ -1,0 +1,119 @@
+---
+/**
+ * ServiceProblemAgitation - Problem agitation section
+ *
+ * Creates urgency by highlighting consequences of delay.
+ * Emotional hook that leads to the solution section.
+ */
+
+import Section from '../primitives/Section.astro';
+
+interface Problem {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface Props {
+  serviceTitle: string;
+  location?: {
+    title: string;
+  };
+  problems: Problem[];
+}
+
+const { serviceTitle, location, problems } = Astro.props;
+
+// Generate SEO-optimized H2
+const h2Text = location
+  ? `What Happens When You Delay ${serviceTitle} in ${location.title}, ON?`
+  : `What Happens When You Delay ${serviceTitle}?`;
+
+// Icon SVG mapping - warning/problem themed icons
+const iconMap: Record<string, string> = {
+  // Cost/Money
+  'cost': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
+  'dollar': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
+
+  // Warning/Alert
+  'warning': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />',
+  'alert': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />',
+  'exclamation': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
+
+  // Temperature
+  'temperature': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />',
+  'thermometer': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />',
+
+  // Moisture/Water
+  'moisture': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />',
+  'water': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />',
+
+  // Health/Safety
+  'health': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />',
+  'safety': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />',
+
+  // Time/Clock
+  'time': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />',
+  'clock': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />',
+
+  // Noise
+  'noise': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />',
+
+  // Efficiency
+  'efficiency': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />',
+
+  // Breakdown
+  'breakdown': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />',
+
+  // Default
+  'default': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />',
+};
+
+function getIconPath(iconName: string): string {
+  return iconMap[iconName] || iconMap['default'];
+}
+---
+
+{problems && problems.length > 0 && (
+  <Section variant="muted">
+    {/* Header */}
+    <div class="mb-10 text-center">
+      <p class="eyebrow mb-3">Don't Wait Until It's Too Late</p>
+      <h2 class="section-title mx-auto mb-4 max-w-3xl">
+        {h2Text}
+      </h2>
+      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+        Delaying necessary {serviceTitle.toLowerCase()} can cost you more in the long run. Here's what's at stake.
+      </p>
+    </div>
+
+    {/* Problem Cards Grid */}
+    <div class="grid gap-6 md:grid-cols-3">
+      {problems.map((problem) => (
+        <div class="group relative overflow-hidden rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50 p-6 transition-all hover:border-red-300 hover:shadow-lg dark:border-red-900/30 dark:from-red-950/20 dark:to-orange-950/20">
+          {/* Icon */}
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 text-red-600 transition-colors group-hover:bg-red-600 group-hover:text-white dark:bg-red-900/30 dark:text-red-400">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <Fragment set:html={getIconPath(problem.icon)} />
+            </svg>
+          </div>
+
+          {/* Content */}
+          <h3 class="mb-2 text-lg font-bold text-foreground">
+            {problem.title}
+          </h3>
+          <p class="text-sm leading-relaxed text-muted-foreground">
+            {problem.description}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    {/* Emotional Closing */}
+    <div class="mt-10 text-center">
+      <p class="text-lg font-medium text-foreground">
+        The good news? These problems are preventable.
+      </p>
+    </div>
+  </Section>
+)}

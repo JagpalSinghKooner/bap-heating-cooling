@@ -1,0 +1,84 @@
+---
+/**
+ * ServiceGuarantee - Guarantee/risk reversal section
+ *
+ * Reduces purchase anxiety with clear guarantees.
+ * Branded design with shield icon.
+ */
+
+import Section from '../primitives/Section.astro';
+
+interface GuaranteeItem {
+  title: string;
+  description: string;
+}
+
+interface Guarantee {
+  items: GuaranteeItem[];
+}
+
+interface Props {
+  serviceTitle: string;
+  guarantee: Guarantee;
+}
+
+const { serviceTitle, guarantee } = Astro.props;
+---
+
+{guarantee && guarantee.items && guarantee.items.length > 0 && (
+  <Section variant="muted">
+    {/* Header */}
+    <div class="mb-10 text-center">
+      <p class="eyebrow mb-3">Peace of Mind</p>
+      <h2 class="section-title mx-auto mb-4 max-w-3xl">
+        Our {serviceTitle} Guarantee
+      </h2>
+      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+        We stand behind our work. These aren't just promises—they're guarantees backed by over 30 years in business.
+      </p>
+    </div>
+
+    {/* Guarantee Card */}
+    <div class="mx-auto max-w-4xl">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 text-white shadow-2xl md:p-10">
+        {/* Background pattern */}
+        <div class="absolute inset-0 opacity-10" aria-hidden="true">
+          <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,.1) 20px, rgba(255,255,255,.1) 40px);" />
+        </div>
+
+        {/* Shield Icon */}
+        <div class="relative mb-8 flex justify-center">
+          <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+            <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Guarantee Items Grid */}
+        <div class="relative grid gap-6 md:grid-cols-2">
+          {guarantee.items.map((item) => (
+            <div class="flex gap-4">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/20">
+                <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="mb-1 font-bold text-white">{item.title}</h3>
+                <p class="text-sm text-white/80">{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div class="relative mt-8 border-t border-white/20 pt-6 text-center">
+          <p class="text-sm text-white/80">
+            Family-owned and operated since 1992. Your satisfaction is our reputation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+)}

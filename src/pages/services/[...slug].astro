@@ -1,10 +1,23 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ReviewsBlock from '../../components/ReviewsBlock.astro';
-import PrimaryCTA from '../../components/PrimaryCTA.astro';
-import TrustBadges from '../../components/TrustBadges.astro';
-import ServiceDetailsGrid from '../../components/services/ServiceDetailsGrid.astro';
 import FAQSection from '../../components/shared/FAQSection.astro';
+import Section from '../../components/primitives/Section.astro';
+// Service page components
+import ServiceHero from '../../components/services/ServiceHero.astro';
+import ServiceTrustBand from '../../components/services/ServiceTrustBand.astro';
+import ServiceValueProps from '../../components/services/ServiceValueProps.astro';
+import ServiceFinalCTA from '../../components/services/ServiceFinalCTA.astro';
+// New full-funnel components
+import ServiceProblemAgitation from '../../components/services/ServiceProblemAgitation.astro';
+import ServiceSolution from '../../components/services/ServiceSolution.astro';
+import ServiceProcess from '../../components/services/ServiceProcess.astro';
+import ServiceInclusions from '../../components/services/ServiceInclusions.astro';
+import ServiceSavings from '../../components/services/ServiceSavings.astro';
+import ServiceGuarantee from '../../components/services/ServiceGuarantee.astro';
+import ServiceLocalProof from '../../components/services/ServiceLocalProof.astro';
+import ServiceImageGallery from '../../components/services/ServiceImageGallery.astro';
+
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getServiceSchema, getLocalBusinessSchema } from '../../lib/schema';
@@ -17,13 +30,14 @@ import { generateReviewSchemas } from '../../lib/reviewSchema';
 export async function getStaticPaths() {
   const services = await getCollection('services');
   const locations = await getCollection('locations');
+  const serviceCityEntries = await getCollection('service-city');
 
   const paths = [];
 
   // Helper to remove .md extension
   const cleanSlug = (id: string) => id.replace(/\.md$/, '');
 
-  // Generate paths for individual service pages
+  // Generate paths for individual service pages (base pages)
   for (const service of services) {
     paths.push({
       params: {
@@ -33,21 +47,26 @@ export async function getStaticPaths() {
         type: 'service',
         service,
         location: null,
+        serviceCityEntry: null,
       },
     });
   }
 
-  // Generate paths for service-in-city pages
-  for (const service of services) {
-    for (const location of locations) {
+  // Generate paths for service-city pages using the service-city collection
+  for (const entry of serviceCityEntries) {
+    const service = services.find(s => cleanSlug(s.id) === entry.data.serviceSlug);
+    const location = locations.find(l => cleanSlug(l.id) === entry.data.locationSlug);
+
+    if (service && location) {
       paths.push({
         params: {
-          slug: `${cleanSlug(service.id)}-${cleanSlug(location.id)}-on`
+          slug: `${entry.data.serviceSlug}-${entry.data.locationSlug}-on`
         },
         props: {
           type: 'service-city',
           service,
           location,
+          serviceCityEntry: entry,
         },
       });
     }
@@ -56,12 +75,36 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { type, service, location } = Astro.props;
+const { type, service, location, serviceCityEntry } = Astro.props;
 
 // Helper to remove .md extension
 const cleanSlug = (id: string) => id.replace(/\.md$/, '');
 
-// Prepare data based on type
+// Data merging logic for service-city pages
+let mergedData: any;
+
+if (type === 'service-city' && serviceCityEntry) {
+  // Merge base service data with city-specific overrides
+  mergedData = {
+    // Start with base service data
+    ...service.data,
+    // Override with service-city specific data
+    title: serviceCityEntry.data.title,
+    seoTitle: serviceCityEntry.data.seoTitle,
+    seoDescription: serviceCityEntry.data.seoDescription,
+    localContext: serviceCityEntry.data.localContext,
+    localProof: serviceCityEntry.data.localProof,
+    // City overrides take precedence if provided, otherwise use base
+    problems: serviceCityEntry.data.problems || service.data.problems,
+    processSteps: serviceCityEntry.data.processSteps || service.data.processSteps,
+    savings: serviceCityEntry.data.savings || service.data.savings,
+    inclusions: serviceCityEntry.data.inclusions || service.data.inclusions,
+  };
+} else {
+  mergedData = service.data;
+}
+
+// Prepare SEO data based on type
 let title: string;
 let description: string;
 let robots: string;
@@ -73,9 +116,9 @@ if (type === 'service') {
   title = service.data.seoTitle || `${service.data.title} - B.A.P Heating and Cooling`;
   description = service.data.seoDescription || service.data.description;
   robots = service.data.robots || 'index,follow';
-} else if (type === 'service-city' && location) {
-  title = `${service.data.title} in ${location.data.title}, ON - B.A.P Heating and Cooling`;
-  description = `Professional ${service.data.title.toLowerCase()} services in ${location.data.title}, Ontario. ${service.data.description}`;
+} else if (type === 'service-city' && location && serviceCityEntry) {
+  title = serviceCityEntry.data.seoTitle || `${service.data.title} in ${location.data.title}, ON - B.A.P Heating and Cooling`;
+  description = serviceCityEntry.data.seoDescription || `Professional ${service.data.title.toLowerCase()} services in ${location.data.title}, Ontario. ${service.data.description}`;
   robots = service.data.robots || location.data.robots || 'index,follow';
 } else {
   title = 'B.A.P Heating and Cooling';
@@ -181,7 +224,7 @@ if (reviewSchemas.length > 0) {
 
 const schema = schemas;
 
-// P0-2 fix: Get all locations and regions for service pages
+// Get all locations and regions for service pages
 let allLocations: any[] = [];
 let allRegions: any[] = [];
 let locationsByRegion: Map<string, { region: any; locations: any[] }> = new Map();
@@ -203,7 +246,7 @@ if (type === 'service') {
   }
 }
 
-// P0-4 fix: Get all services for service-in-city pages
+// Get all services for service-in-city pages
 let allServices: any[] = [];
 let relatedServices: any[] = [];
 
@@ -212,7 +255,7 @@ if (type === 'service-city') {
   relatedServices = allServices.filter((s) => cleanSlug(s.id) !== serviceSlug);
 }
 
-// P0-3 fix: Get region for service-in-city pages
+// Get region for service-in-city pages
 let parentRegion = null;
 
 if (type === 'service-city' && location && locationSlug) {
@@ -231,202 +274,259 @@ if (type === 'service-city' && location && locationSlug) {
 >
   {type === 'service' ? (
     <>
-      <!-- Breadcrumb -->
-      <div class="border-b bg-muted/30">
-        <div class="section-container py-4">
-          <a href="/services/" class="text-sm text-muted-foreground hover:text-primary">
-            ← Back to Services
-          </a>
+      {/* 1. Hero Section */}
+      <ServiceHero
+        title={service.data.title}
+        description={service.data.description}
+        category={service.data.category}
+        serviceType={service.data.serviceType || 'installation'}
+      />
+
+      {/* 2. Trust Band */}
+      <ServiceTrustBand />
+
+      {/* 3. Problem Agitation - NEW */}
+      {mergedData.problems && mergedData.problems.length > 0 && (
+        <ServiceProblemAgitation
+          serviceTitle={service.data.title}
+          problems={mergedData.problems}
+        />
+      )}
+
+      {/* 4. Solution/Approach - NEW */}
+      {mergedData.approach && (
+        <ServiceSolution
+          serviceTitle={service.data.title}
+          approach={mergedData.approach}
+        />
+      )}
+
+      {/* 5. Value Props */}
+      <ServiceValueProps
+        serviceTitle={service.data.title}
+        valueProps={service.data.valueProps}
+      />
+
+      {/* 6. Process Steps - NEW */}
+      {mergedData.processSteps && mergedData.processSteps.length > 0 && (
+        <ServiceProcess
+          serviceTitle={service.data.title}
+          processSteps={mergedData.processSteps}
+        />
+      )}
+
+      {/* 7. What's Included - NEW */}
+      {mergedData.inclusions && (
+        <ServiceInclusions
+          serviceTitle={service.data.title}
+          inclusions={mergedData.inclusions}
+        />
+      )}
+
+      {/* 8. Savings - NEW */}
+      {mergedData.savings && (
+        <ServiceSavings
+          serviceTitle={service.data.title}
+          savings={mergedData.savings}
+        />
+      )}
+
+      {/* 9. Image Gallery - NEW */}
+      {mergedData.images && mergedData.images.length > 0 && (
+        <ServiceImageGallery
+          serviceTitle={service.data.title}
+          images={mergedData.images}
+        />
+      )}
+
+      {/* 10. Service Areas Section */}
+      <Section variant="default">
+        <div class="mb-10 text-center">
+          <p class="eyebrow mb-3">Service Coverage</p>
+          <h2 class="section-title mx-auto mb-4 max-w-3xl">
+            {service.data.title} Service Areas in Ontario
+          </h2>
+          <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+            We proudly serve homeowners across Southern Ontario. Find {service.data.title.toLowerCase()} services in your area.
+          </p>
         </div>
-      </div>
-
-      <!-- 1. Hero Section -->
-      <section class="section-hero">
-        <div class="section-container">
-          <article class="prose prose-lg mx-auto max-w-none">
-            <Content />
-          </article>
-
-          <TrustBadges class="mt-8" />
-
-          <div class="cta-group-mobile-full mx-auto mt-8 max-w-md">
-            <PrimaryCTA variant="call" context="service-above-fold" size="large" />
-            <PrimaryCTA variant="book" context="service-above-fold" size="large" />
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. Service Details -->
-      <ServiceDetailsGrid />
-
-      <!-- 3. Service Areas Section -->
-      <section class="section bg-muted/30">
-        <div class="section-container">
-          <h2 class="mb-8 text-center text-3xl font-bold">Areas We Serve for {service.data.title}</h2>
-          {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
-            <div class="mb-10">
-              <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
-              <div class="grid-responsive-4">
-                {locations.map((loc: any) => (
-                  <a
-                    href={`/services/${serviceSlug}-${cleanSlug(loc.id)}-on/`}
-                    class="card-compact"
-                  >
-                    <span class="text-sm font-medium">{loc.data.title}</span>
-                  </a>
-                ))}
-              </div>
+        {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
+          <div class="mb-10">
+            <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {locations.map((loc: any) => (
+                <a
+                  href={`/services/${serviceSlug}-${cleanSlug(loc.id)}-on/`}
+                  class="rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
+                >
+                  {loc.data.title}
+                </a>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        ))}
+      </Section>
 
-      <!-- 4. Reviews Section -->
-      <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+      {/* 11. Reviews Section */}
+      <ReviewsBlock reviews={pageReviews} title={`${service.data.title} Customer Reviews`} />
 
-      <!-- 5. FAQs -->
+      {/* 12. Guarantee - NEW */}
+      {mergedData.guarantee && (
+        <ServiceGuarantee
+          serviceTitle={service.data.title}
+          guarantee={mergedData.guarantee}
+        />
+      )}
+
+      {/* 13. FAQs */}
       {pageFAQs.length > 0 && (
         <FAQSection faqs={pageFAQs} />
       )}
 
-      <!-- 6. CTA Conversion -->
-      <section class="section bg-muted/30">
-        <div class="section-container">
-          <div class="card-cta mx-auto max-w-3xl text-center">
-            <h2 class="mb-4 text-2xl font-semibold">Need {service.data.title}?</h2>
-            <p class="mb-6 text-muted-foreground">
-              Contact us today to schedule a consultation or request service.
-            </p>
-            <div class="cta-group justify-center">
-              <PrimaryCTA variant="call" context="service-footer" />
-              <PrimaryCTA variant="book" context="service-footer" />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 14. Final CTA */}
+      <ServiceFinalCTA
+        serviceTitle={service.data.title}
+        serviceType={service.data.serviceType || 'installation'}
+      />
     </>
   ) : location ? (
     <>
-      <!-- Breadcrumb -->
-      <div class="border-b bg-muted/30">
-        <div class="section-container py-4">
-          <div class="flex flex-wrap gap-2 text-sm text-muted-foreground">
-            <a href="/services/" class="hover:text-primary">Services</a>
-            <span>/</span>
-            <a href={`/services/${serviceSlug}/`} class="hover:text-primary">{service.data.title}</a>
-            <span>/</span>
-            {parentRegion && (
-              <>
-                <a href={`/regions/${cleanSlug(parentRegion.id)}/`} class="hover:text-primary">{parentRegion.data.title}</a>
-                <span>/</span>
-              </>
-            )}
-            <a href={`/locations/${locationSlug}/`} class="hover:text-primary">{location.data.title}</a>
-          </div>
-        </div>
-      </div>
+      {/* 1. Hero Section with Location */}
+      <ServiceHero
+        title={service.data.title}
+        description={service.data.description}
+        category={service.data.category}
+        serviceType={service.data.serviceType || 'installation'}
+        location={{ title: location.data.title, slug: locationSlug! }}
+      />
 
-      <!-- 1. Hero Section -->
-      <section class="section-hero">
-        <div class="section-container">
-          <h1 class="mb-6 text-center text-4xl font-bold sm:text-5xl">
-            {service.data.title} in {location.data.title}, ON
-          </h1>
+      {/* 2. Trust Band */}
+      <ServiceTrustBand />
 
-          <p class="mx-auto mb-8 max-w-3xl text-center text-lg text-muted-foreground sm:text-xl">
-            Professional {service.data.title.toLowerCase()} services in {location.data.title}, Ontario. {service.data.description}
+      {/* 3. Problem Agitation - NEW */}
+      {mergedData.problems && mergedData.problems.length > 0 && (
+        <ServiceProblemAgitation
+          serviceTitle={service.data.title}
+          location={{ title: location.data.title }}
+          problems={mergedData.problems}
+        />
+      )}
+
+      {/* 4. Solution/Approach - NEW */}
+      {mergedData.approach && (
+        <ServiceSolution
+          serviceTitle={service.data.title}
+          location={{ title: location.data.title }}
+          approach={mergedData.approach}
+        />
+      )}
+
+      {/* 5. Value Props */}
+      <ServiceValueProps
+        serviceTitle={service.data.title}
+        valueProps={service.data.valueProps}
+        location={{ title: location.data.title }}
+      />
+
+      {/* 6. Process Steps - NEW */}
+      {mergedData.processSteps && mergedData.processSteps.length > 0 && (
+        <ServiceProcess
+          serviceTitle={service.data.title}
+          location={{ title: location.data.title }}
+          processSteps={mergedData.processSteps}
+        />
+      )}
+
+      {/* 7. What's Included - NEW */}
+      {mergedData.inclusions && (
+        <ServiceInclusions
+          serviceTitle={service.data.title}
+          inclusions={mergedData.inclusions}
+        />
+      )}
+
+      {/* 8. Savings - NEW */}
+      {mergedData.savings && (
+        <ServiceSavings
+          serviceTitle={service.data.title}
+          location={{ title: location.data.title }}
+          savings={mergedData.savings}
+        />
+      )}
+
+      {/* 9. Image Gallery - NEW */}
+      {mergedData.images && mergedData.images.length > 0 && (
+        <ServiceImageGallery
+          serviceTitle={service.data.title}
+          images={mergedData.images}
+        />
+      )}
+
+      {/* 10. Related Services in This Location */}
+      <Section variant="default">
+        <div class="mb-10 text-center">
+          <p class="eyebrow mb-3">More Services</p>
+          <h2 class="section-title mx-auto mb-4 max-w-3xl">
+            Other HVAC Services in {location.data.title}, Ontario
+          </h2>
+          <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+            We offer a full range of heating, cooling, and air quality services in {location.data.title}.
           </p>
-
-          <TrustBadges class="mb-8" />
-
-          <!-- Emergency CTA Block - FIXED: Changed from red alert to warm urgent styling -->
-          <div class="card-urgent mx-auto mb-8 max-w-2xl text-center">
-            <h2 class="mb-4 text-xl font-semibold text-orange-900">Need Service Now?</h2>
-            <div class="cta-group-mobile-full">
-              <PrimaryCTA variant="emergency" context="service-city-hero" />
-              <PrimaryCTA variant="call" context="service-city-hero" />
-              <PrimaryCTA variant="book" context="service-city-hero" />
-            </div>
-          </div>
         </div>
-      </section>
-
-      <!-- 2. Service Info Section (local_context + service_details) -->
-      <section class="section bg-muted/30">
-        <div class="section-container">
-          <div class="grid-responsive-2">
-            <div class="card-standard">
-              <h2 class="mb-4 text-2xl font-semibold">About This Service</h2>
-              <p class="mb-4 text-muted-foreground">
-                {service.data.description}
-              </p>
-              <a
-                href={`/services/${serviceSlug}/`}
-                class="text-primary hover:underline"
-              >
-                Learn more about {service.data.title} →
-              </a>
-            </div>
-
-            <div class="card-standard">
-              <h2 class="mb-4 text-2xl font-semibold">Service Area</h2>
-              <p class="mb-4 text-muted-foreground">
-                We provide {service.data.title.toLowerCase()} services throughout {location.data.title} and surrounding areas in {location.data.region}.
-              </p>
-              <a
-                href={`/locations/${locationSlug}/`}
-                class="text-primary hover:underline"
-              >
-                View all services in {location.data.title} →
-              </a>
-            </div>
-          </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {relatedServices.slice(0, 12).map((relatedService: any) => (
+            <a
+              href={`/services/${cleanSlug(relatedService.id)}-${locationSlug}-on/`}
+              class="rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
+            >
+              {relatedService.data.title}
+            </a>
+          ))}
         </div>
-      </section>
-
-      <!-- 3. Related Services -->
-      <section class="section">
-        <div class="section-container">
-          <h2 class="mb-8 text-center text-3xl font-bold">Other HVAC Services in {location.data.title}</h2>
-          <div class="grid-responsive-4">
-            {relatedServices.map((relatedService: any) => (
-              <a
-                href={`/services/${cleanSlug(relatedService.id)}-${locationSlug}-on/`}
-                class="card-compact"
-              >
-                <span class="text-sm font-medium">{relatedService.data.title}</span>
-              </a>
-            ))}
-          </div>
+        <div class="mt-6 text-center">
+          <a
+            href={`/locations/${locationSlug}/`}
+            class="inline-flex items-center gap-1 text-primary hover:underline"
+          >
+            View all services in {location.data.title}
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
         </div>
-      </section>
+      </Section>
 
-      <!-- 4. Reviews Section -->
-      <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
+      {/* 11. Local Proof - NEW (city pages only) */}
+      {mergedData.localProof && (
+        <ServiceLocalProof
+          serviceTitle={service.data.title}
+          location={{ title: location.data.title }}
+          localProof={mergedData.localProof}
+        />
+      )}
 
-      <!-- 5. FAQs -->
+      {/* 12. Reviews Section */}
+      <ReviewsBlock reviews={pageReviews} title={`${service.data.title} Reviews in ${location.data.title}`} />
+
+      {/* 13. Guarantee - NEW */}
+      {mergedData.guarantee && (
+        <ServiceGuarantee
+          serviceTitle={service.data.title}
+          guarantee={mergedData.guarantee}
+        />
+      )}
+
+      {/* 14. FAQs */}
       {pageFAQs.length > 0 && (
         <FAQSection faqs={pageFAQs} />
       )}
 
-      <!-- 6. CTA Conversion -->
-      <section class="section bg-muted/30">
-        <div class="section-container">
-          <div class="card-cta mx-auto max-w-3xl text-center">
-            <h2 class="mb-4 text-2xl font-semibold">
-              Need {service.data.title} in {location.data.title}?
-            </h2>
-            <p class="mb-6 text-muted-foreground">
-              Contact us today to schedule {service.data.title.toLowerCase()} service in {location.data.title}, ON.
-            </p>
-            <div class="cta-group-mobile-full">
-              <PrimaryCTA variant="emergency" context="service-city-footer" />
-              <PrimaryCTA variant="call" context="service-city-footer" />
-              <PrimaryCTA variant="book" context="service-city-footer" />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 15. Final CTA */}
+      <ServiceFinalCTA
+        serviceTitle={service.data.title}
+        serviceType={service.data.serviceType || 'installation'}
+        location={{ title: location.data.title }}
+      />
     </>
   ) : null}
 </BaseLayout>

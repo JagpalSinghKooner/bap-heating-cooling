@@ -1,0 +1,111 @@
+---
+/**
+ * ServiceInclusions - What's included section
+ *
+ * Shows value and justifies investment.
+ * 4-quadrant grid with checkmark items.
+ */
+
+import Section from '../primitives/Section.astro';
+
+interface Inclusions {
+  equipment: string[];
+  labour: string[];
+  warranty: string[];
+  extras: string[];
+}
+
+interface Props {
+  serviceTitle: string;
+  inclusions: Inclusions;
+}
+
+const { serviceTitle, inclusions } = Astro.props;
+
+// Category configuration with icons
+const categories = [
+  {
+    key: 'equipment' as keyof Inclusions,
+    title: 'Equipment',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />',
+    color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+  {
+    key: 'labour' as keyof Inclusions,
+    title: 'Labour & Installation',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />',
+    color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+  },
+  {
+    key: 'warranty' as keyof Inclusions,
+    title: 'Warranty Coverage',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />',
+    color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+  },
+  {
+    key: 'extras' as keyof Inclusions,
+    title: 'Included Extras',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />',
+    color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+  },
+];
+---
+
+{inclusions && (
+  <Section variant="default">
+    {/* Header */}
+    <div class="mb-10 text-center">
+      <p class="eyebrow mb-3">Complete Package</p>
+      <h2 class="section-title mx-auto mb-4 max-w-3xl">
+        What's Included in Your {serviceTitle}
+      </h2>
+      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+        Everything below is standard. No add-ons, no surprises, no hidden fees.
+      </p>
+    </div>
+
+    {/* 4-Quadrant Grid */}
+    <div class="grid gap-6 md:grid-cols-2">
+      {categories.map((category) => {
+        const items = inclusions[category.key];
+        if (!items || items.length === 0) return null;
+
+        return (
+          <div class="rounded-xl border border-border bg-background p-6">
+            {/* Category Header */}
+            <div class="mb-4 flex items-center gap-3">
+              <div class={`flex h-10 w-10 items-center justify-center rounded-lg ${category.color}`}>
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <Fragment set:html={category.icon} />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-foreground">{category.title}</h3>
+            </div>
+
+            {/* Items List */}
+            <ul class="space-y-3">
+              {items.map((item) => (
+                <li class="flex items-start gap-3">
+                  <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm text-muted-foreground">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Footer tagline */}
+    <div class="mt-10 text-center">
+      <div class="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Everything above is standard—no surprises</span>
+      </div>
+    </div>
+  </Section>
+)}

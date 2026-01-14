@@ -1,14 +1,16 @@
 source: manual
 verified: false
-authorName: Customer A
+authorName: Michael T.
 rating: 5
-text: Professional service and timely response.
+text: Our furnace stopped working on one of the coldest nights of the year. B.A.P had a technician at our door within an hour. He diagnosed the problem quickly, explained everything clearly, and had us warm again before midnight. Can't recommend them enough!
+serviceSlug: furnace-repair
+reviewDate: '2025-12-15'
 status: live
-priority: 0
+priority: 10
 
 # Workflow metadata
 workflowStatus: 'published'
-reviewedBy: 'System Migration (Step 9.5)'
-reviewedDate: '2026-01-09'
-approvedBy: 'System Migration (Step 9.5)'
-approvedDate: '2026-01-09'
+reviewedBy: 'System Migration'
+reviewedDate: '2026-01-14'
+approvedBy: 'System Migration'
+approvedDate: '2026-01-14'

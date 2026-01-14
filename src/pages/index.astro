@@ -10,6 +10,9 @@ import ServiceAreasSection from '../components/homepage/ServiceAreasSection.astr
 import FinancingTeaserSection from '../components/homepage/FinancingTeaserSection.astro';
 import FinalCTASection from '../components/homepage/FinalCTASection.astro';
 import FAQSection from '../components/shared/FAQSection.astro';
+import EmergencyCTASection from '../components/homepage/EmergencyCTASection.astro';
+import BrandLogosSection from '../components/homepage/BrandLogosSection.astro';
+import BlogPreviewSection from '../components/homepage/BlogPreviewSection.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
@@ -51,44 +54,53 @@ const schema = schemas;
 ---
 
 <BaseLayout
-  title="Home - B.A.P Heating and Cooling"
-  description="Professional heating and cooling services for your home and business"
+  title="Furnace & AC Installation Guelph ON | 24/7 HVAC | B.A.P Heating"
+  description="24/7 emergency HVAC in Guelph & Ontario. Furnace installation, AC repair, heat pumps. Family-owned since 1994. 10-year warranty. Free estimates: 519-835-4858"
   schema={schema}
 >
   <!-- 1. Hero: Problem + Promise + Primary CTAs -->
   <Hero
-    eyebrow="Professional HVAC Services"
-    headline="Expert Heating & Cooling Solutions for Your Home"
-    description="24/7 emergency support. Licensed, insured, and trusted by homeowners across Guelph, Wellington County, and Waterloo Region."
+    eyebrow="Family-Owned Since 1994"
+    headline="30+ Years Keeping Ontario Families Comfortable"
+    description="Licensed TSSA technicians. Same-day service available. 10-year warranty on all installations."
     context="homepage-hero"
   />
 
   <!-- 2. Services: What we do -->
   <ServiceCategoriesSection />
 
-  <!-- 3. Why Choose BAP: Trust + About + Differentiators (consolidated) -->
+  <!-- 3. Emergency CTA: Prominent 24/7 emergency service callout -->
+  <EmergencyCTASection />
+
+  <!-- 4. Why Choose BAP: Trust + About + Differentiators (consolidated) -->
   <WhyChooseBAPSection />
 
-  <!-- 4. Process: How it works -->
+  <!-- 5. Brand Logos: Manufacturer trust indicators -->
+  <BrandLogosSection />
+
+  <!-- 6. Process: How it works -->
   <ProcessSection />
 
-  <!-- 5. Gallery: Visual proof of work -->
+  <!-- 7. Gallery: Visual proof of work -->
   <GallerySection />
 
-  <!-- 6. Reviews: Social proof -->
+  <!-- 8. Reviews: Social proof -->
   <ReviewsBlock reviews={siteReviews} title="What Our Customers Say" />
 
-  <!-- 7. Financing: Can I afford it? -->
+  <!-- 9. Financing: Can I afford it? -->
   <FinancingTeaserSection />
 
-  <!-- 8. Service Areas: Do you serve my area? -->
+  <!-- 10. Service Areas: Do you serve my area? -->
   <ServiceAreasSection />
 
-  <!-- 9. FAQ: Address remaining objections -->
+  <!-- 11. Blog: Expert advice and guides -->
+  <BlogPreviewSection />
+
+  <!-- 12. FAQ: Address remaining objections -->
   {pageFAQs.length > 0 && (
     <FAQSection faqs={pageFAQs} />
   )}
 
-  <!-- 10. Final CTA: One strong conversion point -->
+  <!-- 13. Final CTA: One strong conversion point -->
   <FinalCTASection />
 </BaseLayout>

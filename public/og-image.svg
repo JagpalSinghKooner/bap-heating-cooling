@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="100" r="200" fill="#3b82f6" opacity="0.1"/>
+  <circle cx="100" cy="530" r="150" fill="#06b6d4" opacity="0.1"/>
+
+  <!-- Accent bar at top -->
+  <rect x="0" y="0" width="1200" height="8" fill="url(#accentGradient)"/>
+
+  <!-- Company Name -->
+  <text x="100" y="200" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#ffffff">
+    B.A.P Heating &amp; Cooling
+  </text>
+
+  <!-- Tagline -->
+  <text x="100" y="280" font-family="Arial, sans-serif" font-size="36" fill="#94a3b8">
+    24/7 Emergency HVAC Service in Guelph &amp; Ontario
+  </text>
+
+  <!-- Divider line -->
+  <rect x="100" y="320" width="400" height="4" fill="url(#accentGradient)" rx="2"/>
+
+  <!-- Trust badges row -->
+  <g transform="translate(100, 380)">
+    <!-- Stars -->
+    <g fill="#fbbf24">
+      <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+      <polygon points="42,2 45,9 52,9 47,14 49,21 42,17 35,21 37,14 32,9 39,9"/>
+      <polygon points="72,2 75,9 82,9 77,14 79,21 72,17 65,21 67,14 62,9 69,9"/>
+      <polygon points="102,2 105,9 112,9 107,14 109,21 102,17 95,21 97,14 92,9 99,9"/>
+      <polygon points="132,2 135,9 142,9 137,14 139,21 132,17 125,21 127,14 122,9 129,9"/>
+    </g>
+    <text x="160" y="18" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">4.8 from 407+ Google Reviews</text>
+  </g>
+
+  <!-- Service highlights -->
+  <g transform="translate(100, 450)" font-family="Arial, sans-serif" font-size="22" fill="#cbd5e1">
+    <text x="0" y="0">Furnace &amp; AC Installation</text>
+    <text x="0" y="35">Heat Pumps &amp; Ductless Systems</text>
+    <text x="0" y="70">10-Year Parts &amp; Labour Warranty</text>
+  </g>
+
+  <!-- Phone number box -->
+  <g transform="translate(700, 380)">
+    <rect x="0" y="0" width="400" height="120" fill="#3b82f6" rx="12"/>
+    <text x="200" y="50" font-family="Arial, sans-serif" font-size="20" fill="#ffffff" text-anchor="middle" opacity="0.9">Call Now - 24/7 Service</text>
+    <text x="200" y="90" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff" text-anchor="middle">519-835-4858</text>
+  </g>
+
+  <!-- Since year badge -->
+  <g transform="translate(700, 520)">
+    <text x="200" y="0" font-family="Arial, sans-serif" font-size="20" fill="#64748b" text-anchor="middle">Family-Owned Since 1994</text>
+    <text x="200" y="35" font-family="Arial, sans-serif" font-size="18" fill="#64748b" text-anchor="middle">Guelph | Kitchener | Waterloo | Cambridge</text>
+  </g>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="622" width="1200" height="8" fill="url(#accentGradient)"/>
+</svg>

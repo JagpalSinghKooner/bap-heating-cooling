@@ -1,14 +1,16 @@
 source: manual
 verified: false
-authorName: Customer C
-rating: 4
-text: Knowledgeable team and fair pricing.
+authorName: David K.
+rating: 5
+text: Switched to a heat pump based on B.A.P's recommendation and couldn't be happier. They handled all the rebate paperwork and the installation was seamless. Already seeing significant savings on our heating costs this winter.
+serviceSlug: heat-pump-installation
+reviewDate: '2025-11-08'
 status: live
-priority: 0
+priority: 8
 
 # Workflow metadata
 workflowStatus: 'published'
-reviewedBy: 'System Migration (Step 9.5)'
-reviewedDate: '2026-01-09'
-approvedBy: 'System Migration (Step 9.5)'
-approvedDate: '2026-01-09'
+reviewedBy: 'System Migration'
+reviewedDate: '2026-01-14'
+approvedBy: 'System Migration'
+approvedDate: '2026-01-14'

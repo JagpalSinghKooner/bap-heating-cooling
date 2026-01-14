@@ -547,3 +547,199 @@ This governance system is successful if:
 - Monthly compliance audits
 
 **This document is LIVING and will be updated based on operational learnings.**
+
+---
+
+## UI/COMPONENT GOVERNANCE
+
+### Section Wrapper Rules
+
+**CRITICAL: ALL pages and sections site-wide MUST use the `Section` primitive component for consistent alignment.**
+
+**Location:** `/src/components/primitives/Section.astro`
+
+**Purpose:**
+The Section primitive enforces consistent vertical rhythm and alignment across the ENTIRE site:
+- Handles full-bleed backgrounds (extends to viewport edges)
+- Provides inner container constrained to 1280px (max-w-7xl)
+- Ensures consistent vertical spacing (py-14 md:py-20 lg:py-24)
+- Prevents double-wrapper issues
+- Creates visual alignment consistency across all pages
+
+**Standard Container Width:**
+- ALL sections MUST use `max-w-7xl` (1280px) as the standard container width
+- This applies to: homepage sections, blog pages, service pages, location pages, and all other pages
+- NEVER use `max-w-6xl` for page sections (breaks site-wide alignment)
+
+**For Homepage Sections (components in `/src/components/homepage/`):**
+
+```astro
+<!-- CORRECT: Use Section primitive -->
+<Section variant="muted">
+  <div class="mb-10 text-center">
+    <h2 class="section-title">Section Title</h2>
+  </div>
+  <!-- Content here -->
+</Section>
+
+<!-- INCORRECT: Raw section with custom wrappers -->
+<section class="bg-muted/30 py-16 md:py-20">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <!-- This creates inconsistent spacing and double wrappers -->
+  </div>
+</section>
+```
+
+**Section Variants:**
+- `default` - White background
+- `muted` - Subtle gradient background
+- `brand` - Primary color tint
+- `accent` - Orange gradient (for CTAs)
+- `compact` - Reduced spacing
+
+**For Standalone Pages (pages in `/src/pages/`):**
+
+ALL standalone pages (blog index, blog posts, reviews, about, contact, etc.) MUST use the Section primitive:
+
+```astro
+<!-- CORRECT: Use Section primitive for page content -->
+<BaseLayout>
+  <Section variant="default">
+    <!-- Page content here -->
+  </Section>
+</BaseLayout>
+
+<!-- INCORRECT: Custom container patterns -->
+<BaseLayout>
+  <div class="container mx-auto px-4 py-16">
+    <!-- This creates inconsistent spacing and width -->
+  </div>
+</BaseLayout>
+```
+
+**For Hero Components:**
+
+Hero sections may use custom backgrounds but MUST maintain max-w-7xl container width:
+
+```astro
+<!-- CORRECT: Hero with consistent container width -->
+<section class="relative bg-gradient-to-r from-brand-blue to-brand-blue-dark">
+  <div class="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <!-- Hero content -->
+  </div>
+</section>
+
+<!-- INCORRECT: Narrower container width -->
+<section class="...">
+  <div class="mx-auto max-w-6xl px-4 ...">
+    <!-- Breaks alignment with other sections -->
+  </div>
+</section>
+```
+
+**PROHIBITED:**
+1. Creating raw `<section>` elements with custom py-* classes in homepage components
+2. Adding custom container wrappers inside Section components
+3. Nesting multiple max-w-* containers
+4. Using different spacing values across sections (breaks vertical rhythm)
+5. Using `max-w-6xl` or other widths instead of `max-w-7xl` for main page sections
+6. Using `<div class="container mx-auto px-4 py-*">` patterns on standalone pages
+
+**Enforcement:**
+- Code review must verify Section primitive usage for homepage sections
+- Build-time linting can flag raw `<section>` elements in `/src/components/homepage/`
+- Violations require refactoring before merge
+
+### Typography Classes
+
+**Use design system classes for consistent typography:**
+
+- `eyebrow` - Section label (uppercase, small, primary color)
+- `section-title` - H2 section headings
+- `section-description` - Section subtext
+
+---
+
+### Section Header Pattern (MANDATORY)
+
+**CRITICAL: ALL homepage sections MUST use this exact header pattern for visual consistency.**
+
+Every section on the homepage (excluding FAQ which has a different layout) MUST include:
+
+1. **Eyebrow** - Small label above the heading
+2. **H2 Heading** - Using `section-title` class with `max-w-3xl` constraint
+3. **Description** - Supporting text with `max-w-2xl` constraint
+
+**Standard Pattern:**
+```astro
+<!-- CORRECT: Standard section header pattern -->
+<div class="mb-10 text-center">
+  <p class="eyebrow mb-3">Section Label</p>
+  <h2 class="section-title mx-auto mb-4 max-w-3xl">
+    Section Headline Here
+  </h2>
+  <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+    Description text that supports the headline.
+  </p>
+</div>
+```
+
+**For Sections with Colored Backgrounds (CTAs):**
+```astro
+<!-- CORRECT: White text override for colored backgrounds -->
+<p class="eyebrow mb-3 text-white/80">Emergency Service</p>
+<h2 class="section-title mx-auto mb-4 max-w-3xl text-white">
+  Headline on Colored Background
+</h2>
+<p class="mx-auto max-w-2xl text-base text-white/90">
+  Description text here.
+</p>
+```
+
+**PROHIBITED Header Patterns:**
+```astro
+<!-- INCORRECT: Custom font sizing instead of section-title class -->
+<h2 class="text-3xl font-bold sm:text-4xl">Title</h2>
+
+<!-- INCORRECT: Wrong max-width constraint -->
+<h2 class="section-title mx-auto max-w-4xl">Title</h2>
+<p class="mx-auto max-w-xl text-muted-foreground">Description</p>
+
+<!-- INCORRECT: Missing eyebrow -->
+<h2 class="section-title mx-auto mb-4 max-w-3xl">Title</h2>
+<p class="mx-auto max-w-2xl">Description</p>
+
+<!-- INCORRECT: Missing constraints entirely -->
+<h2 class="section-title">Title</h2>
+```
+
+**Required Classes Summary:**
+| Element | Required Classes |
+|---------|-----------------|
+| Eyebrow | `eyebrow mb-3` |
+| H2 | `section-title mx-auto mb-4 max-w-3xl` |
+| Description | `mx-auto max-w-2xl text-base text-muted-foreground` |
+
+**Exceptions:**
+- FAQ Section - Uses accordion layout, different header pattern allowed
+- Hero Component - Uses page-level styling, not section-title
+
+**Enforcement:**
+- Code review MUST verify all homepage sections follow this pattern
+- New sections that don't follow this pattern will be rejected
+- Existing sections not following this pattern must be refactored
+
+---
+
+### Container Width Rules
+
+**Standard widths:**
+- `max-w-7xl` (1280px) - Default Section container
+- `max-w-3xl` - Content width for headers and body text
+- `max-w-2xl` - Description text under headers
+- `container` - Tailwind's responsive container
+
+**PROHIBITED:**
+- Using `max-w-6xl` in homepage sections (use Section primitive instead)
+- Mixing container widths within a single section
+- Hardcoding pixel widths

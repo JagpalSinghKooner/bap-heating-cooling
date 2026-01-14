@@ -45,6 +45,7 @@ locations:
     country: "Canada"
     phone_e164: "+15198354858"
     email: "info@bapheating.ca"
+    google_maps_embed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2891.316800049599!2d-80.22174742382819!3d43.558281471106866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b9a44d6b82ced%3A0x50e4c57c452cca9!2sB.A.P%20Heating%20%26%20Cooling%20Services%20Ltd!5e0!3m2!1sen!2suk!4v1768393510835!5m2!1sen!2suk"
   secondary:
     name: "B.A.P Heating & Cooling Services Ltd Elora"
     address_full: "6512 Wellington Rd 7, Centre Wellington, ON N0B 1S0, Canada"

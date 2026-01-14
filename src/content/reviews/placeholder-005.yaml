@@ -1,0 +1,16 @@
+source: manual
+verified: false
+authorName: Robert H.
+rating: 5
+text: Called B.A.P for an emergency when our AC died during a heat wave. They squeezed us in the same day and got everything working again. The technician even gave us tips on maintaining the system to prevent future issues. Great service!
+serviceSlug: air-conditioner-repair
+reviewDate: '2025-07-18'
+status: live
+priority: 6
+
+# Workflow metadata
+workflowStatus: 'published'
+reviewedBy: 'System Migration'
+reviewedDate: '2026-01-14'
+approvedBy: 'System Migration'
+approvedDate: '2026-01-14'

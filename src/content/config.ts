@@ -1,5 +1,85 @@
 import { defineCollection, z } from 'astro:content';
 
+// ============================================
+// SHARED SCHEMAS (DRY - reused across collections)
+// ============================================
+
+// Workflow status enum - used across all content collections
+const workflowStatusEnum = z.enum([
+  'draft',
+  'internal_review',
+  'seo_review',
+  'approved',
+  'published',
+  'archived'
+]).default('draft');
+
+// Problem/pain point schema - for agitation sections
+const problemSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  icon: z.string(), // warning, alert, moisture, temperature, cost, etc.
+});
+
+// Process step schema - for "how it works" sections
+const processStepSchema = z.object({
+  step: z.number(),
+  title: z.string(),
+  description: z.string(),
+});
+
+// Approach/solution schema - positions B.A.P as the answer
+const approachSchema = z.object({
+  headline: z.string(),
+  description: z.string(),
+  quote: z.string().optional(),
+  quotePerson: z.string().optional(),
+});
+
+// Inclusions schema - "what's included" breakdown
+const inclusionsSchema = z.object({
+  equipment: z.array(z.string()),
+  labour: z.array(z.string()),
+  warranty: z.array(z.string()),
+  extras: z.array(z.string()),
+});
+
+// Savings schema - value/investment info (NO prices)
+const savingsSchema = z.object({
+  headline: z.string(),
+  description: z.string(),
+  bullets: z.array(z.string()),
+  rebateInfo: z.string().optional(),
+  financingNote: z.string().optional(),
+});
+
+// Guarantee schema - risk reversal items
+const guaranteeSchema = z.object({
+  items: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+  })),
+});
+
+// Image schema - for galleries
+const imageSchema = z.object({
+  src: z.string(),
+  alt: z.string(),
+  caption: z.string().optional(),
+});
+
+// Local proof schema - city-specific testimonials
+const localProofSchema = z.object({
+  testimonial: z.string(),
+  customerName: z.string(),
+  customerLocation: z.string(),
+  result: z.string().optional(),
+});
+
+// ============================================
+// COLLECTIONS
+// ============================================
+
 const services = defineCollection({
   type: 'content',
   schema: z.object({
@@ -10,12 +90,37 @@ const services = defineCollection({
     featured: z.boolean().default(false),
     priority: z.boolean().default(false), // Money page prioritization
     order: z.number().default(0),
+    // Service type for hero/CTA differentiation
+    serviceType: z.enum(['installation', 'repair', 'maintenance']).default('installation'),
+    // Service-specific value propositions (USPs) - unique per service for SEO
+    valueProps: z.array(z.object({
+      title: z.string(),
+      description: z.string(),
+      icon: z.string(), // Semantic icon name matching content (e.g., 'price-tag', 'warranty', 'response-time')
+    })).optional(),
+
+    // ========== FULL FUNNEL FIELDS ==========
+    // Problem agitation - consequences of delay
+    problems: z.array(problemSchema).optional(),
+    // Our approach/solution positioning
+    approach: approachSchema.optional(),
+    // Step-by-step process
+    processSteps: z.array(processStepSchema).optional(),
+    // What's included breakdown
+    inclusions: inclusionsSchema.optional(),
+    // Savings/investment info (NO prices)
+    savings: savingsSchema.optional(),
+    // Risk reversal guarantees
+    guarantee: guaranteeSchema.optional(),
+    // Work images/gallery
+    images: z.array(imageSchema).optional(),
+
     // SEO fields
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
     robots: z.string().optional(),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -39,7 +144,7 @@ const locations = defineCollection({
     seoDescription: z.string().optional(),
     robots: z.string().optional(),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -59,7 +164,7 @@ const regions = defineCollection({
     seoDescription: z.string().optional(),
     robots: z.string().optional(),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -116,6 +221,7 @@ const business = defineCollection({
         country: z.string(),
         phone_e164: z.string(),
         email: z.string(),
+        google_maps_embed: z.string().optional(),
       }),
       secondary: z.object({
         name: z.string(),
@@ -126,6 +232,7 @@ const business = defineCollection({
         country: z.string(),
         phone_e164: z.string(),
         email: z.string(),
+        google_maps_embed: z.string().optional(),
       }),
     }),
     coverage: z.object({
@@ -244,7 +351,7 @@ const faqs = defineCollection({
     priority: z.number().default(0),
     status: z.enum(['draft', 'live']).default('live'),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -269,7 +376,7 @@ const reviews = defineCollection({
     status: z.enum(['draft', 'live']).default('live'),
     priority: z.number().default(0),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -292,7 +399,7 @@ const blog = defineCollection({
     seoDescription: z.string().optional(),
     robots: z.string().optional(),
     // Workflow fields
-    workflowStatus: z.enum(['draft', 'internal_review', 'seo_review', 'approved', 'published', 'archived']).default('draft'),
+    workflowStatus: workflowStatusEnum,
     reviewedBy: z.string().optional(),
     reviewedDate: z.string().optional(), // ISO date string
     approvedBy: z.string().optional(),
@@ -312,13 +419,52 @@ const seasonalMessages = defineCollection({
   }),
 });
 
+// ============================================
+// SERVICE-CITY COLLECTION (NEW)
+// For 550 city-specific service pages with unique local SEO content
+// URL format: /services/[service]-[city]-on/
+// ============================================
+const serviceCity = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Identity (required) - used to link to base service and location
+    serviceSlug: z.string(),
+    locationSlug: z.string(),
+
+    // Page title and SEO (required)
+    title: z.string(), // "[Service] in [City], ON"
+    seoTitle: z.string(), // Max 60 chars with keywords
+    seoDescription: z.string(), // Max 160 chars
+
+    // City-specific local context (required) - 100+ words unique content
+    localContext: z.string().min(400), // Minimum 400 chars (~100 words)
+
+    // City-specific social proof (required)
+    localProof: localProofSchema,
+
+    // Optional overrides - only include if different from base service
+    problems: z.array(problemSchema).optional(),
+    processSteps: z.array(processStepSchema).optional(),
+    savings: savingsSchema.optional(),
+    inclusions: inclusionsSchema.optional(),
+
+    // Workflow fields
+    workflowStatus: workflowStatusEnum,
+    reviewedBy: z.string().optional(),
+    reviewedDate: z.string().optional(),
+    approvedBy: z.string().optional(),
+    approvedDate: z.string().optional(),
+  }),
+});
+
 export const collections = {
   services,
   locations,
   regions,
   business,
-  faqs,      // NEW: FAQ system for dynamic FAQ display
-  reviews,   // NEW: Reviews collection for testimonials
-  blog,      // NEW: Blog collection for content marketing
-  'seasonal-messages': seasonalMessages, // NEW: Seasonal messages for callout bar
+  faqs,
+  reviews,
+  blog,
+  'seasonal-messages': seasonalMessages,
+  'service-city': serviceCity, // NEW: 550 city-specific service pages
 };

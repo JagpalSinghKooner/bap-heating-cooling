@@ -1,0 +1,16 @@
+source: manual
+verified: false
+authorName: Jennifer L.
+rating: 5
+text: B.A.P has been maintaining our HVAC system for three years now. They always arrive on time, the technicians are knowledgeable and friendly, and they never try to upsell unnecessary services. Honest and reliable—exactly what you want.
+serviceSlug: furnace-maintenance
+reviewDate: '2025-10-03'
+status: live
+priority: 7
+
+# Workflow metadata
+workflowStatus: 'published'
+reviewedBy: 'System Migration'
+reviewedDate: '2026-01-14'
+approvedBy: 'System Migration'
+approvedDate: '2026-01-14'

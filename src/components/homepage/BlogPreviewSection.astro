@@ -1,0 +1,104 @@
+---
+import { getCollection } from 'astro:content';
+import Section from '../primitives/Section.astro';
+import Button from '../primitives/Button.astro';
+
+// Get latest 3 blog posts
+const allPosts = await getCollection('blog');
+const latestPosts = allPosts
+  .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime())
+  .slice(0, 3);
+
+// Category display names
+const categoryNames: Record<string, string> = {
+  heating: 'Heating',
+  cooling: 'Cooling',
+  maintenance: 'Maintenance',
+  efficiency: 'Energy Efficiency',
+  guides: 'Guides',
+  news: 'News',
+};
+---
+
+<Section variant="muted">
+  <!-- Section Header -->
+  <div class="mb-10 text-center">
+    <p class="eyebrow mb-3">HVAC Tips & Guides</p>
+    <h2 class="section-title mx-auto mb-4 max-w-3xl">
+      Expert Advice for Ontario Homeowners
+    </h2>
+    <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+      Practical tips to keep your home comfortable, save on energy bills, and know when it's time for service.
+    </p>
+  </div>
+
+  <!-- Blog Posts Grid -->
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    {latestPosts.map((post) => (
+      <article class="group relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:shadow-lg">
+        <!-- Featured Image -->
+        <div class="aspect-[16/9] overflow-hidden bg-slate-100">
+          <img
+            src={post.data.image || '/images/blog/default-blog.svg'}
+            alt={post.data.title}
+            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+
+        <!-- Content -->
+        <div class="flex flex-1 flex-col p-5">
+          <!-- Category Badge -->
+          <div class="mb-3">
+            <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+              {categoryNames[post.data.category] || post.data.category}
+            </span>
+          </div>
+
+          <!-- Title -->
+          <h3 class="mb-2 text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+            <a href={`/blog/${post.slug}/`} class="after:absolute after:inset-0">
+              {post.data.title}
+            </a>
+          </h3>
+
+          <!-- Description -->
+          <p class="mb-4 flex-1 text-sm text-muted-foreground line-clamp-2">
+            {post.data.description}
+          </p>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between text-xs text-muted-foreground">
+            <time datetime={post.data.publishDate.toISOString()}>
+              {post.data.publishDate.toLocaleDateString('en-CA', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </time>
+            <span class="inline-flex items-center font-medium text-primary group-hover:underline">
+              Read More
+              <svg class="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <!-- View All CTA -->
+  <div class="mt-10 text-center">
+    <Button
+      variant="outline"
+      size="lg"
+      href="/blog/"
+    >
+      View All Articles
+      <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg>
+    </Button>
+  </div>
+</Section>
