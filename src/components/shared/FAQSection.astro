@@ -5,6 +5,7 @@
  */
 import AccordionItem from './AccordionItem.astro';
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 import type { CollectionEntry } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 
@@ -27,13 +28,13 @@ const profile = await getBusinessProfile();
       <div class="lg:col-span-2">
         <div class="lg:sticky lg:top-8">
           <!-- Section Header -->
-          <p class="eyebrow mb-3">Got Questions?</p>
-          <h2 class="section-title mb-4">
-            {title}
-          </h2>
-          <p class="mb-8 text-base leading-relaxed text-muted-foreground">
-            We believe in transparency. Here are honest answers to the questions homeowners ask us most often.
-          </p>
+          <SectionHeader
+            eyebrow="Got Questions?"
+            headline={title}
+            description="We believe in transparency. Here are honest answers to the questions homeowners ask us most often."
+            align="left"
+            class="mb-8"
+          />
 
           <!-- Still Have Questions Card -->
           <div class="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6">

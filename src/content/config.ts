@@ -416,6 +416,8 @@ const seasonalMessages = defineCollection({
     message: z.string(),
     icon: z.enum(['snowflake', 'sun', 'flame', 'leaf']).optional(),
     enabled: z.boolean().default(true),
+    // Service categories this message applies to (empty = show on all pages)
+    categories: z.array(z.enum(['heating', 'cooling', 'iaq', 'water-heating', 'commercial', 'plans'])).optional(),
   }),
 });
 
@@ -457,6 +459,62 @@ const serviceCity = defineCollection({
   }),
 });
 
+// ============================================
+// CASE STUDIES COLLECTION
+// Before/after transformation stories for social proof
+// ============================================
+const caseStudies = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Identity
+    title: z.string(),
+    serviceSlug: z.string(), // Links to service type
+    locationSlug: z.string().optional(), // Optional city association
+
+    // The transformation story
+    problem: z.object({
+      headline: z.string(),
+      description: z.string(),
+      details: z.array(z.string()).optional(),
+    }),
+    solution: z.object({
+      headline: z.string(),
+      description: z.string(),
+      equipment: z.string().optional(), // e.g., "Lennox SL280V Variable-Speed Furnace"
+    }),
+    results: z.object({
+      headline: z.string(),
+      stats: z.array(z.object({
+        value: z.string(),
+        label: z.string(),
+      })),
+    }),
+
+    // Customer quote
+    testimonial: z.object({
+      text: z.string(),
+      authorName: z.string(),
+      location: z.string(),
+    }),
+
+    // Images (optional - placeholder icons used if not provided)
+    beforeImage: z.string().optional(),
+    afterImage: z.string().optional(),
+
+    // Display
+    featured: z.boolean().default(false),
+    priority: z.number().default(0),
+    status: z.enum(['draft', 'live']).default('live'),
+
+    // Workflow fields
+    workflowStatus: workflowStatusEnum,
+    reviewedBy: z.string().optional(),
+    reviewedDate: z.string().optional(),
+    approvedBy: z.string().optional(),
+    approvedDate: z.string().optional(),
+  }),
+});
+
 export const collections = {
   services,
   locations,
@@ -466,5 +524,6 @@ export const collections = {
   reviews,
   blog,
   'seasonal-messages': seasonalMessages,
-  'service-city': serviceCity, // NEW: 550 city-specific service pages
+  'service-city': serviceCity,
+  'case-studies': caseStudies,
 };

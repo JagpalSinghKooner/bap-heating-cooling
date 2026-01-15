@@ -1,0 +1,104 @@
+---
+/**
+ * ServiceObjections - Address Common Concerns
+ *
+ * Proactively handles buyer hesitations without being pushy.
+ * Builds trust by acknowledging and addressing real concerns.
+ */
+
+import Section from '../primitives/Section.astro';
+import { getIconPath } from '../../lib/icons';
+
+interface Props {
+  serviceTitle: string;
+  serviceType?: 'installation' | 'repair' | 'maintenance';
+}
+
+const { serviceTitle, serviceType = 'installation' } = Astro.props;
+
+// Common objections with empathetic responses
+const objections = [
+  {
+    concern: "It seems expensive",
+    icon: "dollar",
+    response: "Quality equipment and expert installation cost more upfront, but save you thousands in energy bills and repairs over time.",
+    resolution: "We offer flexible financing with affordable monthly payments, plus help you claim every available rebate.",
+  },
+  {
+    concern: "I can wait a bit longer",
+    icon: "clock",
+    response: serviceType === 'repair'
+      ? "Small problems become expensive emergencies. A minor issue today could leave you without heat or cooling when you need it most."
+      : "Older equipment runs less efficiently every month, costing you more in energy bills while risking a breakdown at the worst possible time.",
+    resolution: "A free diagnostic tells you exactly where you stand - no pressure, just honest information.",
+  },
+  {
+    concern: "I should get more quotes",
+    icon: "check",
+    response: "Absolutely - comparing options is smart. Just make sure you're comparing apples to apples: equipment quality, warranty coverage, and company reputation.",
+    resolution: "Our quotes include everything: equipment, installation, permits, and a 10-year parts & labour warranty. No hidden fees.",
+  },
+  {
+    concern: "I'm not sure I need this",
+    icon: "exclamation",
+    response: "That uncertainty is exactly why we start with a thorough assessment. We'll show you exactly what's happening and explain all your options.",
+    resolution: "We'll never push you toward something you don't need. Our reputation depends on honest recommendations.",
+  },
+];
+---
+
+<Section variant="muted">
+  {/* Header */}
+  <div class="mb-10 text-center">
+    <p class="eyebrow mb-3">Addressing Your Concerns</p>
+    <h2 class="section-title mx-auto mb-4 max-w-3xl">
+      Questions About {serviceTitle}? We Get It.
+    </h2>
+    <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+      These are the concerns we hear most often. Here's our honest take on each one.
+    </p>
+  </div>
+
+  {/* Objections Grid */}
+  <div class="mx-auto max-w-4xl space-y-4">
+    {objections.map((obj) => (
+      <details class="group rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
+        <summary class="flex cursor-pointer items-center gap-4 p-5 [&::-webkit-details-marker]:hidden">
+          {/* Icon */}
+          <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <Fragment set:html={getIconPath(obj.icon)} />
+            </svg>
+          </div>
+
+          {/* Concern */}
+          <span class="flex-1 text-left font-semibold text-foreground">
+            "{obj.concern}"
+          </span>
+
+          {/* Expand Icon */}
+          <svg class="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+
+        <div class="border-t border-border px-5 py-4">
+          <p class="mb-3 text-muted-foreground">{obj.response}</p>
+          <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <p class="text-sm font-medium text-green-800 dark:text-green-300">{obj.resolution}</p>
+          </div>
+        </div>
+      </details>
+    ))}
+  </div>
+
+  {/* Closing Reassurance */}
+  <div class="mt-10 text-center">
+    <p class="text-base text-muted-foreground">
+      Still have questions? <a href="tel:+15197636030" class="font-semibold text-primary hover:underline">Give us a call</a> - we're happy to chat with no obligation.
+    </p>
+  </div>
+</Section>

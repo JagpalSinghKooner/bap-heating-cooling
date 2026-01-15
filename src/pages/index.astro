@@ -8,9 +8,8 @@ import GallerySection from '../components/homepage/GallerySection.astro';
 import ProcessSection from '../components/homepage/ProcessSection.astro';
 import ServiceAreasSection from '../components/homepage/ServiceAreasSection.astro';
 import FinancingTeaserSection from '../components/homepage/FinancingTeaserSection.astro';
-import FinalCTASection from '../components/homepage/FinalCTASection.astro';
 import FAQSection from '../components/shared/FAQSection.astro';
-import EmergencyCTASection from '../components/homepage/EmergencyCTASection.astro';
+import GradientCTASection from '../components/shared/GradientCTASection.astro';
 import BrandLogosSection from '../components/homepage/BrandLogosSection.astro';
 import BlogPreviewSection from '../components/homepage/BlogPreviewSection.astro';
 import { getCollection } from 'astro:content';
@@ -70,7 +69,13 @@ const schema = schemas;
   <ServiceCategoriesSection />
 
   <!-- 3. Emergency CTA: Prominent 24/7 emergency service callout -->
-  <EmergencyCTASection />
+  <GradientCTASection
+    variant="emergency"
+    headline="Furnace Not Working? We're Here 24/7"
+    responseTime="Technician at your door typically within 60 minutes"
+    description="No overtime charges. Upfront pricing. We fix it right the first time."
+    context="emergency-section"
+  />
 
   <!-- 4. Why Choose BAP: Trust + About + Differentiators (consolidated) -->
   <WhyChooseBAPSection />
@@ -102,5 +107,10 @@ const schema = schemas;
   )}
 
   <!-- 13. Final CTA: One strong conversion point -->
-  <FinalCTASection />
+  <GradientCTASection
+    variant="primary"
+    headline="Ready to get started?"
+    description="Call us today or book online. Free estimates, no pressure, just honest advice from your local HVAC experts."
+    context="final-cta"
+  />
 </BaseLayout>

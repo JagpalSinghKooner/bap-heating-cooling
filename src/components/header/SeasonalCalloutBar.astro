@@ -12,33 +12,76 @@ import { getBusinessProfile } from '../../lib/getBusinessProfile';
 const profile = await getBusinessProfile();
 const seasonalMessages = await getCollection('seasonal-messages');
 
-// Function to get the active seasonal message based on current date
+// Service category type matching schema
+type ServiceCategory = 'heating' | 'cooling' | 'iaq' | 'water-heating' | 'commercial' | 'plans';
+
+// Detect service category from current URL path
+function detectServiceCategory(pathname: string): ServiceCategory | null {
+  if (!pathname.startsWith('/services/')) return null;
+
+  const slug = pathname.replace('/services/', '').replace(/\/$/, '');
+
+  // Map URL patterns to service categories
+  if (slug.startsWith('furnace-') || slug.startsWith('boiler-')) return 'heating';
+  if (slug.startsWith('air-conditioner-') || slug.startsWith('ac-')) return 'cooling';
+  if (slug.startsWith('heat-pump-')) return 'heating'; // Heat pumps are primarily heating in Ontario
+  if (slug.startsWith('ductless-')) return 'cooling'; // Mini-splits are primarily cooling
+  if (slug.includes('humidifier') || slug.includes('dehumidifier') || slug.includes('air-quality') || slug.includes('filtration') || slug.includes('hrv') || slug.includes('erv')) return 'iaq';
+  if (slug.includes('water-heater') || slug.includes('tankless')) return 'water-heating';
+  if (slug.startsWith('commercial') || slug.includes('rooftop')) return 'commercial';
+  if (slug.includes('maintenance-plan')) return 'plans';
+
+  return null;
+}
+
+const currentPath = Astro.url.pathname;
+const pageCategory = detectServiceCategory(currentPath);
+
+// Function to get the active seasonal message based on current date and page context
 function getActiveSeasonalMessage() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1-12
   const currentDay = now.getDate();
   const currentDateStr = `${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
 
-  for (const message of seasonalMessages) {
-    if (!message.data.enabled) continue;
+  // Filter messages that are active for current date
+  const activeMessages = seasonalMessages.filter((message) => {
+    if (!message.data.enabled) return false;
 
     const { startDate, endDate } = message.data;
 
     // Handle year-wrap scenarios (e.g., winter: 12-01 to 02-28)
     if (startDate > endDate) {
-      // Year wrap case
-      if (currentDateStr >= startDate || currentDateStr <= endDate) {
-        return message;
-      }
+      return currentDateStr >= startDate || currentDateStr <= endDate;
     } else {
-      // Normal case
-      if (currentDateStr >= startDate && currentDateStr <= endDate) {
-        return message;
-      }
+      return currentDateStr >= startDate && currentDateStr <= endDate;
     }
+  });
+
+  if (activeMessages.length === 0) return null;
+
+  // If we're on a service page with a detected category, prioritize category-specific messages
+  if (pageCategory) {
+    const categoryMessage = activeMessages.find(
+      (m) => m.data.categories?.includes(pageCategory)
+    );
+    if (categoryMessage) return categoryMessage;
+
+    // If no category-specific message, show general messages (no categories defined)
+    const generalMessage = activeMessages.find(
+      (m) => !m.data.categories || m.data.categories.length === 0
+    );
+    if (generalMessage) return generalMessage;
+
+    // Don't show messages for other categories on this page
+    return null;
   }
 
-  return null;
+  // Not on a service page - show any active message (prefer general, then any)
+  const generalMessage = activeMessages.find(
+    (m) => !m.data.categories || m.data.categories.length === 0
+  );
+  return generalMessage || activeMessages[0];
 }
 
 const activeMessage = getActiveSeasonalMessage();

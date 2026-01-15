@@ -5,6 +5,7 @@
  */
 
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 
 const guarantees = [
   {
@@ -58,9 +59,7 @@ const certifications = [
 
 <Section variant="muted">
   <!-- Section Header -->
-  <div class="mb-10 text-center">
-    <h2 class="section-title mx-auto mb-4 max-w-3xl">Our Guarantees</h2>
-  </div>
+  <SectionHeader headline="Our Guarantees" />
 
   <!-- Simple Guarantee List -->
   <div class="mx-auto max-w-3xl space-y-6">

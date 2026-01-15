@@ -7,6 +7,7 @@
  */
 
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 
 interface ProcessStep {
   step: number;
@@ -28,20 +29,19 @@ const { serviceTitle, location, processSteps } = Astro.props;
 const h2Text = location
   ? `Your ${serviceTitle} Process in ${location.title}, ON`
   : `Your ${serviceTitle} Process`;
+
+const descriptionText = `No surprises, no confusion. Here's exactly how we handle your ${serviceTitle.toLowerCase()} from start to finish.`;
 ---
 
 {processSteps && processSteps.length > 0 && (
   <Section variant="default">
     {/* Header */}
-    <div class="mb-12 text-center">
-      <p class="eyebrow mb-3">What to Expect</p>
-      <h2 class="section-title mx-auto mb-4 max-w-3xl">
-        {h2Text}
-      </h2>
-      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
-        No surprises, no confusion. Here's exactly how we handle your {serviceTitle.toLowerCase()} from start to finish.
-      </p>
-    </div>
+    <SectionHeader
+      eyebrow="What to Expect"
+      headline={h2Text}
+      description={descriptionText}
+      class="mb-12"
+    />
 
     {/* Process Steps - Horizontal on desktop, vertical on mobile */}
     <div class="relative">

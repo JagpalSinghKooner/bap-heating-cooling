@@ -7,6 +7,7 @@
  */
 
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 
 interface GuaranteeItem {
   title: string;
@@ -23,27 +24,25 @@ interface Props {
 }
 
 const { serviceTitle, guarantee } = Astro.props;
+
+const headlineText = `Our ${serviceTitle} Guarantee`;
 ---
 
 {guarantee && guarantee.items && guarantee.items.length > 0 && (
   <Section variant="muted">
     {/* Header */}
-    <div class="mb-10 text-center">
-      <p class="eyebrow mb-3">Peace of Mind</p>
-      <h2 class="section-title mx-auto mb-4 max-w-3xl">
-        Our {serviceTitle} Guarantee
-      </h2>
-      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
-        We stand behind our work. These aren't just promises—they're guarantees backed by over 30 years in business.
-      </p>
-    </div>
+    <SectionHeader
+      eyebrow="Peace of Mind"
+      headline={headlineText}
+      description="We stand behind our work. These aren't just promises—they're guarantees backed by over 30 years in business."
+    />
 
     {/* Guarantee Card */}
     <div class="mx-auto max-w-4xl">
       <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 text-white shadow-2xl md:p-10">
         {/* Background pattern */}
         <div class="absolute inset-0 opacity-10" aria-hidden="true">
-          <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,.1) 20px, rgba(255,255,255,.1) 40px);" />
+          <div class="absolute inset-0 bg-diagonal-stripes" />
         </div>
 
         {/* Shield Icon */}

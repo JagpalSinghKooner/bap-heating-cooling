@@ -5,6 +5,7 @@
  */
 
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 
 const processSteps = [
   {
@@ -36,15 +37,12 @@ const processSteps = [
 
 <Section variant="default">
   <!-- Section Header -->
-  <div class="mb-10 text-center sm:mb-12">
-    <p class="eyebrow mb-3">How It Works</p>
-    <h2 class="section-title mx-auto mb-4 max-w-3xl">
-      What to expect when you hire us
-    </h2>
-    <p class="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
-      No surprises, no runaround. Just professional service from start to finish.
-    </p>
-  </div>
+  <SectionHeader
+    eyebrow="How It Works"
+    headline="What to expect when you hire us"
+    description="No surprises, no runaround. Just professional service from start to finish."
+    class="sm:mb-12"
+  />
 
   <!-- 4-Step Grid -->
   <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -21,8 +21,8 @@ const profile = await getBusinessProfile();
 const googleRating = profile.reputation.google_rating;
 const googleReviewCount = profile.reputation.google_review_count;
 
-// Show 3 featured reviews for cleaner layout
-const displayReviews = reviews.slice(0, 3);
+// Show 4 featured reviews in 2x2 grid
+const displayReviews = reviews.slice(0, 4);
 ---
 
 <Section variant="muted" class={className}>
@@ -60,8 +60,8 @@ const displayReviews = reviews.slice(0, 3);
   {reviews.length === 0 ? (
     <p class="text-center text-gray-500">No reviews available.</p>
   ) : (
-    <!-- 3-Card Grid - Clean & Readable -->
-    <div class="grid gap-8 md:grid-cols-3">
+    <!-- 2x2 Grid - Balanced Layout -->
+    <div class="grid gap-8 md:grid-cols-2">
       {displayReviews.map((review) => (
         <div class="relative rounded-2xl bg-gray-50 p-8">
           <!-- Large Quote Icon -->

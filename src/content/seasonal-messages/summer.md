@@ -1,10 +1,11 @@
 ---
 season: "summer"
-startDate: "06-01"
-endDate: "08-31"
-message: "24/7 Emergency AC Repair"
-icon: "flame"
+startDate: "05-01"
+endDate: "09-30"
+message: "Beat the Heat - AC Tune-Ups Available"
+icon: "sun"
 enabled: true
+categories: ["cooling"]
 ---
 
-AC not working? We're here to help 24/7 with fast emergency repairs.
+Stay cool all summer with professional air conditioner maintenance and repairs.

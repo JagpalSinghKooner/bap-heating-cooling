@@ -1,7 +1,7 @@
 ---
 question: How long does AC installation take?
 answer: Standard central air conditioner installation typically takes 4-8 hours for a straightforward replacement, or 1-2 days if ductwork modifications are needed.
-scopes: [global, service:air-conditioner-installation]
+scopes: [service:air-conditioner-installation]
 priority: 8
 status: live
 workflowStatus: 'published'

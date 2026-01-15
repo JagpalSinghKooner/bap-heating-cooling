@@ -2,12 +2,12 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ReviewsBlock from '../../components/ReviewsBlock.astro';
 import FAQSection from '../../components/shared/FAQSection.astro';
-import Section from '../../components/primitives/Section.astro';
+import ServiceCategoriesSection from '../../components/homepage/ServiceCategoriesSection.astro';
 // Service page components
 import ServiceHero from '../../components/services/ServiceHero.astro';
 import ServiceTrustBand from '../../components/services/ServiceTrustBand.astro';
 import ServiceValueProps from '../../components/services/ServiceValueProps.astro';
-import ServiceFinalCTA from '../../components/services/ServiceFinalCTA.astro';
+import GradientCTASection from '../../components/shared/GradientCTASection.astro';
 // New full-funnel components
 import ServiceProblemAgitation from '../../components/services/ServiceProblemAgitation.astro';
 import ServiceSolution from '../../components/services/ServiceSolution.astro';
@@ -18,8 +18,10 @@ import ServiceGuarantee from '../../components/services/ServiceGuarantee.astro';
 import ServiceLocalProof from '../../components/services/ServiceLocalProof.astro';
 import ServiceImageGallery from '../../components/services/ServiceImageGallery.astro';
 
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import type { MergedServiceData, RegionLocationMap } from '../../lib/types';
 import { getServiceSchema, getLocalBusinessSchema } from '../../lib/schema';
 import { getServiceBreadcrumbs, getServiceCityBreadcrumbs, getBreadcrumbSchema, type BreadcrumbItem } from '../../lib/breadcrumbs';
 import { resolveFAQs } from '../../lib/faqResolver';
@@ -81,7 +83,7 @@ const { type, service, location, serviceCityEntry } = Astro.props;
 const cleanSlug = (id: string) => id.replace(/\.md$/, '');
 
 // Data merging logic for service-city pages
-let mergedData: any;
+let mergedData: MergedServiceData;
 
 if (type === 'service-city' && serviceCityEntry) {
   // Merge base service data with city-specific overrides
@@ -108,7 +110,7 @@ if (type === 'service-city' && serviceCityEntry) {
 let title: string;
 let description: string;
 let robots: string;
-let Content: any = null;
+let Content: AstroComponentFactory | null = null;
 
 if (type === 'service') {
   const rendered = await service.render();
@@ -131,6 +133,13 @@ const locationSlug = location ? cleanSlug(location.id) : null;
 
 // Get business profile and generate schema
 const profile = await getBusinessProfile();
+
+// Supporting copy for CTA sections (matches original ServiceFinalCTA logic)
+const ctaSupportingCopy: Record<string, string> = {
+  installation: `Free estimates, no pressure. Get expert advice from TSSA-certified technicians who've served Ontario families for ${new Date().getFullYear() - profile.business.established_year}+ years.`,
+  repair: `Don't wait for the problem to get worse. Our technicians are available 24/7 with no overtime charges.`,
+  maintenance: `Keep your system running at peak efficiency. Prevent costly breakdowns with regular professional maintenance.`,
+};
 
 // Load all FAQs
 const allFAQs = await getCollection('faqs');
@@ -225,9 +234,9 @@ if (reviewSchemas.length > 0) {
 const schema = schemas;
 
 // Get all locations and regions for service pages
-let allLocations: any[] = [];
-let allRegions: any[] = [];
-let locationsByRegion: Map<string, { region: any; locations: any[] }> = new Map();
+let allLocations: CollectionEntry<'locations'>[] = [];
+let allRegions: CollectionEntry<'regions'>[] = [];
+let locationsByRegion: Map<string, RegionLocationMap> = new Map();
 
 if (type === 'service') {
   allLocations = await getCollection('locations');
@@ -244,15 +253,6 @@ if (type === 'service') {
       locations: regionLocations
     });
   }
-}
-
-// Get all services for service-in-city pages
-let allServices: any[] = [];
-let relatedServices: any[] = [];
-
-if (type === 'service-city') {
-  allServices = await getCollection('services');
-  relatedServices = allServices.filter((s) => cleanSlug(s.id) !== serviceSlug);
 }
 
 // Get region for service-in-city pages
@@ -339,33 +339,10 @@ if (type === 'service-city' && location && locationSlug) {
         />
       )}
 
-      {/* 10. Service Areas Section */}
-      <Section variant="default">
-        <div class="mb-10 text-center">
-          <p class="eyebrow mb-3">Service Coverage</p>
-          <h2 class="section-title mx-auto mb-4 max-w-3xl">
-            {service.data.title} Service Areas in Ontario
-          </h2>
-          <p class="mx-auto max-w-2xl text-base text-muted-foreground">
-            We proudly serve homeowners across Southern Ontario. Find {service.data.title.toLowerCase()} services in your area.
-          </p>
-        </div>
-        {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
-          <div class="mb-10">
-            <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {locations.map((loc: any) => (
-                <a
-                  href={`/services/${serviceSlug}-${cleanSlug(loc.id)}-on/`}
-                  class="rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  {loc.data.title}
-                </a>
-              ))}
-            </div>
-          </div>
-        ))}
-      </Section>
+      {/* 10. Related Services */}
+      <ServiceCategoriesSection
+        currentServiceSlug={serviceSlug}
+      />
 
       {/* 11. Reviews Section */}
       <ReviewsBlock reviews={pageReviews} title={`${service.data.title} Customer Reviews`} />
@@ -384,9 +361,11 @@ if (type === 'service-city' && location && locationSlug) {
       )}
 
       {/* 14. Final CTA */}
-      <ServiceFinalCTA
-        serviceTitle={service.data.title}
-        serviceType={service.data.serviceType || 'installation'}
+      <GradientCTASection
+        headline={`Ready for ${service.data.title}?`}
+        description={ctaSupportingCopy[service.data.serviceType || 'installation']}
+        variant={service.data.serviceType || 'installation'}
+        context="service-final"
       />
     </>
   ) : location ? (
@@ -463,38 +442,11 @@ if (type === 'service-city' && location && locationSlug) {
       )}
 
       {/* 10. Related Services in This Location */}
-      <Section variant="default">
-        <div class="mb-10 text-center">
-          <p class="eyebrow mb-3">More Services</p>
-          <h2 class="section-title mx-auto mb-4 max-w-3xl">
-            Other HVAC Services in {location.data.title}, Ontario
-          </h2>
-          <p class="mx-auto max-w-2xl text-base text-muted-foreground">
-            We offer a full range of heating, cooling, and air quality services in {location.data.title}.
-          </p>
-        </div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {relatedServices.slice(0, 12).map((relatedService: any) => (
-            <a
-              href={`/services/${cleanSlug(relatedService.id)}-${locationSlug}-on/`}
-              class="rounded-lg border border-border bg-background px-4 py-3 text-center text-sm font-medium transition-colors hover:border-primary hover:bg-primary/5"
-            >
-              {relatedService.data.title}
-            </a>
-          ))}
-        </div>
-        <div class="mt-6 text-center">
-          <a
-            href={`/locations/${locationSlug}/`}
-            class="inline-flex items-center gap-1 text-primary hover:underline"
-          >
-            View all services in {location.data.title}
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
-        </div>
-      </Section>
+      <ServiceCategoriesSection
+        currentServiceSlug={serviceSlug}
+        locationSlug={locationSlug || undefined}
+        locationTitle={location.data.title}
+      />
 
       {/* 11. Local Proof - NEW (city pages only) */}
       {mergedData.localProof && (
@@ -522,10 +474,11 @@ if (type === 'service-city' && location && locationSlug) {
       )}
 
       {/* 15. Final CTA */}
-      <ServiceFinalCTA
-        serviceTitle={service.data.title}
-        serviceType={service.data.serviceType || 'installation'}
-        location={{ title: location.data.title }}
+      <GradientCTASection
+        headline={`Ready for ${service.data.title} in ${location.data.title}?`}
+        description={ctaSupportingCopy[service.data.serviceType || 'installation']}
+        variant={service.data.serviceType || 'installation'}
+        context="service-final"
       />
     </>
   ) : null}

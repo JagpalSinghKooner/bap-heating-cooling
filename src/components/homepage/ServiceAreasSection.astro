@@ -6,6 +6,7 @@
 
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 
 const profile = await getBusinessProfile();
 
@@ -42,15 +43,11 @@ const cardStyles = [
 
 <Section variant="default">
   <!-- Header -->
-  <div class="mb-10 text-center">
-      <p class="eyebrow mb-3">Service Areas</p>
-      <h2 class="section-title mx-auto mb-4 max-w-3xl">
-        Proudly serving your community
-      </h2>
-      <p class="mx-auto max-w-2xl text-base text-muted-foreground">
-        Local technicians who know your neighborhood. Fast response times across Guelph, Wellington County, and surrounding regions.
-      </p>
-    </div>
+  <SectionHeader
+    eyebrow="Service Areas"
+    headline="Proudly serving your community"
+    description="Local technicians who know your neighborhood. Fast response times across Guelph, Wellington County, and surrounding regions."
+  />
 
     <!-- Regions Grid - 3 Cards -->
     <div class="grid gap-6 md:grid-cols-3">

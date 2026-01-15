@@ -6,6 +6,7 @@
  */
 
 import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 
 const profile = await getBusinessProfile();
@@ -43,32 +44,31 @@ const certifications = ['TSSA Certified', 'Carrier Authorized', 'Fully Insured',
 <Section variant="muted">
   <!-- Header with Stats -->
   <div class="mb-10 text-center">
-      <p class="eyebrow mb-3">Why Homeowners Trust Us</p>
-      <h2 class="section-title mx-auto mb-4 max-w-3xl">
-        Local family business, big-company expertise
-      </h2>
-      <p class="mx-auto mb-8 max-w-2xl text-base text-muted-foreground">
-        We're not a call center dispatching strangers. We're your neighbors who've built our reputation one satisfied customer at a time.
-      </p>
+    <SectionHeader
+      eyebrow="Why Homeowners Trust Us"
+      headline="Local family business, big-company expertise"
+      description="We're not a call center dispatching strangers. We're your neighbors who've built our reputation one satisfied customer at a time."
+      class="mb-8"
+    />
 
-      <!-- Stats Row - Contextual -->
-      <div class="flex flex-wrap items-center justify-center gap-6 text-center sm:gap-10">
-        <div>
-          <div class="text-3xl font-bold text-foreground sm:text-4xl">{yearsInBusiness}+</div>
-          <div class="text-sm text-muted-foreground">Years in Business</div>
-        </div>
-        <div class="hidden h-10 w-px bg-border sm:block"></div>
-        <div>
-          <div class="text-3xl font-bold text-foreground sm:text-4xl">10,000+</div>
-          <div class="text-sm text-muted-foreground">Homes Serviced</div>
-        </div>
-        <div class="hidden h-10 w-px bg-border sm:block"></div>
-        <div>
-          <div class="text-3xl font-bold text-foreground sm:text-4xl">24/7</div>
-          <div class="text-sm text-muted-foreground">Emergency Service</div>
-        </div>
+    <!-- Stats Row - Contextual -->
+    <div class="flex flex-wrap items-center justify-center gap-6 text-center sm:gap-10">
+      <div>
+        <div class="text-3xl font-bold text-foreground sm:text-4xl">{yearsInBusiness}+</div>
+        <div class="text-sm text-muted-foreground">Years in Business</div>
+      </div>
+      <div class="hidden h-10 w-px bg-border sm:block"></div>
+      <div>
+        <div class="text-3xl font-bold text-foreground sm:text-4xl">10,000+</div>
+        <div class="text-sm text-muted-foreground">Homes Serviced</div>
+      </div>
+      <div class="hidden h-10 w-px bg-border sm:block"></div>
+      <div>
+        <div class="text-3xl font-bold text-foreground sm:text-4xl">24/7</div>
+        <div class="text-sm text-muted-foreground">Emergency Service</div>
       </div>
     </div>
+  </div>
 
     <!-- Differentiators Grid -->
     <div class="mb-10 grid gap-4 sm:grid-cols-2">

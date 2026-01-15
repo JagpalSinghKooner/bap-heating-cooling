@@ -1,7 +1,7 @@
 ---
 question: What are signs my furnace needs replacing?
 answer: Common signs include age over 15-20 years, frequent repairs, rising energy bills, uneven heating, strange noises, and yellow pilot light. We offer free diagnostics to assess your furnace condition.
-scopes: [global, service:furnace-installation, service:furnace-repair]
+scopes: [service:furnace-installation, service:furnace-repair]
 priority: 9
 status: live
 workflowStatus: 'published'

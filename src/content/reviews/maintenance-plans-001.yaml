@@ -1,0 +1,16 @@
+source: manual
+verified: false
+authorName: The Kowalski Family
+rating: 5
+text: "Signed up for B.A.P's maintenance plan after our Cambridge furnace died mid-winter. Now we get spring AC tune-ups and fall furnace inspections automatically scheduled. They found a failing capacitor last visit that would have left us without AC in July. The plan paid for itself with that catch alone. Peace of mind knowing our HVAC systems are professionally maintained year-round."
+serviceSlug: maintenance-plans
+citySlug: cambridge
+reviewDate: '2025-11-28'
+status: live
+priority: 10
+
+workflowStatus: published
+reviewedBy: Content Team
+reviewedDate: '2026-01-15'
+approvedBy: Content Team
+approvedDate: '2026-01-15'

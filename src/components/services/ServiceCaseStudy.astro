@@ -1,0 +1,113 @@
+---
+/**
+ * ServiceCaseStudy - Before/After Transformation Stories
+ *
+ * Shows real project case studies with problem, solution, and results.
+ * Positioned after Image Gallery, before Reviews for maximum impact.
+ */
+
+import Section from '../primitives/Section.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  serviceTitle: string;
+  caseStudy: CollectionEntry<'case-studies'>;
+}
+
+const { serviceTitle, caseStudy } = Astro.props;
+
+const { problem, solution, results, testimonial } = caseStudy.data;
+---
+
+<Section variant="default">
+  {/* Header */}
+  <div class="mb-10 text-center">
+    <p class="eyebrow mb-3">Real Results</p>
+    <h2 class="section-title mx-auto mb-4 max-w-3xl">
+      {caseStudy.data.title}
+    </h2>
+    <p class="mx-auto max-w-2xl text-base text-muted-foreground">
+      See how we transformed this home with professional {serviceTitle.toLowerCase()}.
+    </p>
+  </div>
+
+  {/* Case Study Card */}
+  <div class="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-border bg-background shadow-lg">
+    {/* Before/After Visual Header */}
+    <div class="grid md:grid-cols-2">
+      {/* Before */}
+      <div class="relative bg-gradient-to-br from-red-50 to-orange-50 p-6 dark:from-red-950/20 dark:to-orange-950/20">
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Before
+        </div>
+        <h3 class="mb-2 text-lg font-bold text-foreground">{problem.headline}</h3>
+        <p class="mb-4 text-sm text-muted-foreground">{problem.description}</p>
+        {problem.details && problem.details.length > 0 && (
+          <ul class="space-y-2">
+            {problem.details.map((detail) => (
+              <li class="flex items-start gap-2 text-sm text-red-700 dark:text-red-300">
+                <svg class="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {detail}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* After */}
+      <div class="relative bg-gradient-to-br from-green-50 to-emerald-50 p-6 dark:from-green-950/20 dark:to-emerald-950/20">
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          After
+        </div>
+        <h3 class="mb-2 text-lg font-bold text-foreground">{solution.headline}</h3>
+        <p class="mb-4 text-sm text-muted-foreground">{solution.description}</p>
+        {solution.equipment && (
+          <div class="rounded-lg bg-white/60 p-3 dark:bg-white/5">
+            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Equipment Installed</p>
+            <p class="font-semibold text-foreground">{solution.equipment}</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Results Stats */}
+    <div class="border-t border-border bg-muted/30 px-6 py-6">
+      <h4 class="mb-4 text-center text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {results.headline}
+      </h4>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {results.stats.map((stat) => (
+          <div class="text-center">
+            <p class="text-2xl font-bold text-primary md:text-3xl">{stat.value}</p>
+            <p class="text-xs text-muted-foreground md:text-sm">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Customer Quote */}
+    <div class="border-t border-border bg-background px-6 py-6">
+      <div class="flex gap-4">
+        <svg class="h-8 w-8 flex-shrink-0 text-primary/30" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+        </svg>
+        <div>
+          <p class="mb-3 text-base italic text-foreground">"{testimonial.text}"</p>
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-foreground">{testimonial.authorName}</span>
+            <span class="text-muted-foreground">-</span>
+            <span class="text-sm text-muted-foreground">{testimonial.location}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Section>

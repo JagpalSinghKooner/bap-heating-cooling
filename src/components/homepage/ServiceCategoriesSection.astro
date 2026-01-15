@@ -3,12 +3,46 @@
  * Service Categories Section
  * 6 service category cards in a 3-column grid
  * Heating, Cooling, Indoor Air Quality, Water Heating, Commercial, Emergency
+ *
+ * Variants:
+ * - Homepage: Links to base service pages (/services/furnace-installation/)
+ * - Service pages with locationSlug: Links to service-city pages (/services/furnace-installation-bolton-on/)
  */
 
 import Section from '../primitives/Section.astro';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 
+interface Props {
+  locationSlug?: string;
+  locationTitle?: string;
+  currentServiceSlug?: string;
+  variant?: 'default' | 'compact';
+  title?: string;
+  subtitle?: string;
+}
+
+const {
+  locationSlug,
+  locationTitle,
+  currentServiceSlug,
+  variant = 'default',
+  title: customTitle,
+  subtitle: customSubtitle,
+} = Astro.props;
+
 const profile = await getBusinessProfile();
+
+// Helper to build service href based on location context
+const buildServiceHref = (baseHref: string): string => {
+  if (!locationSlug) return baseHref;
+
+  // Extract service slug from base href (e.g., '/services/furnace-installation/' -> 'furnace-installation')
+  const match = baseHref.match(/\/services\/([^/]+)\/?$/);
+  if (!match) return baseHref;
+
+  const serviceSlug = match[1];
+  return `/services/${serviceSlug}-${locationSlug}-on/`;
+};
 
 type ServiceCard = {
   id: string;
@@ -19,7 +53,7 @@ type ServiceCard = {
   isEmergency?: boolean;
 };
 
-const serviceCards: ServiceCard[] = [
+const serviceCardsBase: ServiceCard[] = [
   {
     id: 'heating',
     title: 'Heating',
@@ -30,7 +64,7 @@ const serviceCards: ServiceCard[] = [
       { title: 'Furnace Repair', href: '/services/furnace-repair/' },
       { title: 'Heat Pump Installation', href: '/services/heat-pump-installation/' },
       { title: 'Heat Pump Repair', href: '/services/heat-pump-repair/' },
-      { title: 'Boiler Services', href: '/services/boiler-services/' },
+      { title: 'Boiler Installation', href: '/services/boiler-installation/' },
     ],
   },
   {
@@ -41,8 +75,8 @@ const serviceCards: ServiceCard[] = [
     services: [
       { title: 'AC Installation', href: '/services/air-conditioner-installation/' },
       { title: 'AC Repair', href: '/services/air-conditioner-repair/' },
+      { title: 'AC Maintenance', href: '/services/air-conditioner-maintenance/' },
       { title: 'Ductless Mini-Split', href: '/services/ductless-mini-split/' },
-      { title: 'Central Air Systems', href: '/services/central-air-systems/' },
     ],
   },
   {
@@ -63,8 +97,7 @@ const serviceCards: ServiceCard[] = [
     image: '/images/services/furnace-installation.jpg',
     href: '/services/water-heating/',
     services: [
-      { title: 'Water Heater Installation', href: '/services/water-heater-installation/' },
-      { title: 'Water Heater Repair', href: '/services/water-heater-repair/' },
+      { title: 'Tank Water Heaters', href: '/services/tank-water-heaters/' },
       { title: 'Tankless Water Heaters', href: '/services/tankless-water-heaters/' },
     ],
   },
@@ -86,22 +119,43 @@ const serviceCards: ServiceCard[] = [
     href: `tel:${profile.contact.phone_e164}`,
     isEmergency: true,
     services: [
-      { title: 'Emergency HVAC Service', href: '/services/emergency-hvac/' },
-      { title: 'No Heat Calls', href: '/services/furnace-repair/' },
-      { title: 'No AC Calls', href: '/services/air-conditioner-repair/' },
-      { title: 'Same-Day Service', href: '/services/emergency-hvac/' },
+      { title: 'Furnace Repair', href: '/services/furnace-repair/' },
+      { title: 'AC Repair', href: '/services/air-conditioner-repair/' },
+      { title: 'Heat Pump Repair', href: '/services/heat-pump-repair/' },
+      { title: 'Boiler Repair', href: '/services/boiler-repair/' },
     ],
   },
 ];
+
+// Transform service cards with location-aware hrefs
+const serviceCards = serviceCardsBase.map((card) => ({
+  ...card,
+  href: card.isEmergency ? card.href : buildServiceHref(card.href),
+  services: card.services.map((service) => ({
+    ...service,
+    href: buildServiceHref(service.href),
+  })),
+}));
+
+// Context-aware section title and subtitle
+const sectionTitle = customTitle || (locationTitle
+  ? `HVAC Services in ${locationTitle}`
+  : 'Our Services');
+
+const sectionSubtitle = customSubtitle || (locationTitle
+  ? `Professional heating, cooling, and air quality services throughout ${locationTitle}.`
+  : 'Over 30 years serving homeowners and businesses across Guelph and surrounding areas.');
+
+const sectionEyebrow = locationTitle ? `Services in ${locationTitle}` : 'What We Do';
 ---
 
 <Section variant="default">
   <!-- Section Header -->
   <div class="mb-10 text-center sm:mb-12">
-    <p class="eyebrow mb-3">What We Do</p>
-    <h2 class="section-title mx-auto mb-4 max-w-3xl">Our Services</h2>
+    <p class="eyebrow mb-3">{sectionEyebrow}</p>
+    <h2 class="section-title mx-auto mb-4 max-w-3xl">{sectionTitle}</h2>
     <p class="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
-      Over 30 years serving homeowners and businesses across Guelph and surrounding areas.
+      {sectionSubtitle}
     </p>
   </div>
 

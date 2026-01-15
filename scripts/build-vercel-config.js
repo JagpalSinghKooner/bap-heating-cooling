@@ -39,7 +39,17 @@ try {
 
   // Merge: custom redirects + existing vercel redirects
   // Custom redirects take precedence (added first)
-  const mergedRedirects = [...customRedirects, ...(vercelConfig.redirects || [])];
+  // Deduplicate by source to prevent accumulation on repeated builds
+  const allRedirects = [...customRedirects, ...(vercelConfig.redirects || [])];
+  const seen = new Set();
+  const mergedRedirects = allRedirects.filter((redirect) => {
+    const key = redirect.source;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 
   // Update vercel.json with merged redirects
   vercelConfig.redirects = mergedRedirects;

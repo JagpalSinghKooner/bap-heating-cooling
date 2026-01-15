@@ -1,7 +1,7 @@
 ---
 question: How much does furnace installation cost in Ontario?
 answer: Furnace installation in Ontario typically ranges from $3,500 to $8,000+, depending on the furnace type, efficiency rating, and installation complexity. We provide free estimates with transparent pricing.
-scopes: [global, service:furnace-installation]
+scopes: [service:furnace-installation]
 priority: 10
 status: live
 workflowStatus: 'published'
