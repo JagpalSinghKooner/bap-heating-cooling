@@ -1,7 +1,11 @@
 ---
+/**
+ * Service Category Page - Gutted for Redesign
+ *
+ * Preserves all data fetching and routing logic.
+ */
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PrimaryCTA from '../../components/PrimaryCTA.astro';
-import ReviewsBlock from '../../components/ReviewsBlock.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../../lib/schema';
@@ -102,74 +106,8 @@ const seoDescription = description;
   robots="index,follow"
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    <div class="mb-8">
-      <a href="/services/" class="text-sm text-muted-foreground hover:text-primary">
-        ← Back to All Services
-      </a>
-    </div>
-
-    <h1 class="mb-6 text-4xl font-bold">{title}</h1>
-
-    <p class="mb-12 text-xl text-muted-foreground">
-      {description}
-    </p>
-
-    <div class="mb-12 flex gap-4">
-      <PrimaryCTA variant="call" context="category-pillar" />
-      <PrimaryCTA variant="book" context="category-pillar" />
-    </div>
-
-    <section class="mb-16">
-      <h2 class="mb-6 text-3xl font-bold">Our {title}</h2>
-
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {categoryServices.map((service) => (
-          <a
-            href={`/services/${cleanSlug(service.id)}/`}
-            class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
-          >
-            <h3 class="mb-3 text-xl font-semibold">{service.data.title}</h3>
-            <p class="text-muted-foreground">{service.data.description}</p>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <section class="mb-16">
-      <h2 class="mb-6 text-3xl font-bold">Service Areas</h2>
-      <p class="mb-8 text-lg text-muted-foreground">
-        We provide {title.toLowerCase()} throughout Southern Ontario, including:
-      </p>
-
-      {Array.from(locationsByRegion.entries()).map(([_, { region, locations }]) => (
-        <div class="mb-8">
-          <h3 class="mb-4 text-xl font-semibold">{region.data.title}</h3>
-          <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {locations.map((loc) => (
-              <a
-                href={`/locations/${cleanSlug(loc.id)}/`}
-                class="rounded-lg border bg-card p-3 text-center transition-colors hover:border-primary"
-              >
-                <span class="text-sm font-medium">{loc.data.title}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      ))}
-    </section>
-
-    <ReviewsBlock reviews={liveReviews.slice(0, 6)} title="What Our Customers Say" />
-
-    <div class="mt-12 rounded-lg border bg-muted p-8">
-      <h2 class="mb-4 text-2xl font-semibold">Ready to Get Started?</h2>
-      <p class="mb-6 text-muted-foreground">
-        Contact us today to schedule service or request a free consultation.
-      </p>
-      <div class="flex gap-4">
-        <PrimaryCTA variant="call" context="category-pillar-footer" />
-        <PrimaryCTA variant="book" context="category-pillar-footer" />
-      </div>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>{title}</h1>
+    <p>Category page redesign in progress. {categoryServices.length} services available.</p>
   </div>
 </BaseLayout>

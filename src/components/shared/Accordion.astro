@@ -1,0 +1,246 @@
+---
+/**
+ * Accordion Component
+ *
+ * A wrapper for AccordionItem components that controls group behavior.
+ * Uses native HTML details/summary with enhanced styling and JavaScript
+ * for the "allow one at a time" mode.
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Clean, confident borders that guide the eye
+ * - Generous spacing for easy reading
+ * - Smooth, professional animations
+ * - Clear visual hierarchy between questions and answers
+ *
+ * Features:
+ * - CSS grid-based smooth height animation
+ * - Plus/minus icon toggle
+ * - Focus states for accessibility
+ * - Optional single-item mode (one open at a time)
+ *
+ * @example
+ * <Accordion>
+ *   <AccordionItem question="How long does installation take?">
+ *     Most installations are completed within a single day...
+ *   </AccordionItem>
+ * </Accordion>
+ *
+ * @example Single mode (one at a time)
+ * <Accordion allowMultiple={false}>
+ *   <AccordionItem question="Question 1" answer="Answer 1" />
+ *   <AccordionItem question="Question 2" answer="Answer 2" />
+ * </Accordion>
+ */
+
+interface Props {
+  /** Allow multiple items to be open simultaneously (default: true) */
+  allowMultiple?: boolean;
+  /** Visual variant for different contexts */
+  variant?: 'default' | 'bordered' | 'separated' | 'compact';
+  /** Additional CSS classes */
+  class?: string;
+  /** Unique ID for this accordion group (for single-mode control) */
+  id?: string;
+}
+
+const {
+  allowMultiple = true,
+  variant = 'default',
+  class: className = '',
+  id,
+} = Astro.props;
+
+// Generate unique ID if not provided
+const accordionId = id || `accordion-${Math.random().toString(36).slice(2, 9)}`;
+
+// Variant classes
+const variantClasses: Record<string, string> = {
+  default: 'accordion-default',
+  bordered: 'accordion-bordered',
+  separated: 'accordion-separated',
+  compact: 'accordion-compact',
+};
+
+const classes = [
+  'accordion',
+  variantClasses[variant],
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div
+  class={classes}
+  data-accordion
+  data-accordion-id={accordionId}
+  data-allow-multiple={allowMultiple.toString()}
+>
+  <slot />
+</div>
+
+<style is:global>
+  /**
+   * Accordion Container Styles
+   *
+   * Provides consistent spacing and visual grouping for accordion items.
+   * Child AccordionItem components handle their own internal styling.
+   */
+
+  .accordion {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* ================================================================
+     VARIANT: Default
+     Clean stacked items with subtle dividers
+     ================================================================ */
+
+  .accordion-default {
+    gap: 0;
+  }
+
+  .accordion-default > :global([data-accordion-item]) {
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  .accordion-default > :global([data-accordion-item]:last-child) {
+    border-bottom: none;
+  }
+
+  /* ================================================================
+     VARIANT: Bordered
+     Full border around the entire accordion
+     ================================================================ */
+
+  .accordion-bordered {
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background-color: var(--color-surface-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .accordion-bordered > :global([data-accordion-item]) {
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .accordion-bordered > :global([data-accordion-item]:last-child) {
+    border-bottom: none;
+  }
+
+  /* ================================================================
+     VARIANT: Separated
+     Individual cards with gaps between
+     ================================================================ */
+
+  .accordion-separated {
+    gap: var(--space-3);
+  }
+
+  .accordion-separated > :global([data-accordion-item]) {
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface-primary);
+    box-shadow: var(--shadow-sm);
+    transition:
+      box-shadow var(--duration-normal) var(--ease-default),
+      border-color var(--duration-normal) var(--ease-default);
+  }
+
+  .accordion-separated > :global([data-accordion-item]:hover) {
+    border-color: var(--color-primary-300);
+    box-shadow: var(--shadow-md);
+  }
+
+  .accordion-separated > :global([data-accordion-item][open]) {
+    border-color: var(--color-primary-400);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ================================================================
+     VARIANT: Compact
+     Tighter spacing for dense layouts
+     ================================================================ */
+
+  .accordion-compact {
+    gap: 0;
+  }
+
+  .accordion-compact > :global([data-accordion-item]) {
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .accordion-compact > :global([data-accordion-item]:last-child) {
+    border-bottom: none;
+  }
+
+  .accordion-compact > :global([data-accordion-item] summary) {
+    padding: var(--space-3) 0;
+  }
+
+  .accordion-compact > :global([data-accordion-item] .accordion-item-content) {
+    padding-bottom: var(--space-3);
+  }
+
+  /* ================================================================
+     INVERSE CONTEXT
+     When accordion is inside dark sections
+     ================================================================ */
+
+  .section-inverse .accordion-bordered,
+  .section-inverse .accordion-separated > :global([data-accordion-item]) {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .accordion-default > :global([data-accordion-item]),
+  .section-inverse .accordion-compact > :global([data-accordion-item]) {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+</style>
+
+<script>
+  /**
+   * Accordion Single-Item Mode Controller
+   *
+   * When allowMultiple is false, ensures only one item is open at a time.
+   * Uses event delegation for efficiency.
+   */
+
+  function initAccordions() {
+    const accordions = document.querySelectorAll('[data-accordion]');
+
+    accordions.forEach((accordion) => {
+      const allowMultiple = accordion.getAttribute('data-allow-multiple') === 'true';
+
+      // Only add behavior if single-item mode
+      if (!allowMultiple) {
+        accordion.addEventListener('toggle', (e) => {
+          const target = e.target as HTMLDetailsElement;
+
+          // Only act if an item is being opened
+          if (target.matches('[data-accordion-item]') && target.open) {
+            // Close all other items in this accordion
+            const items = accordion.querySelectorAll('[data-accordion-item]');
+            items.forEach((item) => {
+              if (item !== target && (item as HTMLDetailsElement).open) {
+                (item as HTMLDetailsElement).open = false;
+              }
+            });
+          }
+        }, true); // Use capture to catch the toggle event
+      }
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccordions);
+  } else {
+    initAccordions();
+  }
+
+  // Reinitialize on Astro page transitions
+  document.addEventListener('astro:page-load', initAccordions);
+</script>

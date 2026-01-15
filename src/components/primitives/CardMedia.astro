@@ -2,38 +2,384 @@
 /**
  * CardMedia Component
  *
- * IMAGE AREA RULES:
- * - Image must be edge-to-edge
- * - NO padding around images
- * - Image touches the card edges on all sides
- * - Image is the visual anchor of the card
- * - Aspect ratio: 4:3 (controlled)
+ * Image container for cards with consistent aspect ratios and loading behavior.
+ * Designed to work seamlessly with Card.astro for photo-rich content.
+ *
+ * Design Philosophy:
+ * Real photos of real work build trust. This component ensures images
+ * look great at any size with proper object-fit, smooth loading states,
+ * and optional overlay for text legibility.
+ *
+ * Aspect Ratios:
+ * - 1/1:  Square - avatars, icons, small thumbnails
+ * - 4/3:  Classic - project photos, equipment shots
+ * - 3/2:  Standard - versatile general use
+ * - 16/9: Wide - hero images, blog featured images
+ * - 2/1:  Ultra-wide - banner style images
+ *
+ * Features:
+ * - Native lazy loading for performance
+ * - Placeholder background during load
+ * - Optional gradient overlay for text overlay scenarios
+ * - Smooth opacity transition on image load
  */
 
 interface Props {
+  /** Image source URL */
   src: string;
+  /** Alt text for accessibility (required) */
   alt: string;
+  /** Aspect ratio constraint */
+  aspectRatio?: '1/1' | '4/3' | '3/2' | '16/9' | '2/1' | 'auto';
+  /** Object-fit behavior */
+  fit?: 'cover' | 'contain' | 'fill';
+  /** Object position */
+  position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
+  /** Show gradient overlay for text readability */
+  overlay?: boolean | 'subtle' | 'strong';
+  /** Loading behavior */
+  loading?: 'lazy' | 'eager';
+  /** Rounded corners position (for cards with media at top/bottom) */
+  rounded?: 'none' | 'top' | 'bottom' | 'all';
+  /** Image width for srcset */
+  width?: number;
+  /** Image height for srcset */
+  height?: number;
+  /** Additional CSS classes */
   class?: string;
 }
 
 const {
   src,
   alt,
+  aspectRatio = '3/2',
+  fit = 'cover',
+  position = 'center',
+  overlay = false,
+  loading = 'lazy',
+  rounded = 'none',
+  width,
+  height,
   class: className = '',
 } = Astro.props;
 
-// Enforce 4:3 aspect ratio
-const aspectRatio = 'aspect-[4/3]';
+// Aspect ratio classes
+const aspectRatioClasses: Record<string, string> = {
+  '1/1': 'card-media-square',
+  '4/3': 'card-media-4-3',
+  '3/2': 'card-media-3-2',
+  '16/9': 'card-media-wide',
+  '2/1': 'card-media-ultra-wide',
+  'auto': 'card-media-auto',
+};
 
-// Edge-to-edge: no padding, object-cover for proper fit
-const classes = `${aspectRatio} w-full overflow-hidden ${className}`;
+// Object-fit classes
+const fitClasses: Record<string, string> = {
+  cover: 'object-cover',
+  contain: 'object-contain',
+  fill: 'object-fill',
+};
+
+// Object-position classes
+const positionClasses: Record<string, string> = {
+  center: 'object-center',
+  top: 'object-top',
+  bottom: 'object-bottom',
+  left: 'object-left',
+  right: 'object-right',
+};
+
+// Rounded corner classes
+const roundedClasses: Record<string, string> = {
+  none: '',
+  top: 'card-media-rounded-top',
+  bottom: 'card-media-rounded-bottom',
+  all: 'card-media-rounded-all',
+};
+
+// Overlay classes
+const getOverlayClass = () => {
+  if (!overlay) return '';
+  if (overlay === 'subtle') return 'card-media-overlay-subtle';
+  if (overlay === 'strong') return 'card-media-overlay-strong';
+  return 'card-media-overlay';
+};
+
+// Build class strings
+const containerClasses = [
+  'card-media',
+  aspectRatioClasses[aspectRatio],
+  roundedClasses[rounded],
+  getOverlayClass(),
+  className,
+].filter(Boolean).join(' ');
+
+const imageClasses = [
+  'card-media-img',
+  fitClasses[fit],
+  positionClasses[position],
+].filter(Boolean).join(' ');
 ---
 
-<div class={classes}>
+<div class={containerClasses}>
   <img
     src={src}
     alt={alt}
-    class="h-full w-full object-cover"
-    loading="lazy"
+    loading={loading}
+    decoding="async"
+    width={width}
+    height={height}
+    class={imageClasses}
   />
+  {/* Slot for overlaid content like badges or titles */}
+  <slot />
 </div>
+
+<style is:global>
+  /**
+   * CardMedia Component Styles
+   * Consistent image containers with aspect ratio support
+   */
+
+  /* ============================================
+     BASE CONTAINER
+     ============================================ */
+
+  .card-media {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Placeholder shimmer effect while loading */
+  .card-media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-surface-secondary) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s infinite;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Hide shimmer once image loads */
+  .card-media:has(img[src]:not([src=""]))::before {
+    opacity: 0;
+    animation: none;
+  }
+
+  /* ============================================
+     IMAGE ELEMENT
+     ============================================ */
+
+  .card-media-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: relative;
+    z-index: 1;
+    transition:
+      opacity var(--duration-normal) var(--ease-out),
+      transform var(--duration-slow) var(--ease-out);
+  }
+
+  /* Hover zoom effect when card is interactive */
+  .card-interactive:hover .card-media-img {
+    transform: scale(1.03);
+  }
+
+  /* ============================================
+     ASPECT RATIO VARIANTS
+     Using CSS aspect-ratio property
+     ============================================ */
+
+  .card-media-square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .card-media-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+
+  .card-media-3-2 {
+    aspect-ratio: 3 / 2;
+  }
+
+  .card-media-wide {
+    aspect-ratio: 16 / 9;
+  }
+
+  .card-media-ultra-wide {
+    aspect-ratio: 2 / 1;
+  }
+
+  .card-media-auto {
+    aspect-ratio: auto;
+  }
+
+  /* Fallback for browsers without aspect-ratio support */
+  @supports not (aspect-ratio: 1 / 1) {
+    .card-media-square {
+      padding-bottom: 100%;
+    }
+    .card-media-4-3 {
+      padding-bottom: 75%;
+    }
+    .card-media-3-2 {
+      padding-bottom: 66.67%;
+    }
+    .card-media-wide {
+      padding-bottom: 56.25%;
+    }
+    .card-media-ultra-wide {
+      padding-bottom: 50%;
+    }
+
+    /* Position image absolutely in fallback mode */
+    .card-media-square .card-media-img,
+    .card-media-4-3 .card-media-img,
+    .card-media-3-2 .card-media-img,
+    .card-media-wide .card-media-img,
+    .card-media-ultra-wide .card-media-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+
+  /* ============================================
+     ROUNDED CORNER VARIANTS
+     Inherits from parent card radius
+     ============================================ */
+
+  .card-media-rounded-top {
+    border-radius: inherit;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .card-media-rounded-bottom {
+    border-radius: inherit;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .card-media-rounded-all {
+    border-radius: inherit;
+  }
+
+  /* ============================================
+     OVERLAY VARIANTS
+     For text readability on images
+     ============================================ */
+
+  .card-media-overlay::after,
+  .card-media-overlay-subtle::after,
+  .card-media-overlay-strong::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Default overlay - diagonal gradient */
+  .card-media-overlay::after {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.7) 0%,
+      rgba(15, 23, 42, 0.3) 100%
+    );
+  }
+
+  /* Subtle overlay - light gradient from bottom */
+  .card-media-overlay-subtle::after {
+    background: linear-gradient(
+      to top,
+      rgba(15, 23, 42, 0.5) 0%,
+      rgba(15, 23, 42, 0.1) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Strong overlay - full coverage */
+  .card-media-overlay-strong::after {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.85) 0%,
+      rgba(15, 23, 42, 0.6) 100%
+    );
+  }
+
+  /* Ensure slotted content appears above overlay */
+  .card-media > :not(.card-media-img) {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* ============================================
+     OBJECT FIT & POSITION
+     Using Tailwind-style utility classes
+     ============================================ */
+
+  .object-cover {
+    object-fit: cover;
+  }
+
+  .object-contain {
+    object-fit: contain;
+  }
+
+  .object-fill {
+    object-fit: fill;
+  }
+
+  .object-center {
+    object-position: center;
+  }
+
+  .object-top {
+    object-position: top;
+  }
+
+  .object-bottom {
+    object-position: bottom;
+  }
+
+  .object-left {
+    object-position: left;
+  }
+
+  .object-right {
+    object-position: right;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-media::before {
+      animation: none;
+    }
+
+    .card-media-img {
+      transition: none;
+    }
+
+    .card-interactive:hover .card-media-img {
+      transform: none;
+    }
+  }
+</style>

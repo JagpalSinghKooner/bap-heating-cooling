@@ -1,0 +1,839 @@
+---
+/**
+ * ReviewsCarousel Component
+ *
+ * A horizontally scrolling carousel of customer reviews that builds trust
+ * through authentic social proof. When visitors see real testimonials from
+ * real people, the message is clear: "Real people trust them."
+ *
+ * Design Philosophy:
+ * The carousel should feel like browsing through a stack of recommendation
+ * letters from neighbors. Each review card is a human story. The navigation
+ * is subtle but accessible - we don't want flashy controls competing with
+ * the authenticity of the testimonials.
+ *
+ * Features:
+ * - CSS scroll-snap for smooth, precise scrolling
+ * - Touch/swipe support (native browser behavior)
+ * - Navigation arrows with smooth scroll animation
+ * - Pagination dots showing current position
+ * - Responsive columns (1/2/3 based on viewport)
+ * - Optional auto-advance (respects reduced motion)
+ * - Accessible keyboard navigation
+ * - Context-aware filtering (location, service, region)
+ *
+ * @example
+ * <ReviewsCarousel
+ *   title="What Our Customers Say"
+ *   filterBy={{ locationSlug: 'guelph' }}
+ *   limit={6}
+ *   showNavigation
+ * />
+ */
+
+import { getCollection } from 'astro:content';
+import { getReviewsForPage, getSiteReviewBlock } from '../../lib/reviewResolver';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import ReviewCard from './ReviewCard.astro';
+import StarRating from './StarRating.astro';
+
+interface Props {
+  /** Filter reviews by context */
+  filterBy?: {
+    locationSlug?: string;
+    serviceSlug?: string;
+    regionSlug?: string;
+  };
+  /** Maximum number of reviews to display (default: 6) */
+  limit?: number;
+  /** Optional section title */
+  title?: string;
+  /** Optional section description */
+  description?: string;
+  /** Show eyebrow text */
+  eyebrow?: string;
+  /** Show navigation arrows (default: true) */
+  showNavigation?: boolean;
+  /** Show pagination dots (default: true) */
+  showDots?: boolean;
+  /** Auto-advance interval in ms (0 = disabled, default: 0) */
+  autoAdvance?: number;
+  /** Review card variant */
+  cardVariant?: 'default' | 'compact' | 'featured';
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm';
+  /** Show aggregate rating summary */
+  showSummary?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  filterBy,
+  limit = 6,
+  title = 'What Our Customers Say',
+  description,
+  eyebrow = 'Customer Reviews',
+  showNavigation = true,
+  showDots = true,
+  autoAdvance = 0,
+  cardVariant = 'default',
+  variant = 'default',
+  showSummary = false,
+  class: className = '',
+} = Astro.props;
+
+// Fetch all reviews
+const allReviews = await getCollection('reviews');
+
+// Apply filtering based on context
+let reviews;
+if (filterBy?.locationSlug || filterBy?.serviceSlug || filterBy?.regionSlug) {
+  reviews = getReviewsForPage(allReviews, {
+    pageType: filterBy?.serviceSlug && filterBy?.locationSlug ? 'service-city' :
+              filterBy?.serviceSlug ? 'service' :
+              filterBy?.locationSlug ? 'location' :
+              filterBy?.regionSlug ? 'region' : 'homepage',
+    serviceSlug: filterBy?.serviceSlug,
+    locationSlug: filterBy?.locationSlug,
+    citySlug: filterBy?.locationSlug,
+    regionSlug: filterBy?.regionSlug,
+  });
+} else {
+  reviews = getSiteReviewBlock(allReviews);
+}
+
+// Apply limit
+const displayReviews = reviews.slice(0, limit);
+
+// Calculate aggregate stats for summary
+const totalReviews = displayReviews.length;
+const avgRating = totalReviews > 0
+  ? displayReviews.reduce((sum, r) => sum + r.data.rating, 0) / totalReviews
+  : 0;
+
+// Generate unique ID for this carousel instance
+const carouselId = `carousel-${Math.random().toString(36).substring(2, 9)}`;
+
+// Variant configuration
+const variantClasses: Record<string, string> = {
+  default: 'reviews-carousel-default',
+  muted: 'reviews-carousel-muted',
+  warm: 'reviews-carousel-warm',
+};
+
+// Build class list
+const classes = [
+  'reviews-carousel',
+  variantClasses[variant],
+  className,
+].filter(Boolean).join(' ');
+
+// Only render if we have reviews
+const hasReviews = displayReviews.length > 0;
+---
+
+{hasReviews && (
+  <section class={classes} aria-labelledby={`${carouselId}-title`}>
+    <div class="reviews-carousel-container">
+      {/* Section Header */}
+      <div class="reviews-carousel-header">
+        <SectionHeader
+          eyebrow={eyebrow}
+          headline={title}
+          description={description}
+          align="center"
+          headlineSize="lg"
+          headlineLevel={2}
+          maxWidth="lg"
+        />
+
+        {/* Aggregate Summary */}
+        {showSummary && (
+          <div class="reviews-carousel-summary">
+            <div class="reviews-carousel-summary-rating">
+              <StarRating rating={avgRating} size="lg" showValue />
+            </div>
+            <p class="reviews-carousel-summary-text">
+              Based on {totalReviews} customer review{totalReviews !== 1 ? 's' : ''}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Carousel Wrapper */}
+      <div class="reviews-carousel-wrapper">
+        {/* Navigation: Previous */}
+        {showNavigation && displayReviews.length > 1 && (
+          <button
+            type="button"
+            class="reviews-carousel-nav reviews-carousel-nav-prev"
+            aria-label="Previous reviews"
+            data-carousel-prev={carouselId}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+        )}
+
+        {/* Track - the scrollable container */}
+        <div
+          class="reviews-carousel-track"
+          id={carouselId}
+          role="region"
+          aria-label="Customer reviews carousel"
+          tabindex="0"
+          data-auto-advance={autoAdvance > 0 ? autoAdvance : undefined}
+        >
+          {displayReviews.map((review, index) => (
+            <div
+              class="reviews-carousel-slide"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Review ${index + 1} of ${displayReviews.length}`}
+            >
+              <ReviewCard
+                review={{
+                  authorName: review.data.authorName,
+                  rating: review.data.rating,
+                  text: review.data.text,
+                  source: review.data.source,
+                  verified: review.data.verified,
+                  citySlug: review.data.citySlug,
+                  reviewDate: review.data.reviewDate,
+                }}
+                variant={cardVariant}
+                showSource={true}
+                showLocation={true}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation: Next */}
+        {showNavigation && displayReviews.length > 1 && (
+          <button
+            type="button"
+            class="reviews-carousel-nav reviews-carousel-nav-next"
+            aria-label="Next reviews"
+            data-carousel-next={carouselId}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Pagination Dots */}
+      {showDots && displayReviews.length > 1 && (
+        <div class="reviews-carousel-dots" role="tablist" aria-label="Review navigation">
+          {displayReviews.map((_, index) => (
+            <button
+              type="button"
+              class="reviews-carousel-dot"
+              role="tab"
+              aria-selected={index === 0 ? 'true' : 'false'}
+              aria-label={`Go to review ${index + 1}`}
+              data-carousel-dot={carouselId}
+              data-index={index}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+
+<style is:global>
+  /**
+   * ReviewsCarousel Component Styles
+   *
+   * A horizontally scrolling carousel using CSS scroll-snap
+   * for smooth, native-feeling scrolling with precise stops.
+   *
+   * Responsive behavior:
+   * - Mobile: 1 card visible
+   * - Tablet (640px+): 2 cards visible
+   * - Desktop (1024px+): 3 cards visible
+   */
+
+  /* ============================================
+     BASE SECTION
+     ============================================ */
+
+  .reviews-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: var(--section-padding-md) 0;
+  }
+
+  /* Variant backgrounds */
+  .reviews-carousel-default {
+    background-color: var(--color-surface-primary);
+  }
+
+  .reviews-carousel-muted {
+    background-color: var(--color-surface-secondary);
+  }
+
+  .reviews-carousel-warm {
+    background-color: var(--color-surface-warm);
+  }
+
+  /* ============================================
+     CONTAINER
+     ============================================ */
+
+  .reviews-carousel-container {
+    width: 100%;
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+
+  .reviews-carousel-header {
+    margin-bottom: var(--space-10);
+  }
+
+  /* Summary stats */
+  .reviews-carousel-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .reviews-carousel-summary-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .reviews-carousel-summary-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ============================================
+     CAROUSEL WRAPPER
+     Contains track and navigation
+     ============================================ */
+
+  .reviews-carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     TRACK - Scrollable container
+     Uses CSS scroll-snap for precise scrolling
+     ============================================ */
+
+  .reviews-carousel-track {
+    display: flex;
+    gap: var(--space-6);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    /* Full width minus navigation space on desktop */
+    flex: 1;
+    padding: var(--space-2) var(--space-1);
+    margin: calc(var(--space-2) * -1) calc(var(--space-1) * -1);
+  }
+
+  .reviews-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Focus state for keyboard navigation */
+  .reviews-carousel-track:focus {
+    outline: none;
+  }
+
+  .reviews-carousel-track:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 4px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ============================================
+     SLIDES
+     Individual card containers
+     ============================================ */
+
+  .reviews-carousel-slide {
+    flex: 0 0 calc(100% - var(--space-4));
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* Tablet: 2 cards */
+  @media (min-width: 640px) {
+    .reviews-carousel-slide {
+      flex: 0 0 calc(50% - var(--space-4));
+    }
+  }
+
+  /* Desktop: 3 cards */
+  @media (min-width: 1024px) {
+    .reviews-carousel-slide {
+      flex: 0 0 calc(33.333% - var(--space-5));
+    }
+  }
+
+  /* Ensure review cards fill the slide */
+  .reviews-carousel-slide .review-card {
+    height: 100%;
+  }
+
+  /* ============================================
+     NAVIGATION ARROWS
+     ============================================ */
+
+  .reviews-carousel-nav {
+    /* Hidden on mobile, visible on larger screens */
+    display: none;
+
+    position: relative;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-md);
+
+    color: var(--color-text-primary);
+    cursor: pointer;
+
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  @media (min-width: 1024px) {
+    .reviews-carousel-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .reviews-carousel-nav svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .reviews-carousel-nav:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .reviews-carousel-nav:active {
+    transform: scale(0.95);
+  }
+
+  .reviews-carousel-nav:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Disabled state */
+  .reviews-carousel-nav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     PAGINATION DOTS
+     ============================================ */
+
+  .reviews-carousel-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-8);
+    padding: var(--space-2);
+  }
+
+  .reviews-carousel-dot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+
+    background-color: var(--color-border-primary);
+    border: none;
+    border-radius: var(--radius-full);
+
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      width var(--duration-fast) var(--ease-out);
+  }
+
+  .reviews-carousel-dot:hover {
+    background-color: var(--color-primary-300);
+    transform: scale(1.2);
+  }
+
+  .reviews-carousel-dot:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Active dot */
+  .reviews-carousel-dot[aria-selected="true"] {
+    background-color: var(--color-primary-600);
+    width: 24px;
+    border-radius: var(--radius-full);
+  }
+
+  /* ============================================
+     MOBILE SCROLL INDICATOR
+     Visual hint that content is scrollable
+     ============================================ */
+
+  @media (max-width: 639px) {
+    .reviews-carousel-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 48px;
+      background: linear-gradient(
+        to left,
+        var(--color-surface-primary) 0%,
+        transparent 100%
+      );
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .reviews-carousel-muted .reviews-carousel-wrapper::after {
+      background: linear-gradient(
+        to left,
+        var(--color-surface-secondary) 0%,
+        transparent 100%
+      );
+    }
+
+    .reviews-carousel-warm .reviews-carousel-wrapper::after {
+      background: linear-gradient(
+        to left,
+        var(--color-surface-warm) 0%,
+        transparent 100%
+      );
+    }
+  }
+
+  /* ============================================
+     ANIMATION: Entrance
+     ============================================ */
+
+  .reviews-carousel-slide {
+    animation: carouselSlideIn var(--duration-slow) var(--ease-out) forwards;
+    opacity: 0;
+  }
+
+  .reviews-carousel-slide:nth-child(1) { animation-delay: 0ms; }
+  .reviews-carousel-slide:nth-child(2) { animation-delay: 75ms; }
+  .reviews-carousel-slide:nth-child(3) { animation-delay: 150ms; }
+  .reviews-carousel-slide:nth-child(4) { animation-delay: 225ms; }
+  .reviews-carousel-slide:nth-child(5) { animation-delay: 300ms; }
+  .reviews-carousel-slide:nth-child(6) { animation-delay: 375ms; }
+
+  @keyframes carouselSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .reviews-carousel-track {
+      scroll-behavior: auto;
+    }
+
+    .reviews-carousel-slide {
+      animation: none;
+      opacity: 1;
+    }
+
+    .reviews-carousel-nav,
+    .reviews-carousel-dot {
+      transition: none;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .reviews-carousel-nav,
+    .reviews-carousel-dots {
+      display: none;
+    }
+
+    .reviews-carousel-track {
+      overflow: visible;
+      flex-wrap: wrap;
+    }
+
+    .reviews-carousel-slide {
+      flex: 0 0 100%;
+      page-break-inside: avoid;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * ReviewsCarousel JavaScript
+   *
+   * Enhances the carousel with:
+   * - Navigation button functionality
+   * - Pagination dot click handling
+   * - Scroll position tracking for active dot
+   * - Optional auto-advance
+   * - Keyboard navigation
+   */
+
+  class ReviewsCarousel {
+    private track: HTMLElement | null = null;
+    private slides: HTMLElement[] = [];
+    private prevBtn: HTMLButtonElement | null = null;
+    private nextBtn: HTMLButtonElement | null = null;
+    private dots: HTMLButtonElement[] = [];
+    private autoAdvanceInterval: number = 0;
+    private autoAdvanceTimer: number | null = null;
+    private observer: IntersectionObserver | null = null;
+
+    constructor(carouselId: string) {
+      const track = document.getElementById(carouselId);
+      if (!track) return;
+
+      this.track = track;
+      this.slides = Array.from(track.querySelectorAll('.reviews-carousel-slide'));
+      this.prevBtn = document.querySelector(`[data-carousel-prev="${carouselId}"]`);
+      this.nextBtn = document.querySelector(`[data-carousel-next="${carouselId}"]`);
+      this.dots = Array.from(document.querySelectorAll(`[data-carousel-dot="${carouselId}"]`));
+      this.autoAdvanceInterval = parseInt(track.dataset.autoAdvance || '0', 10);
+
+      this.init();
+    }
+
+    private init(): void {
+      if (!this.track) return;
+
+      this.setupNavigation();
+      this.setupDots();
+      this.setupScrollTracking();
+      this.setupKeyboardNav();
+
+      if (this.autoAdvanceInterval > 0) {
+        this.setupAutoAdvance();
+      }
+    }
+
+    private setupNavigation(): void {
+      if (this.prevBtn) {
+        this.prevBtn.addEventListener('click', () => this.scrollToPrev());
+      }
+      if (this.nextBtn) {
+        this.nextBtn.addEventListener('click', () => this.scrollToNext());
+      }
+    }
+
+    private setupDots(): void {
+      this.dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => this.scrollToSlide(index));
+      });
+    }
+
+    private setupScrollTracking(): void {
+      if (!this.track) return;
+
+      // Use Intersection Observer to track visible slides
+      const options: IntersectionObserverInit = {
+        root: this.track,
+        threshold: 0.5,
+      };
+
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = this.slides.indexOf(entry.target as HTMLElement);
+            this.updateActiveDot(index);
+            this.updateNavButtons(index);
+          }
+        });
+      }, options);
+
+      this.slides.forEach((slide) => this.observer?.observe(slide));
+    }
+
+    private setupKeyboardNav(): void {
+      if (!this.track) return;
+
+      this.track.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          this.scrollToPrev();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          this.scrollToNext();
+        }
+      });
+    }
+
+    private setupAutoAdvance(): void {
+      if (!this.track) return;
+
+      // Check for reduced motion preference
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+
+      // Start auto-advance
+      this.startAutoAdvance();
+
+      // Pause on hover/focus
+      this.track.addEventListener('mouseenter', () => this.stopAutoAdvance());
+      this.track.addEventListener('focusin', () => this.stopAutoAdvance());
+      this.track.addEventListener('mouseleave', () => this.startAutoAdvance());
+      this.track.addEventListener('focusout', () => this.startAutoAdvance());
+    }
+
+    private startAutoAdvance(): void {
+      if (this.autoAdvanceTimer) return;
+
+      this.autoAdvanceTimer = window.setInterval(() => {
+        const currentIndex = this.getCurrentIndex();
+        const nextIndex = (currentIndex + 1) % this.slides.length;
+        this.scrollToSlide(nextIndex);
+      }, this.autoAdvanceInterval);
+    }
+
+    private stopAutoAdvance(): void {
+      if (this.autoAdvanceTimer) {
+        clearInterval(this.autoAdvanceTimer);
+        this.autoAdvanceTimer = null;
+      }
+    }
+
+    private getCurrentIndex(): number {
+      if (!this.track) return 0;
+
+      // Find the slide closest to the left edge
+      const trackRect = this.track.getBoundingClientRect();
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+
+      this.slides.forEach((slide, index) => {
+        const slideRect = slide.getBoundingClientRect();
+        const distance = Math.abs(slideRect.left - trackRect.left);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      return closestIndex;
+    }
+
+    private scrollToSlide(index: number): void {
+      const slide = this.slides[index];
+      if (!slide) return;
+
+      slide.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start',
+      });
+    }
+
+    private scrollToPrev(): void {
+      const currentIndex = this.getCurrentIndex();
+      const prevIndex = Math.max(0, currentIndex - 1);
+      this.scrollToSlide(prevIndex);
+    }
+
+    private scrollToNext(): void {
+      const currentIndex = this.getCurrentIndex();
+      const nextIndex = Math.min(this.slides.length - 1, currentIndex + 1);
+      this.scrollToSlide(nextIndex);
+    }
+
+    private updateActiveDot(index: number): void {
+      this.dots.forEach((dot, i) => {
+        dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+      });
+    }
+
+    private updateNavButtons(index: number): void {
+      if (this.prevBtn) {
+        this.prevBtn.disabled = index === 0;
+      }
+      if (this.nextBtn) {
+        this.nextBtn.disabled = index === this.slides.length - 1;
+      }
+    }
+  }
+
+  // Initialize all carousels on the page
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousels = document.querySelectorAll('.reviews-carousel-track');
+    carousels.forEach((track) => {
+      if (track.id) {
+        new ReviewsCarousel(track.id);
+      }
+    });
+  });
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', () => {
+    const carousels = document.querySelectorAll('.reviews-carousel-track');
+    carousels.forEach((track) => {
+      if (track.id) {
+        new ReviewsCarousel(track.id);
+      }
+    });
+  });
+</script>

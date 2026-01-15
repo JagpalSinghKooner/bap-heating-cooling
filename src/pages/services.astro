@@ -1,4 +1,10 @@
 ---
+/**
+ * Services Index Page - Gutted for Redesign
+ *
+ * Preserves all data fetching logic.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { buildServicePath } from '../lib/slugBuilder';
@@ -29,32 +35,8 @@ const categoryTitles = {
   title="Services - B.A.P Heating and Cooling"
   description="Comprehensive heating and cooling services including installation, repair, and maintenance"
 >
-  <div class="container mx-auto px-4 py-16">
-    <h1 class="mb-8 text-4xl font-bold">Our Services</h1>
-
-    <p class="mb-12 text-xl text-muted-foreground">
-      We offer a complete range of HVAC services to keep your home or business
-      comfortable year-round.
-    </p>
-
-    {Object.entries(servicesByCategory).map(([category, categoryServices]) => (
-      categoryServices.length > 0 && (
-        <section id={category} class="mb-16">
-          <h2 class="mb-6 text-3xl font-bold">{categoryTitles[category as keyof typeof categoryTitles]}</h2>
-
-          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {categoryServices.map((service) => (
-              <a
-                href={buildServicePath(service.id)}
-                class="rounded-lg border bg-card p-6 transition-colors hover:border-primary"
-              >
-                <h3 class="mb-3 text-xl font-semibold">{service.data.title}</h3>
-                <p class="text-muted-foreground">{service.data.description}</p>
-              </a>
-            ))}
-          </div>
-        </section>
-      )
-    ))}
+  <div class="redesign-placeholder">
+    <h1>Our Services</h1>
+    <p>Services page redesign in progress. {services.length} services available.</p>
   </div>
 </BaseLayout>

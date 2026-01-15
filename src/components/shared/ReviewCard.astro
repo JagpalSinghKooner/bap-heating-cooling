@@ -1,0 +1,567 @@
+---
+/**
+ * ReviewCard Component
+ *
+ * Displays a customer review with star rating, quote, and attribution.
+ * The cornerstone of social proof - when visitors see these, they should
+ * feel "Real people trust them" and be moved closer to calling.
+ *
+ * Design Philosophy:
+ * Reviews are human stories. The card should feel warm and authentic,
+ * like overhearing a neighbor's recommendation. The avatar creates
+ * personal connection, the stars provide quick scanning, and the quote
+ * marks frame the testimonial as genuine words from real people.
+ *
+ * Features:
+ * - Three variants for different contexts (default, compact, featured)
+ * - Avatar with initials fallback
+ * - Star rating visualization
+ * - Source badge (Google, etc.) for credibility
+ * - Verified indicator for extra trust
+ * - Optional location display for local proof
+ * - Quote styling that feels conversational
+ *
+ * @example
+ * <ReviewCard review={reviewData} variant="featured" showSource />
+ */
+
+// Import sibling components
+import StarRating from './StarRating.astro';
+import Avatar from '../primitives/Avatar.astro';
+import Badge from '../primitives/Badge.astro';
+
+interface ReviewData {
+  /** Customer's name */
+  authorName: string;
+  /** Rating from 1-5 */
+  rating: number;
+  /** The review text content */
+  text: string;
+  /** Review source (e.g., "Google", "HomeStars", "Facebook") */
+  source: string;
+  /** Whether the review is verified */
+  verified: boolean;
+  /** City slug for location attribution */
+  citySlug?: string;
+  /** Date of the review (ISO format) */
+  reviewDate?: string;
+}
+
+interface Props {
+  /** Review data object */
+  review: ReviewData;
+  /** Visual variant */
+  variant?: 'default' | 'compact' | 'featured';
+  /** Show the source badge */
+  showSource?: boolean;
+  /** Show the date */
+  showDate?: boolean;
+  /** Show location */
+  showLocation?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  review,
+  variant = 'default',
+  showSource = true,
+  showDate = false,
+  showLocation = true,
+  class: className = '',
+} = Astro.props;
+
+// Format city slug to readable name (e.g., "guelph" → "Guelph")
+function formatCityName(slug: string): string {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Format date to readable format (e.g., "2025-11-20" → "Nov 2025")
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-CA', {
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+}
+
+// Get source icon/color configuration
+const sourceConfig: Record<string, { icon: string; color: string; label: string }> = {
+  google: {
+    icon: 'G',
+    color: 'source-google',
+    label: 'Google Review',
+  },
+  homestars: {
+    icon: 'HS',
+    color: 'source-homestars',
+    label: 'HomeStars Review',
+  },
+  facebook: {
+    icon: 'f',
+    color: 'source-facebook',
+    label: 'Facebook Review',
+  },
+  manual: {
+    icon: '✓',
+    color: 'source-verified',
+    label: 'Verified Review',
+  },
+};
+
+const sourceKey = review.source.toLowerCase();
+const sourceInfo = sourceConfig[sourceKey] || sourceConfig.manual;
+
+// Variant configurations
+const variantConfig: Record<string, { wrapper: string; starSize: 'sm' | 'md' | 'lg'; showAvatar: boolean; textLines: string }> = {
+  default: {
+    wrapper: 'review-card-default',
+    starSize: 'md',
+    showAvatar: true,
+    textLines: 'review-card-text-default',
+  },
+  compact: {
+    wrapper: 'review-card-compact',
+    starSize: 'sm',
+    showAvatar: false,
+    textLines: 'review-card-text-compact',
+  },
+  featured: {
+    wrapper: 'review-card-featured',
+    starSize: 'lg',
+    showAvatar: true,
+    textLines: 'review-card-text-featured',
+  },
+};
+
+const currentVariant = variantConfig[variant];
+const cityName = review.citySlug ? formatCityName(review.citySlug) : '';
+const formattedDate = review.reviewDate ? formatDate(review.reviewDate) : '';
+
+// Build class string
+const classes = [
+  'review-card',
+  currentVariant.wrapper,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<article class={classes}>
+  {/* Quote decoration for featured variant */}
+  {variant === 'featured' && (
+    <div class="review-card-quote-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" class="review-card-quote-icon">
+        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+      </svg>
+    </div>
+  )}
+
+  {/* Header: Rating + Source */}
+  <header class="review-card-header">
+    <StarRating rating={review.rating} size={currentVariant.starSize} />
+
+    {showSource && (
+      <div class={`review-card-source ${sourceInfo.color}`} title={sourceInfo.label}>
+        <span class="review-card-source-icon">{sourceInfo.icon}</span>
+        {variant === 'featured' && (
+          <span class="review-card-source-label">{sourceInfo.label}</span>
+        )}
+      </div>
+    )}
+  </header>
+
+  {/* Review text */}
+  <blockquote class={`review-card-text ${currentVariant.textLines}`}>
+    <p>"{review.text}"</p>
+  </blockquote>
+
+  {/* Footer: Author info */}
+  <footer class="review-card-footer">
+    {currentVariant.showAvatar && (
+      <Avatar
+        alt={review.authorName}
+        fallback={review.authorName}
+        size={variant === 'featured' ? 'lg' : 'md'}
+        variant="primary"
+      />
+    )}
+
+    <div class="review-card-author">
+      <span class="review-card-author-name">
+        {review.authorName}
+        {review.verified && (
+          <span class="review-card-verified" title="Verified Customer">
+            <svg viewBox="0 0 20 20" fill="currentColor" class="review-card-verified-icon">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        )}
+      </span>
+
+      <span class="review-card-meta">
+        {showLocation && cityName && (
+          <span class="review-card-location">{cityName}, ON</span>
+        )}
+        {showDate && formattedDate && (
+          <>
+            {showLocation && cityName && <span class="review-card-separator">·</span>}
+            <span class="review-card-date">{formattedDate}</span>
+          </>
+        )}
+      </span>
+    </div>
+  </footer>
+</article>
+
+<style is:global>
+  /**
+   * ReviewCard Component Styles
+   * Warm, authentic testimonials that build trust
+   */
+
+  /* ============================================
+     BASE CARD
+     ============================================ */
+
+  .review-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+
+  /* ============================================
+     VARIANT: DEFAULT
+     Standard card with balanced styling
+     ============================================ */
+
+  .review-card-default {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border-primary);
+    box-shadow: var(--shadow-sm);
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Smaller, denser layout for grids
+     ============================================ */
+
+  .review-card-compact {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border-primary);
+    gap: var(--space-3);
+  }
+
+  .review-card-compact .review-card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .review-card-compact .review-card-footer {
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+
+  .review-card-compact .review-card-author {
+    flex-direction: row;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .review-card-compact .review-card-author-name {
+    font-size: var(--font-size-sm);
+  }
+
+  .review-card-compact .review-card-meta {
+    font-size: var(--font-size-xs);
+  }
+
+  /* ============================================
+     VARIANT: FEATURED
+     Large, prominent testimonial with quote mark
+     ============================================ */
+
+  .review-card-featured {
+    padding: var(--space-8);
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-warm) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border: 1px solid var(--color-border-secondary);
+    box-shadow: var(--shadow-lg);
+    gap: var(--space-6);
+  }
+
+  .review-card-featured .review-card-text {
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .review-card-featured .review-card-author-name {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Quote mark decoration */
+  .review-card-quote-mark {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .review-card-quote-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--color-primary-600);
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+
+  .review-card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  /* ============================================
+     SOURCE BADGE
+     ============================================ */
+
+  .review-card-source {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-none);
+    flex-shrink: 0;
+  }
+
+  .review-card-source-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .review-card-source-label {
+    display: none;
+  }
+
+  .review-card-featured .review-card-source-label {
+    display: inline;
+  }
+
+  /* Source colors */
+  .source-google {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  .source-google .review-card-source-icon {
+    color: #4285f4;
+  }
+
+  .source-homestars {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .source-facebook {
+    background-color: #eff6ff;
+    color: #1e40af;
+  }
+
+  .source-verified {
+    background-color: var(--color-success-50);
+    color: var(--color-success-700);
+  }
+
+  /* ============================================
+     REVIEW TEXT
+     ============================================ */
+
+  .review-card-text {
+    margin: 0;
+    font-family: var(--font-family-body);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .review-card-text p {
+    margin: 0;
+  }
+
+  .review-card-text-default {
+    font-size: var(--font-size-base);
+  }
+
+  .review-card-text-compact {
+    font-size: var(--font-size-sm);
+    /* Limit to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .review-card-text-featured {
+    font-size: var(--font-size-lg);
+  }
+
+  /* ============================================
+     FOOTER / AUTHOR
+     ============================================ */
+
+  .review-card-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .review-card-author {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-0-5);
+    min-width: 0;
+  }
+
+  .review-card-author-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-snug);
+  }
+
+  .review-card-verified {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .review-card-verified-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-success-500);
+  }
+
+  .review-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-none);
+  }
+
+  .review-card-separator {
+    color: var(--color-text-tertiary);
+  }
+
+  .review-card-location,
+  .review-card-date {
+    white-space: nowrap;
+  }
+
+  /* ============================================
+     INTERACTIVE HOVER
+     For clickable cards in carousels
+     ============================================ */
+
+  .review-card-interactive {
+    cursor: pointer;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out);
+  }
+
+  .review-card-interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For use on dark backgrounds
+     ============================================ */
+
+  .section-inverse .review-card,
+  .bg-inverse .review-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-color: transparent;
+  }
+
+  .section-inverse .review-card-featured,
+  .bg-inverse .review-card-featured {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0.95) 100%
+    );
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 640px) {
+    .review-card-featured {
+      padding: var(--space-6);
+    }
+
+    .review-card-featured .review-card-text {
+      font-size: var(--font-size-base);
+    }
+
+    .review-card-quote-icon {
+      width: 48px;
+      height: 48px;
+    }
+
+    .review-card-featured .review-card-source-label {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .review-card-interactive:hover {
+      transform: none;
+    }
+  }
+</style>

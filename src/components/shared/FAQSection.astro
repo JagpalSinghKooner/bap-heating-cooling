@@ -1,85 +1,350 @@
 ---
 /**
- * FAQ Section - Premium Two-Column Layout
- * Engaging header with trust elements + FAQ accordion
+ * FAQSection Component
+ *
+ * A complete FAQ section that combines:
+ * - Section wrapper with proper background variant
+ * - SectionHeader with eyebrow, headline, description
+ * - Accordion with FAQ items
+ * - Schema.org FAQPage structured data for SEO
+ * - Optional CTA at the bottom
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Clear hierarchy guides users to answers fast
+ * - Professional layout builds confidence
+ * - Schema markup shows rich results in Google
+ * - Optional CTA captures users who don't find their answer
+ *
+ * Data Sources:
+ * - FAQs come via faqResolver (scoped to page context)
+ * - Can also accept direct FAQ array prop
+ *
+ * @example
+ * <FAQSection
+ *   faqs={[
+ *     { question: "How long...", answer: "Most installations..." },
+ *     { question: "Do you offer...", answer: "Yes, we provide..." }
+ *   ]}
+ *   title="Frequently Asked Questions"
+ * />
+ *
+ * @example With CTA
+ * <FAQSection
+ *   faqs={faqs}
+ *   showCTA={true}
+ *   ctaHeadline="Still have questions?"
+ *   ctaLabel="Call Us Now"
+ *   ctaHref="tel:+15551234567"
+ * />
  */
-import AccordionItem from './AccordionItem.astro';
-import Section from '../primitives/Section.astro';
-import SectionHeader from '../primitives/SectionHeader.astro';
-import type { CollectionEntry } from 'astro:content';
-import { getBusinessProfile } from '../../lib/getBusinessProfile';
 
-export interface Props {
-  faqs: CollectionEntry<'faqs'>[];
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Button from '../primitives/Button.astro';
+import Accordion from './Accordion.astro';
+import AccordionItem from './AccordionItem.astro';
+
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  /** Array of FAQ objects */
+  faqs: FAQ[];
+  /** Section title (optional - defaults to "Frequently Asked Questions") */
   title?: string;
+  /** Section description (optional) */
+  description?: string;
+  /** Eyebrow text above title */
+  eyebrow?: string;
+  /** Number of columns for FAQ grid (1 or 2) */
+  columns?: 1 | 2;
+  /** Whether to show a CTA at the bottom */
+  showCTA?: boolean;
+  /** CTA headline text */
+  ctaHeadline?: string;
+  /** CTA button label */
+  ctaLabel?: string;
+  /** CTA button link */
+  ctaHref?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm';
+  /** Accordion visual style */
+  accordionVariant?: 'default' | 'bordered' | 'separated';
+  /** Section padding size */
+  padding?: 'sm' | 'md' | 'lg';
+  /** Allow multiple FAQs open at once */
+  allowMultiple?: boolean;
+  /** Include Schema.org FAQPage structured data */
+  includeSchema?: boolean;
+  /** Section ID for anchor links */
+  id?: string;
+  /** Additional CSS classes */
   class?: string;
 }
 
-const { faqs, title = 'Your Questions, Answered', class: className = '' } = Astro.props;
-const profile = await getBusinessProfile();
+const {
+  faqs,
+  title = 'Frequently Asked Questions',
+  description,
+  eyebrow = 'FAQ',
+  columns = 1,
+  showCTA = false,
+  ctaHeadline = "Can't find your answer?",
+  ctaLabel = 'Contact Us',
+  ctaHref = '/contact-us/',
+  variant = 'default',
+  accordionVariant = 'default',
+  padding = 'md',
+  allowMultiple = true,
+  includeSchema = true,
+  id = 'faq',
+  class: className = '',
+} = Astro.props;
+
+// Filter out empty FAQs
+const validFaqs = faqs?.filter(faq => faq.question && faq.answer) || [];
+
+// Split FAQs into columns if 2-column layout
+const columnCount = columns === 2 && validFaqs.length > 2 ? 2 : 1;
+const midpoint = Math.ceil(validFaqs.length / 2);
+const leftColumn = columnCount === 2 ? validFaqs.slice(0, midpoint) : validFaqs;
+const rightColumn = columnCount === 2 ? validFaqs.slice(midpoint) : [];
+
+// Generate Schema.org FAQPage structured data
+const faqSchema = includeSchema && validFaqs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': validFaqs.map(faq => ({
+    '@type': 'Question',
+    'name': faq.question,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': faq.answer,
+    },
+  })),
+} : null;
+
+// Section wrapper classes
+const sectionClasses = [
+  'faq-section',
+  className,
+].filter(Boolean).join(' ');
 ---
 
-{faqs.length > 0 && (
-  <Section variant="default" class={className}>
-    <!-- Two-Column Layout -->
-    <div class="grid gap-10 lg:grid-cols-5 lg:gap-16">
+{validFaqs.length > 0 && (
+  <Section
+    variant={variant}
+    padding={padding}
+    id={id}
+    class={sectionClasses}
+  >
+    <Container size="xl">
+      {/* Section Header */}
+      <div class="faq-section-header">
+        <SectionHeader
+          eyebrow={eyebrow}
+          headline={title}
+          description={description}
+          align="center"
+          headlineSize="lg"
+        />
+      </div>
 
-      <!-- Left Column: Header + CTA Card -->
-      <div class="lg:col-span-2">
-        <div class="lg:sticky lg:top-8">
-          <!-- Section Header -->
-          <SectionHeader
-            eyebrow="Got Questions?"
-            headline={title}
-            description="We believe in transparency. Here are honest answers to the questions homeowners ask us most often."
-            align="left"
-            class="mb-8"
-          />
-
-          <!-- Still Have Questions Card -->
-          <div class="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6">
-            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+      {/* FAQ Content */}
+      <div class={`faq-section-content ${columnCount === 2 ? 'faq-columns' : ''}`}>
+        {columnCount === 2 ? (
+          <>
+            {/* Two Column Layout */}
+            <div class="faq-column">
+              <Accordion variant={accordionVariant} allowMultiple={allowMultiple}>
+                {leftColumn.map((faq) => (
+                  <AccordionItem
+                    question={faq.question}
+                    answer={faq.answer}
+                  />
+                ))}
+              </Accordion>
             </div>
-            <h3 class="mb-2 text-lg font-bold text-foreground">Still have questions?</h3>
-            <p class="mb-4 text-sm text-muted-foreground">
-              Talk to a real person who can help. No automated systems, no runaround.
-            </p>
-            <a
-              href={`tel:${profile.contact.phone_e164}`}
-              class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90 hover:shadow-lg"
+            <div class="faq-column">
+              <Accordion variant={accordionVariant} allowMultiple={allowMultiple}>
+                {rightColumn.map((faq) => (
+                  <AccordionItem
+                    question={faq.question}
+                    answer={faq.answer}
+                  />
+                ))}
+              </Accordion>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Single Column Layout */}
+            <div class="faq-single-column">
+              <Accordion variant={accordionVariant} allowMultiple={allowMultiple}>
+                {validFaqs.map((faq) => (
+                  <AccordionItem
+                    question={faq.question}
+                    answer={faq.answer}
+                  />
+                ))}
+              </Accordion>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Optional CTA */}
+      {showCTA && (
+        <div class="faq-section-cta">
+          <div class="faq-cta-content">
+            <p class="faq-cta-headline">{ctaHeadline}</p>
+            <Button
+              variant="primary"
+              size="lg"
+              href={ctaHref}
             >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span>{profile.contact.phone_display}</span>
-            </a>
-
-            <!-- Trust Badge -->
-            <div class="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-              <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <span>Available 24/7 for emergencies</span>
-            </div>
+              {ctaLabel}
+            </Button>
           </div>
         </div>
-      </div>
+      )}
+    </Container>
 
-      <!-- Right Column: FAQ Accordion -->
-      <div class="lg:col-span-3">
-        <div class="space-y-3">
-          {faqs.map((faq, index) => (
-            <AccordionItem
-              question={faq.data.question}
-              answer={faq.data.answer}
-              index={index}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    {/* Schema.org Structured Data */}
+    {faqSchema && (
+      <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    )}
   </Section>
 )}
+
+<style>
+  /**
+   * FAQSection Layout Styles
+   *
+   * Provides consistent spacing and responsive layout for FAQ content.
+   */
+
+  /* ================================================================
+     SECTION HEADER - Spacing below header
+     ================================================================ */
+
+  .faq-section-header {
+    margin-bottom: var(--space-12);
+  }
+
+  /* ================================================================
+     CONTENT CONTAINER - Single or two column
+     ================================================================ */
+
+  .faq-section-content {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+  }
+
+  /* Single column layout - constrained width for readability */
+  .faq-single-column {
+    max-width: var(--container-md);
+    margin: 0 auto;
+  }
+
+  /* ================================================================
+     TWO COLUMN LAYOUT - Side by side FAQs
+     ================================================================ */
+
+  .faq-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    max-width: none;
+  }
+
+  @media (min-width: 1024px) {
+    .faq-columns {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-12);
+    }
+  }
+
+  .faq-column {
+    /* Each column gets its own accordion */
+  }
+
+  /* ================================================================
+     CTA BLOCK - Bottom call-to-action
+     ================================================================ */
+
+  .faq-section-cta {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .faq-cta-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-4);
+  }
+
+  .faq-cta-headline {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  /* ================================================================
+     INVERSE CONTEXT - Dark section styling
+     ================================================================ */
+
+  .section-inverse .faq-section-cta {
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .faq-cta-headline {
+    color: var(--color-text-inverse);
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .faq-section-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .faq-section-cta {
+      margin-top: var(--space-8);
+      padding-top: var(--space-6);
+    }
+
+    .faq-cta-headline {
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  /* ================================================================
+     WARM VARIANT - Additional styling for trust sections
+     ================================================================ */
+
+  :global(.section-bg-warm) .faq-section-cta {
+    border-top-color: var(--color-primary-100);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--color-primary-50) 100%
+    );
+    margin-left: calc(-1 * var(--container-padding));
+    margin-right: calc(-1 * var(--container-padding));
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+    padding-bottom: var(--space-8);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  }
+</style>

@@ -1,0 +1,180 @@
+---
+/**
+ * Icon Primitive Component
+ *
+ * Renders SVG icons from the centralized icon system.
+ * Uses design tokens for consistent sizing and inherits color from parent.
+ *
+ * @example
+ * <Icon name="phone" size="lg" />
+ * <Icon name="shield" color="primary" />
+ * <Icon name="star" size="sm" color="accent" />
+ */
+import { getIconPath } from '../../lib/icons';
+
+interface Props {
+  /** Icon name from src/lib/icons.ts - supports aliases */
+  name: string;
+  /** Icon size - maps to design tokens */
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  /** Color variant - 'current' inherits from parent text color */
+  color?: 'current' | 'primary' | 'accent' | 'muted' | 'inverse' | 'success' | 'warning' | 'error' | 'emergency';
+  /** Additional CSS classes */
+  class?: string;
+  /** Accessible label for the icon (required for standalone icons) */
+  label?: string;
+  /** Whether this icon is decorative (hidden from screen readers) */
+  decorative?: boolean;
+}
+
+const {
+  name,
+  size = 'md',
+  color = 'current',
+  class: className = '',
+  label,
+  decorative = true,
+} = Astro.props;
+
+// Get the SVG path content
+const iconPath = getIconPath(name);
+
+// Determine if this is a filled icon (uses fill instead of stroke)
+const isFilledIcon = iconPath.includes('fill-rule') || iconPath.includes('fill=');
+
+// Size classes mapping to CSS custom properties
+const sizeClasses: Record<string, string> = {
+  'xs':  'icon-xs',
+  'sm':  'icon-sm',
+  'md':  'icon-md',
+  'lg':  'icon-lg',
+  'xl':  'icon-xl',
+  '2xl': 'icon-2xl',
+};
+
+// Color classes
+const colorClasses: Record<string, string> = {
+  'current':   'icon-color-current',
+  'primary':   'icon-color-primary',
+  'accent':    'icon-color-accent',
+  'muted':     'icon-color-muted',
+  'inverse':   'icon-color-inverse',
+  'success':   'icon-color-success',
+  'warning':   'icon-color-warning',
+  'error':     'icon-color-error',
+  'emergency': 'icon-color-emergency',
+};
+
+const classes = [
+  'icon',
+  sizeClasses[size],
+  colorClasses[color],
+  className,
+].filter(Boolean).join(' ');
+
+// Accessibility attributes
+const ariaAttrs = decorative
+  ? { 'aria-hidden': true as const }
+  : { 'role': 'img' as const, 'aria-label': label };
+---
+
+<svg
+  class={classes}
+  viewBox="0 0 24 24"
+  fill={isFilledIcon ? 'currentColor' : 'none'}
+  stroke={isFilledIcon ? 'none' : 'currentColor'}
+  xmlns="http://www.w3.org/2000/svg"
+  {...ariaAttrs}
+>
+  <Fragment set:html={iconPath} />
+</svg>
+
+<style>
+  /* ================================================================
+     ICON BASE STYLES
+     Uses design tokens for consistent sizing
+     ================================================================ */
+
+  .icon {
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  /* ================================================================
+     SIZE VARIANTS
+     Maps to --icon-* tokens from tokens.css
+     ================================================================ */
+
+  .icon-xs {
+    width: var(--icon-xs);    /* 12px */
+    height: var(--icon-xs);
+  }
+
+  .icon-sm {
+    width: var(--icon-sm);    /* 16px */
+    height: var(--icon-sm);
+  }
+
+  .icon-md {
+    width: var(--icon-md);    /* 20px */
+    height: var(--icon-md);
+  }
+
+  .icon-lg {
+    width: var(--icon-lg);    /* 24px */
+    height: var(--icon-lg);
+  }
+
+  .icon-xl {
+    width: var(--icon-xl);    /* 32px */
+    height: var(--icon-xl);
+  }
+
+  .icon-2xl {
+    width: var(--icon-2xl);   /* 48px */
+    height: var(--icon-2xl);
+  }
+
+  /* ================================================================
+     COLOR VARIANTS
+     'current' is default - inherits from parent text color
+     ================================================================ */
+
+  .icon-color-current {
+    color: currentColor;
+  }
+
+  .icon-color-primary {
+    color: var(--color-primary-600);
+  }
+
+  .icon-color-accent {
+    color: var(--color-accent-600);
+  }
+
+  .icon-color-muted {
+    color: var(--color-text-tertiary);
+  }
+
+  .icon-color-inverse {
+    color: var(--color-text-inverse);
+  }
+
+  .icon-color-success {
+    color: var(--color-success-600);
+  }
+
+  .icon-color-warning {
+    color: var(--color-warning-600);
+  }
+
+  .icon-color-error {
+    color: var(--color-error-600);
+  }
+
+  .icon-color-emergency {
+    color: var(--color-emergency-600);
+  }
+</style>

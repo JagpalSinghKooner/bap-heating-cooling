@@ -1,0 +1,334 @@
+---
+/**
+ * ServicesGrid Component
+ *
+ * A responsive grid layout for displaying ServiceCards.
+ * Fetches services from the content collection and supports filtering.
+ *
+ * Design Philosophy:
+ * The services grid is often the first touchpoint for users exploring
+ * what B.A.P offers. It needs to:
+ * 1. Show the breadth of services at a glance
+ * 2. Help users find their specific need quickly
+ * 3. Prioritize emergency/repair services visually
+ * 4. Guide toward conversion (phone calls)
+ *
+ * Variants:
+ * - cards:   Standard card grid with full information
+ * - compact: Smaller cards for dense layouts
+ * - list:    Vertical list view for narrow spaces
+ */
+import { getCollection } from 'astro:content';
+import ServiceCard from './ServiceCard.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+
+interface Props {
+  /** Filter services by category slug */
+  filterByCategory?: string;
+  /** Filter services by type (installation, repair, maintenance) */
+  filterByType?: 'installation' | 'repair' | 'maintenance';
+  /** Location slug for service-city linking */
+  locationSlug?: string;
+  /** Number of grid columns on desktop */
+  columns?: 2 | 3 | 4;
+  /** Visual variant */
+  variant?: 'cards' | 'compact' | 'list';
+  /** Show service descriptions */
+  showDescription?: boolean;
+  /** Show service type badges */
+  showServiceType?: boolean;
+  /** Show category badges */
+  showCategory?: boolean;
+  /** Maximum number of services to display */
+  limit?: number;
+  /** Optional section header */
+  title?: string;
+  /** Optional section description */
+  description?: string;
+  /** Optional eyebrow text */
+  eyebrow?: string;
+  /** Header alignment */
+  headerAlign?: 'left' | 'center';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  filterByCategory,
+  filterByType,
+  locationSlug,
+  columns = 3,
+  variant = 'cards',
+  showDescription = true,
+  showServiceType = false,
+  showCategory = true,
+  limit,
+  title,
+  description,
+  eyebrow,
+  headerAlign = 'center',
+  class: className = '',
+} = Astro.props;
+
+// Fetch services from content collection
+let services = await getCollection('services', ({ data }) => {
+  // Only include live services
+  if (data.status !== 'live') return false;
+
+  // Apply category filter if specified
+  if (filterByCategory && data.category !== filterByCategory) return false;
+
+  // Apply service type filter if specified
+  if (filterByType && data.serviceType !== filterByType) return false;
+
+  return true;
+});
+
+// Sort services: priority first, then by order, then alphabetically
+services = services.sort((a, b) => {
+  // Priority services first
+  if (a.data.priority && !b.data.priority) return -1;
+  if (!a.data.priority && b.data.priority) return 1;
+
+  // Then by order field if both have it
+  const orderA = a.data.order ?? 999;
+  const orderB = b.data.order ?? 999;
+  if (orderA !== orderB) return orderA - orderB;
+
+  // Finally alphabetically
+  return a.data.title.localeCompare(b.data.title);
+});
+
+// Apply limit if specified
+if (limit && limit > 0) {
+  services = services.slice(0, limit);
+}
+
+// Map services to ServiceCard format
+const serviceItems = services.map(service => ({
+  title: service.data.title,
+  description: service.data.description,
+  category: service.data.category,
+  slug: service.id,
+  serviceType: service.data.serviceType,
+  priority: service.data.priority,
+}));
+
+// Determine card variant based on grid variant
+const cardVariantMap = {
+  cards: 'default' as const,
+  compact: 'compact' as const,
+  list: 'compact' as const,
+};
+
+// Column class mapping
+const columnClasses = {
+  2: 'services-grid-cols-2',
+  3: 'services-grid-cols-3',
+  4: 'services-grid-cols-4',
+};
+
+// Build class string
+const classes = [
+  'services-grid',
+  `services-grid-${variant}`,
+  columnClasses[columns],
+  className,
+].filter(Boolean).join(' ');
+---
+
+{services.length > 0 && (
+  <div class={classes}>
+    {/* Optional Section Header */}
+    {title && (
+      <div class="services-grid-header">
+        <SectionHeader
+          eyebrow={eyebrow}
+          headline={title}
+          description={description}
+          align={headerAlign}
+        />
+      </div>
+    )}
+
+    {/* Services Grid */}
+    <div class="services-grid-items">
+      {serviceItems.map((service, index) => (
+        <div
+          class="services-grid-item"
+          style={`--stagger-index: ${index}`}
+        >
+          <ServiceCard
+            service={service}
+            locationSlug={locationSlug}
+            variant={cardVariantMap[variant]}
+            showDescription={showDescription && variant !== 'compact'}
+            showServiceType={showServiceType}
+            showCategory={showCategory}
+          />
+        </div>
+      ))}
+    </div>
+
+    {/* Empty state - shouldn't normally show but good to have */}
+    {services.length === 0 && (
+      <div class="services-grid-empty">
+        <p>No services found matching your criteria.</p>
+      </div>
+    )}
+  </div>
+)}
+
+<style is:global>
+  /**
+   * ServicesGrid Component Styles
+   * Responsive grid layouts for service cards
+   */
+
+  /* ============================================
+     BASE GRID
+     ============================================ */
+
+  .services-grid {
+    width: 100%;
+  }
+
+  .services-grid-header {
+    margin-bottom: var(--space-10);
+  }
+
+  .services-grid-items {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .services-grid-item {
+    /* Animation stagger support */
+    animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 50ms);
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     COLUMN VARIANTS
+     Mobile-first responsive columns
+     ============================================ */
+
+  /* Base: 1 column on mobile */
+  .services-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  /* 2 columns */
+  .services-grid-cols-2 .services-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .services-grid-cols-2 .services-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* 3 columns */
+  .services-grid-cols-3 .services-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .services-grid-cols-3 .services-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .services-grid-cols-3 .services-grid-items {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* 4 columns */
+  .services-grid-cols-4 .services-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .services-grid-cols-4 .services-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .services-grid-cols-4 .services-grid-items {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .services-grid-cols-4 .services-grid-items {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Tighter spacing for dense layouts
+     ============================================ */
+
+  .services-grid-compact .services-grid-items {
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     VARIANT: LIST
+     Vertical single-column layout
+     ============================================ */
+
+  .services-grid-list .services-grid-items {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-3);
+  }
+
+  /* ============================================
+     EMPTY STATE
+     ============================================ */
+
+  .services-grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .services-grid-item {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .services-grid-empty {
+    color: var(--color-text-inverse);
+  }
+</style>

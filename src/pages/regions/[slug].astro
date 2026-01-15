@@ -1,7 +1,11 @@
 ---
+/**
+ * Region Page - Gutted for Redesign
+ *
+ * Preserves all data fetching, routing logic, and schemas.
+ */
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ReviewsBlock from '../../components/ReviewsBlock.astro';
-import PrimaryCTA from '../../components/PrimaryCTA.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getRegionSchema } from '../../lib/schema';
@@ -99,75 +103,8 @@ const schema = schemas;
 ---
 
 <BaseLayout title={title} description={description} robots={robots} schema={schema}>
-  <div class="container mx-auto px-4 py-16">
-    <div class="mb-8">
-      <a
-        href="/regions/"
-        class="text-sm text-muted-foreground transition-colors hover:text-primary"
-      >
-        ← Back to Regions
-      </a>
-    </div>
-
-    <article class="prose prose-lg mx-auto mb-12 max-w-none">
-      <Content />
-    </article>
-
-    <div class="mb-12 rounded-lg border bg-card p-6">
-      <h2 class="mb-4 text-xl font-semibold">Get In Touch</h2>
-      <div class="flex gap-4">
-        <PrimaryCTA variant="call" context="region-header" />
-        <PrimaryCTA variant="book" context="region-header" />
-      </div>
-    </div>
-
-    <div class="mb-12">
-      <h2 class="mb-6 text-3xl font-bold">
-        Cities We Serve in {region.data.title}
-      </h2>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {regionCities.map((city) => (
-          <a
-            href={`/locations/${cleanSlug(city.id)}/`}
-            class="rounded-lg border bg-card p-4 transition-colors hover:border-primary"
-          >
-            <h3 class="font-semibold">{city.data.title}, ON</h3>
-            <p class="text-sm text-muted-foreground">View all services →</p>
-          </a>
-        ))}
-      </div>
-    </div>
-
-    <div class="mb-12">
-      <h2 class="mb-6 text-3xl font-bold">
-        Services We Offer in {region.data.title}
-      </h2>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {allServices.map((service) => (
-          <a
-            href={`/services/${cleanSlug(service.id)}/`}
-            class="rounded-lg border bg-card p-4 transition-colors hover:border-primary"
-          >
-            <h3 class="font-semibold">{service.data.title}</h3>
-            <p class="text-sm text-muted-foreground">Learn more →</p>
-          </a>
-        ))}
-      </div>
-    </div>
-
-    <ReviewsBlock reviews={pageReviews} title="Customer Reviews" />
-
-    <div class="mt-12 rounded-lg border bg-muted p-8">
-      <h2 class="mb-4 text-2xl font-semibold">
-        Need HVAC Service in {region.data.title}?
-      </h2>
-      <p class="mb-6 text-muted-foreground">
-        Contact us today to schedule service anywhere in {region.data.title}.
-      </p>
-      <div class="flex gap-4">
-        <PrimaryCTA variant="call" context="region-footer" />
-        <PrimaryCTA variant="book" context="region-footer" />
-      </div>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>{region.data.title}</h1>
+    <p>Region page redesign in progress. {regionCities.length} cities served in this region.</p>
   </div>
 </BaseLayout>

@@ -1,48 +1,373 @@
 ---
 /**
- * Universal Card Component
+ * Card Component
  *
- * STRUCTURE (MANDATORY):
- * <Card>
- *   <CardMedia />   // image, no padding
- *   <CardBody />    // padded text content
- * </Card>
+ * A versatile container for grouping related content.
+ * Follows the "Trustworthy Industrial Modern" aesthetic with warm shadows,
+ * rounded corners, and subtle hover interactions.
  *
- * No variants that change structure.
- * No section-specific overrides.
- * No padding hacks.
+ * Design Philosophy:
+ * Cards should feel solid and trustworthy - like a well-made business card
+ * from a company you'd trust with your home. Clean lines, gentle shadows,
+ * and purposeful spacing.
+ *
+ * Variants:
+ * - default:  White background, subtle border, soft shadow - the workhorse
+ * - elevated: No border, stronger shadow - for featured/important content
+ * - outlined: Transparent with border - minimal, content-focused
+ * - ghost:    Muted background, no border - subtle grouping
+ *
+ * Interactive Mode:
+ * When interactive=true or href is provided, cards get hover lift effect
+ * and cursor pointer to indicate clickability.
  */
 
 interface Props {
+  /** Visual style variant */
+  variant?: 'default' | 'elevated' | 'outlined' | 'ghost';
+  /** Enables hover effects for clickable cards */
   interactive?: boolean;
+  /** Makes the entire card a clickable link */
+  href?: string;
+  /** Opens link in new tab */
+  target?: '_blank' | '_self';
+  /** Internal padding size */
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Border radius override */
+  radius?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  /** Additional CSS classes */
   class?: string;
+  /** Data attributes for analytics */
+  [key: `data-${string}`]: string | undefined;
 }
 
 const {
+  variant = 'default',
   interactive = false,
+  href,
+  target,
+  padding = 'none',
+  radius = 'lg',
   class: className = '',
+  ...rest
 } = Astro.props;
 
-// One border radius
-const borderRadius = 'rounded-lg'; // --radius-md (8px)
+// Filter to only data attributes
+const dataAttributes = Object.fromEntries(
+  Object.entries(rest).filter(([key]) => key.startsWith('data-'))
+);
 
-// One border style
-const border = 'border border-border';
+// Determine if card should be interactive (explicit prop or has href)
+const isInteractive = interactive || !!href;
 
-// One shadow style
-const shadow = 'shadow-sm';
+// Determine element type
+const Element = href ? 'a' : 'div';
 
-// One hover behavior (only if interactive)
-const hoverClasses = interactive
-  ? 'transition-all duration-300 hover:shadow-md hover:-translate-y-0.5'
-  : '';
+// Variant configurations
+const variantConfig: Record<string, { base: string; hover?: string }> = {
+  default: {
+    base: 'card-default',
+    hover: 'card-hover-lift',
+  },
+  elevated: {
+    base: 'card-elevated',
+    hover: 'card-hover-lift',
+  },
+  outlined: {
+    base: 'card-outlined',
+    hover: 'card-hover-border',
+  },
+  ghost: {
+    base: 'card-ghost',
+    hover: 'card-hover-bg',
+  },
+};
 
-// One focus state (for keyboard navigation)
-const focusClasses = 'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2';
+// Padding classes
+const paddingClasses: Record<string, string> = {
+  none: '',
+  sm: 'card-padding-sm',
+  md: 'card-padding-md',
+  lg: 'card-padding-lg',
+};
 
-const classes = `${borderRadius} ${border} ${shadow} bg-card text-card-foreground overflow-hidden ${hoverClasses} ${focusClasses} ${className}`;
+// Radius classes
+const radiusClasses: Record<string, string> = {
+  sm: 'card-radius-sm',
+  md: 'card-radius-md',
+  lg: 'card-radius-lg',
+  xl: 'card-radius-xl',
+  '2xl': 'card-radius-2xl',
+};
+
+// Build class string
+const currentVariant = variantConfig[variant];
+const classes = [
+  'card-base',
+  currentVariant.base,
+  isInteractive ? `card-interactive ${currentVariant.hover}` : '',
+  paddingClasses[padding],
+  radiusClasses[radius],
+  className,
+].filter(Boolean).join(' ');
+
+// Element props
+const elementProps = {
+  class: classes,
+  ...(href ? { href, target, rel: target === '_blank' ? 'noopener noreferrer' : undefined } : {}),
+  ...dataAttributes,
+};
 ---
 
-<div class={classes}>
+<Element {...elementProps}>
   <slot />
-</div>
+</Element>
+
+<style is:global>
+  /**
+   * Card Component Styles
+   * Warm shadows and subtle interactions for trustworthy feel
+   */
+
+  /* ============================================
+     BASE CARD
+     ============================================ */
+
+  .card-base {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: var(--color-surface-primary);
+  }
+
+  /* Focus state for accessible keyboard navigation */
+  a.card-base:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     VARIANT STYLES
+     ============================================ */
+
+  /* Default: White background, subtle border, soft shadow */
+  .card-default {
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Elevated: No border, stronger shadow for depth */
+  .card-elevated {
+    background-color: var(--color-surface-primary);
+    border: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Outlined: Transparent with visible border */
+  .card-outlined {
+    background-color: transparent;
+    border: 1px solid var(--color-border-primary);
+    box-shadow: none;
+  }
+
+  /* Ghost: Muted background, no border */
+  .card-ghost {
+    background-color: var(--color-surface-secondary);
+    border: none;
+    box-shadow: none;
+  }
+
+  /* ============================================
+     INTERACTIVE STATES
+     Cards that can be clicked get hover effects
+     ============================================ */
+
+  .card-interactive {
+    cursor: pointer;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out),
+      background-color var(--duration-normal) var(--ease-out);
+  }
+
+  /* Remove text decoration for link cards */
+  a.card-interactive {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Hover lift effect - subtle elevation increase */
+  .card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-hover-lift:active {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Border hover for outlined cards */
+  .card-hover-border:hover {
+    border-color: var(--color-primary-400);
+    background-color: var(--color-primary-50);
+  }
+
+  .card-hover-border:active {
+    border-color: var(--color-primary-500);
+    background-color: var(--color-primary-100);
+  }
+
+  /* Background hover for ghost cards */
+  .card-hover-bg:hover {
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .card-hover-bg:active {
+    background-color: var(--color-border-primary);
+  }
+
+  /* ============================================
+     PADDING VARIANTS
+     ============================================ */
+
+  .card-padding-sm {
+    padding: var(--card-padding-sm);
+  }
+
+  .card-padding-md {
+    padding: var(--card-padding-md);
+  }
+
+  .card-padding-lg {
+    padding: var(--card-padding-lg);
+  }
+
+  /* ============================================
+     RADIUS VARIANTS
+     ============================================ */
+
+  .card-radius-sm {
+    border-radius: var(--radius-sm);
+  }
+
+  .card-radius-md {
+    border-radius: var(--radius-md);
+  }
+
+  .card-radius-lg {
+    border-radius: var(--radius-lg);
+  }
+
+  .card-radius-xl {
+    border-radius: var(--radius-xl);
+  }
+
+  .card-radius-2xl {
+    border-radius: var(--radius-2xl);
+  }
+
+  /* ============================================
+     CARD MODIFIERS
+     Additional states and utilities
+     ============================================ */
+
+  /* Full-height card for grid layouts */
+  .card-base.h-full {
+    height: 100%;
+  }
+
+  /* Card with featured/highlighted state */
+  .card-featured {
+    border: 2px solid var(--color-primary-500);
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 4px var(--color-primary-50);
+  }
+
+  /* Card on dark backgrounds */
+  .section-inverse .card-default,
+  .section-inverse .card-elevated {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-color: transparent;
+  }
+
+  .section-inverse .card-outlined {
+    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .section-inverse .card-outlined:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .card-ghost {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .section-inverse .card-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial Modern aesthetic accents
+     ============================================ */
+
+  /* Optional: Top accent border for featured cards */
+  .card-accent-top {
+    position: relative;
+  }
+
+  .card-accent-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  /* Emergency/urgent card accent */
+  .card-accent-emergency::before {
+    background: linear-gradient(
+      90deg,
+      var(--color-emergency-500) 0%,
+      var(--color-emergency-600) 100%
+    );
+  }
+
+  /* Accent orange for CTAs */
+  .card-accent-cta::before {
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-500) 0%,
+      var(--color-accent-600) 100%
+    );
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-interactive {
+      transition: none;
+    }
+
+    .card-hover-lift:hover,
+    .card-hover-lift:active {
+      transform: none;
+    }
+  }
+</style>

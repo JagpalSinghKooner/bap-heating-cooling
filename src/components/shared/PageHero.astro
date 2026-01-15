@@ -1,0 +1,691 @@
+---
+/**
+ * PageHero Component (Interior Pages)
+ *
+ * A more compact hero for non-homepage pages.
+ * Maintains the "Trustworthy Industrial Modern" aesthetic while
+ * being functional and hierarchy-focused.
+ *
+ * Variants adapt the visual treatment to page context:
+ * - default:  Clean professional header
+ * - location: Emphasizes local trust (city name prominent)
+ * - service:  Action-oriented (repair = urgent, install = professional)
+ * - blog:     Editorial, content-focused
+ * - contact:  Direct, conversion-focused
+ *
+ * Key Features:
+ * - Breadcrumb navigation for wayfinding
+ * - Eyebrow text for context
+ * - Optional background image with overlay
+ * - Optional CTA buttons
+ * - Variant-specific color treatments
+ */
+
+import Container from '../primitives/Container.astro';
+import Button from '../primitives/Button.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+
+interface Props {
+  /** Page title (h1) */
+  title: string;
+  /** Description text beneath title */
+  description?: string;
+  /** Small label above title */
+  eyebrow?: string;
+  /** Visual variant based on page type */
+  variant?: 'default' | 'location' | 'service' | 'blog' | 'contact';
+  /** Service type for service variant styling */
+  serviceType?: 'installation' | 'repair' | 'maintenance';
+  /** Breadcrumb navigation trail */
+  breadcrumbs?: Array<{ label: string; href: string }>;
+  /** Background image URL */
+  backgroundImage?: string;
+  /** CTA buttons */
+  ctaButtons?: Array<{
+    label: string;
+    href: string;
+    variant: 'primary' | 'secondary' | 'emergency' | 'outline';
+    icon?: string;
+  }>;
+  /** Compact height variant */
+  compact?: boolean;
+  /** Show decorative accent pattern */
+  showAccent?: boolean;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  title,
+  description,
+  eyebrow,
+  variant = 'default',
+  serviceType,
+  breadcrumbs,
+  backgroundImage,
+  ctaButtons,
+  compact = false,
+  showAccent = true,
+  class: className = '',
+} = Astro.props;
+
+// Eyebrow color type
+type EyebrowColor = 'primary' | 'accent' | 'inverse' | 'muted' | 'emergency' | 'success';
+
+// Variant-specific configurations
+const variantConfig: Record<string, {
+  background: string;
+  gradient: string;
+  accent: EyebrowColor;
+}> = {
+  default: {
+    background: 'page-hero-bg-default',
+    gradient: 'page-hero-gradient-default',
+    accent: 'primary',
+  },
+  location: {
+    background: 'page-hero-bg-location',
+    gradient: 'page-hero-gradient-location',
+    accent: 'primary',
+  },
+  service: {
+    background: serviceType === 'repair'
+      ? 'page-hero-bg-emergency'
+      : serviceType === 'maintenance'
+        ? 'page-hero-bg-maintenance'
+        : 'page-hero-bg-service',
+    gradient: serviceType === 'repair'
+      ? 'page-hero-gradient-emergency'
+      : 'page-hero-gradient-default',
+    accent: serviceType === 'repair' ? 'emergency' : 'primary',
+  },
+  blog: {
+    background: 'page-hero-bg-blog',
+    gradient: 'page-hero-gradient-blog',
+    accent: 'muted',
+  },
+  contact: {
+    background: 'page-hero-bg-contact',
+    gradient: 'page-hero-gradient-contact',
+    accent: 'accent',
+  },
+};
+
+const config = variantConfig[variant];
+const isEmergency = variant === 'service' && serviceType === 'repair';
+const hasImage = !!backgroundImage;
+---
+
+<section
+  class:list={[
+    'page-hero',
+    config.background,
+    compact ? 'page-hero-compact' : '',
+    hasImage ? 'page-hero-has-image' : '',
+    isEmergency ? 'page-hero-emergency' : '',
+    className,
+  ]}
+  role="banner"
+  aria-labelledby="page-hero-title"
+>
+  <!-- Background Layer -->
+  <div class="page-hero-background">
+    {backgroundImage && (
+      <img
+        src={backgroundImage}
+        alt=""
+        class="page-hero-bg-image"
+        loading="eager"
+        decoding="async"
+      />
+    )}
+    <div class:list={['page-hero-gradient', config.gradient]} aria-hidden="true" />
+
+    <!-- Industrial accent pattern -->
+    {showAccent && (
+      <div class="page-hero-accent-lines" aria-hidden="true" />
+    )}
+  </div>
+
+  <Container size="xl" class="page-hero-container">
+    <!-- Breadcrumbs -->
+    {breadcrumbs && breadcrumbs.length > 0 && (
+      <nav class="page-hero-breadcrumbs" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          {breadcrumbs.map((crumb, index) => (
+            <li class="breadcrumb-item">
+              {index < breadcrumbs.length - 1 ? (
+                <>
+                  <a href={crumb.href} class="breadcrumb-link">
+                    {crumb.label}
+                  </a>
+                  <span class="breadcrumb-separator" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="9,6 15,12 9,18" />
+                    </svg>
+                  </span>
+                </>
+              ) : (
+                <span class="breadcrumb-current" aria-current="page">
+                  {crumb.label}
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    <div class="page-hero-content">
+      <!-- Eyebrow -->
+      {eyebrow && (
+        <div class="page-hero-eyebrow">
+          <Eyebrow
+            color={isEmergency ? 'emergency' : hasImage ? 'inverse' : config.accent}
+            variant={isEmergency ? 'badge' : 'default'}
+            icon={isEmergency ? 'alert-circle' : undefined}
+          >
+            {eyebrow}
+          </Eyebrow>
+        </div>
+      )}
+
+      <!-- Title -->
+      <h1 id="page-hero-title" class="page-hero-title">
+        {title}
+      </h1>
+
+      <!-- Description -->
+      {description && (
+        <p class="page-hero-description">
+          {description}
+        </p>
+      )}
+
+      <!-- CTA Buttons -->
+      {ctaButtons && ctaButtons.length > 0 && (
+        <div class="page-hero-actions">
+          {ctaButtons.map((cta) => (
+            <Button
+              variant={cta.variant}
+              size="lg"
+              href={cta.href}
+              iconLeft={cta.icon}
+              data-cta-context="page-hero"
+            >
+              {cta.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      <!-- Optional slot for extra content (trust badges, etc.) -->
+      <slot />
+    </div>
+  </Container>
+
+  <!-- Decorative bottom edge for variants with images -->
+  {hasImage && (
+    <div class="page-hero-edge" aria-hidden="true">
+      <svg preserveAspectRatio="none" viewBox="0 0 1440 40">
+        <path d="M0,40 L0,20 Q360,0 720,20 Q1080,40 1440,20 L1440,40 Z" fill="currentColor" />
+      </svg>
+    </div>
+  )}
+</section>
+
+<style is:global>
+  /**
+   * PageHero Component Styles
+   *
+   * Compact, functional hero for interior pages.
+   * Variants provide contextual visual treatments.
+   */
+
+  .page-hero {
+    position: relative;
+    padding-top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-12));
+    padding-bottom: var(--space-16);
+    overflow: hidden;
+  }
+
+  .page-hero-compact {
+    padding-top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-8));
+    padding-bottom: var(--space-10);
+  }
+
+  .page-hero-has-image {
+    min-height: 360px;
+    padding-bottom: var(--space-20);
+  }
+
+  @media (min-width: 768px) {
+    .page-hero {
+      padding-top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-16));
+      padding-bottom: var(--space-20);
+    }
+
+    .page-hero-has-image {
+      min-height: 420px;
+    }
+  }
+
+  /* ============================================
+     BACKGROUND VARIANTS
+     ============================================ */
+
+  .page-hero-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .page-hero-bg-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Default: Clean slate gray background */
+  .page-hero-bg-default {
+    background-color: var(--color-surface-secondary);
+  }
+
+  /* Location: Trust blue tint */
+  .page-hero-bg-location {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-surface-secondary) 100%
+    );
+  }
+
+  /* Service: Professional blue */
+  .page-hero-bg-service {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-900) 0%,
+      var(--color-primary-800) 100%
+    );
+  }
+
+  /* Service Emergency: Urgent red treatment */
+  .page-hero-bg-emergency {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-800) 0%,
+      var(--color-primary-900) 100%
+    );
+  }
+
+  /* Service Maintenance: Calm teal treatment */
+  .page-hero-bg-maintenance {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-800) 0%,
+      var(--color-primary-900) 100%
+    );
+  }
+
+  /* Blog: Light, editorial feel */
+  .page-hero-bg-blog {
+    background-color: var(--color-surface-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  /* Contact: Warm, inviting */
+  .page-hero-bg-contact {
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-warm) 0%,
+      var(--color-surface-secondary) 100%
+    );
+  }
+
+  /* ============================================
+     GRADIENT OVERLAYS
+     ============================================ */
+
+  .page-hero-gradient {
+    position: absolute;
+    inset: 0;
+  }
+
+  .page-hero-gradient-default {
+    /* Light pages don't need heavy overlay */
+    background: transparent;
+  }
+
+  .page-hero-gradient-location {
+    background: transparent;
+  }
+
+  .page-hero-gradient-emergency {
+    /* Slight darkening for emergency variant */
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.1) 0%,
+      transparent 100%
+    );
+  }
+
+  .page-hero-gradient-blog {
+    background: transparent;
+  }
+
+  .page-hero-gradient-contact {
+    background: transparent;
+  }
+
+  /* When there's a background image, use heavier overlay */
+  .page-hero-has-image .page-hero-gradient {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.88) 0%,
+      rgba(15, 23, 42, 0.7) 100%
+    );
+  }
+
+  /* ============================================
+     INDUSTRIAL ACCENT PATTERN
+     ============================================ */
+
+  .page-hero-accent-lines {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40%;
+    height: 100%;
+    opacity: 0.04;
+    background-image: repeating-linear-gradient(
+      -60deg,
+      currentColor,
+      currentColor 1px,
+      transparent 1px,
+      transparent 20px
+    );
+    color: var(--color-text-primary);
+    pointer-events: none;
+  }
+
+  /* Different accent color for dark backgrounds */
+  .page-hero-bg-service .page-hero-accent-lines,
+  .page-hero-bg-emergency .page-hero-accent-lines,
+  .page-hero-bg-maintenance .page-hero-accent-lines,
+  .page-hero-has-image .page-hero-accent-lines {
+    color: white;
+    opacity: 0.03;
+  }
+
+  /* ============================================
+     CONTAINER & CONTENT
+     ============================================ */
+
+  .page-hero-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .page-hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 800px;
+  }
+
+  /* ============================================
+     BREADCRUMBS
+     ============================================ */
+
+  .page-hero-breadcrumbs {
+    margin-bottom: var(--space-4);
+  }
+
+  .breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .breadcrumb-link {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--color-primary-600);
+    text-decoration: underline;
+  }
+
+  .breadcrumb-separator {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-tertiary);
+  }
+
+  .breadcrumb-separator svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .breadcrumb-current {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  /* Breadcrumbs on dark backgrounds */
+  .page-hero-bg-service .breadcrumb-link,
+  .page-hero-bg-emergency .breadcrumb-link,
+  .page-hero-bg-maintenance .breadcrumb-link,
+  .page-hero-has-image .breadcrumb-link {
+    color: rgba(248, 250, 252, 0.7);
+  }
+
+  .page-hero-bg-service .breadcrumb-link:hover,
+  .page-hero-bg-emergency .breadcrumb-link:hover,
+  .page-hero-bg-maintenance .breadcrumb-link:hover,
+  .page-hero-has-image .breadcrumb-link:hover {
+    color: var(--color-text-inverse);
+  }
+
+  .page-hero-bg-service .breadcrumb-separator,
+  .page-hero-bg-emergency .breadcrumb-separator,
+  .page-hero-bg-maintenance .breadcrumb-separator,
+  .page-hero-has-image .breadcrumb-separator {
+    color: rgba(248, 250, 252, 0.4);
+  }
+
+  .page-hero-bg-service .breadcrumb-current,
+  .page-hero-bg-emergency .breadcrumb-current,
+  .page-hero-bg-maintenance .breadcrumb-current,
+  .page-hero-has-image .breadcrumb-current {
+    color: rgba(248, 250, 252, 0.5);
+  }
+
+  /* ============================================
+     EYEBROW
+     ============================================ */
+
+  .page-hero-eyebrow {
+    display: flex;
+  }
+
+  /* ============================================
+     TITLE
+     ============================================ */
+
+  .page-hero-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-primary);
+    text-wrap: balance;
+  }
+
+  @media (min-width: 768px) {
+    .page-hero-title {
+      font-size: var(--font-size-7xl);
+    }
+  }
+
+  /* Title on dark backgrounds */
+  .page-hero-bg-service .page-hero-title,
+  .page-hero-bg-emergency .page-hero-title,
+  .page-hero-bg-maintenance .page-hero-title,
+  .page-hero-has-image .page-hero-title {
+    color: var(--color-text-inverse);
+  }
+
+  /* Emergency title gets accent color on key words */
+  .page-hero-emergency .page-hero-title em {
+    font-style: normal;
+    color: var(--color-emergency-400);
+  }
+
+  /* ============================================
+     DESCRIPTION
+     ============================================ */
+
+  .page-hero-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    max-width: 65ch;
+  }
+
+  @media (min-width: 768px) {
+    .page-hero-description {
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  /* Description on dark backgrounds */
+  .page-hero-bg-service .page-hero-description,
+  .page-hero-bg-emergency .page-hero-description,
+  .page-hero-bg-maintenance .page-hero-description,
+  .page-hero-has-image .page-hero-description {
+    color: rgba(248, 250, 252, 0.8);
+  }
+
+  /* ============================================
+     ACTIONS
+     ============================================ */
+
+  .page-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  /* ============================================
+     BOTTOM EDGE (for image variants)
+     ============================================ */
+
+  .page-hero-edge {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    color: var(--color-surface-primary);
+    z-index: 2;
+  }
+
+  .page-hero-edge svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ============================================
+     ENTRANCE ANIMATION
+     ============================================ */
+
+  .page-hero-content {
+    animation: page-hero-enter 0.5s var(--ease-out);
+  }
+
+  @keyframes page-hero-enter {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .page-hero-content {
+      animation: none;
+    }
+  }
+
+  /* ============================================
+     EMERGENCY VARIANT SPECIAL TREATMENT
+     ============================================ */
+
+  .page-hero-emergency {
+    /* Subtle pulsing border at bottom */
+    border-bottom: 3px solid var(--color-emergency-600);
+  }
+
+  /* Pulsing indicator for emergency */
+  .page-hero-emergency::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--color-emergency-600) 0%,
+      var(--color-emergency-500) 50%,
+      var(--color-emergency-600) 100%
+    );
+    animation: emergency-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes emergency-pulse {
+    0%, 100% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-hero-emergency::before {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

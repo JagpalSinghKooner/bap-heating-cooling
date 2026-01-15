@@ -1,0 +1,547 @@
+---
+/**
+ * Avatar Component
+ *
+ * A profile image container with fallback to initials when no image is available.
+ * Follows the "Trustworthy Industrial Modern" aesthetic with warm borders and
+ * professional styling suitable for technician photos and customer testimonials.
+ *
+ * Design Philosophy:
+ * Avatars should make people feel real and trustworthy. Whether showing a
+ * B.A.P technician or a satisfied customer, the avatar creates human
+ * connection. The warm border treatment and quality feel reinforces the
+ * "your neighbor who's an expert" brand positioning.
+ *
+ * Features:
+ * - Image with automatic fallback to initials
+ * - Multiple size presets matching other components
+ * - Optional status indicator (for availability)
+ * - Optional border for elevated emphasis
+ * - Supports srcset for responsive images
+ *
+ * Sizes match IconBadge for visual harmony:
+ * - sm:  32px - compact, inline use
+ * - md:  40px - standard, default
+ * - lg:  56px - prominent, feature cards
+ * - xl:  72px - large, hero sections
+ * - 2xl: 96px - extra large, about page
+ */
+
+interface Props {
+  /** Image source URL */
+  src?: string;
+  /** Alt text (required for accessibility) */
+  alt: string;
+  /** Fallback text for initials (e.g., "Paul Palmer" → "PP") */
+  fallback?: string;
+  /** Size of the avatar */
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  /** Shape of the avatar */
+  shape?: 'circle' | 'rounded';
+  /** Adds a border for emphasis */
+  bordered?: boolean;
+  /** Border color variant */
+  borderColor?: 'default' | 'primary' | 'accent' | 'white';
+  /** Status indicator */
+  status?: 'online' | 'offline' | 'busy' | 'away';
+  /** Fallback background color when no image */
+  variant?: 'default' | 'primary' | 'accent' | 'muted';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  fallback,
+  size = 'md',
+  shape = 'circle',
+  bordered = false,
+  borderColor = 'default',
+  status,
+  variant = 'primary',
+  class: className = '',
+} = Astro.props;
+
+// Generate initials from fallback text
+function getInitials(name: string): string {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].charAt(0).toUpperCase();
+  }
+  return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+}
+
+const initials = fallback ? getInitials(fallback) : '?';
+
+// Size configurations
+const sizeConfig: Record<string, { wrapper: string; text: string; status: string }> = {
+  sm: {
+    wrapper: 'avatar-size-sm',
+    text: 'avatar-text-sm',
+    status: 'avatar-status-sm',
+  },
+  md: {
+    wrapper: 'avatar-size-md',
+    text: 'avatar-text-md',
+    status: 'avatar-status-md',
+  },
+  lg: {
+    wrapper: 'avatar-size-lg',
+    text: 'avatar-text-lg',
+    status: 'avatar-status-lg',
+  },
+  xl: {
+    wrapper: 'avatar-size-xl',
+    text: 'avatar-text-xl',
+    status: 'avatar-status-xl',
+  },
+  '2xl': {
+    wrapper: 'avatar-size-2xl',
+    text: 'avatar-text-2xl',
+    status: 'avatar-status-2xl',
+  },
+};
+
+// Shape configurations
+const shapeConfig: Record<string, string> = {
+  circle: 'avatar-circle',
+  rounded: 'avatar-rounded',
+};
+
+// Border color configurations
+const borderColorConfig: Record<string, string> = {
+  default: 'avatar-border-default',
+  primary: 'avatar-border-primary',
+  accent: 'avatar-border-accent',
+  white: 'avatar-border-white',
+};
+
+// Fallback variant configurations
+const variantConfig: Record<string, string> = {
+  default: 'avatar-fallback-default',
+  primary: 'avatar-fallback-primary',
+  accent: 'avatar-fallback-accent',
+  muted: 'avatar-fallback-muted',
+};
+
+// Status configurations
+const statusConfig: Record<string, string> = {
+  online: 'avatar-status-online',
+  offline: 'avatar-status-offline',
+  busy: 'avatar-status-busy',
+  away: 'avatar-status-away',
+};
+
+// Get current configs
+const currentSize = sizeConfig[size];
+
+// Build wrapper classes
+const wrapperClasses = [
+  'avatar-base',
+  currentSize.wrapper,
+  shapeConfig[shape],
+  bordered ? 'avatar-bordered' : '',
+  bordered ? borderColorConfig[borderColor] : '',
+  className,
+].filter(Boolean).join(' ');
+
+// Build fallback classes
+const fallbackClasses = [
+  'avatar-fallback',
+  currentSize.text,
+  variantConfig[variant],
+].join(' ');
+
+// Build status classes
+const statusClasses = status ? [
+  'avatar-status',
+  currentSize.status,
+  statusConfig[status],
+].join(' ') : '';
+---
+
+<div class={wrapperClasses}>
+  {src ? (
+    <img
+      src={src}
+      alt={alt}
+      class="avatar-image"
+      loading="lazy"
+      decoding="async"
+    />
+  ) : (
+    <span class={fallbackClasses} aria-label={alt}>
+      {initials}
+    </span>
+  )}
+  {status && (
+    <span class={statusClasses} aria-label={`Status: ${status}`} />
+  )}
+</div>
+
+<style is:global>
+  /**
+   * Avatar Component Styles
+   * Professional, warm profile images and initials
+   */
+
+  /* ============================================
+     BASE AVATAR
+     ============================================ */
+
+  .avatar-base {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: var(--color-surface-tertiary);
+    vertical-align: middle;
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ============================================
+     SIZE VARIANTS
+     Matching IconBadge sizes for harmony
+     ============================================ */
+
+  .avatar-size-sm {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar-size-md {
+    width: 40px;
+    height: 40px;
+  }
+
+  .avatar-size-lg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .avatar-size-xl {
+    width: 72px;
+    height: 72px;
+  }
+
+  .avatar-size-2xl {
+    width: 96px;
+    height: 96px;
+  }
+
+  /* ============================================
+     SHAPE VARIANTS
+     ============================================ */
+
+  .avatar-circle {
+    border-radius: var(--radius-full);
+  }
+
+  .avatar-rounded {
+    border-radius: var(--radius-lg);
+  }
+
+  .avatar-size-lg.avatar-rounded {
+    border-radius: var(--radius-xl);
+  }
+
+  .avatar-size-xl.avatar-rounded,
+  .avatar-size-2xl.avatar-rounded {
+    border-radius: var(--radius-2xl);
+  }
+
+  /* ============================================
+     BORDER STYLES
+     Warm borders for elevated emphasis
+     ============================================ */
+
+  .avatar-bordered {
+    box-shadow: 0 0 0 3px var(--border-color, var(--color-surface-primary));
+  }
+
+  .avatar-bordered.avatar-border-default {
+    --border-color: var(--color-surface-primary);
+    box-shadow:
+      0 0 0 3px var(--color-surface-primary),
+      0 0 0 4px var(--color-border-primary);
+  }
+
+  .avatar-bordered.avatar-border-primary {
+    --border-color: var(--color-primary-100);
+    box-shadow:
+      0 0 0 3px var(--color-primary-100),
+      0 0 0 5px var(--color-primary-200);
+  }
+
+  .avatar-bordered.avatar-border-accent {
+    --border-color: var(--color-accent-100);
+    box-shadow:
+      0 0 0 3px var(--color-accent-100),
+      0 0 0 5px var(--color-accent-200);
+  }
+
+  .avatar-bordered.avatar-border-white {
+    --border-color: white;
+    box-shadow:
+      0 0 0 3px white,
+      var(--shadow-md);
+  }
+
+  /* ============================================
+     FALLBACK INITIALS
+     ============================================ */
+
+  .avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  /* Fallback text sizes */
+  .avatar-text-sm {
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .avatar-text-md {
+    font-size: var(--font-size-sm);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .avatar-text-lg {
+    font-size: var(--font-size-base);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  .avatar-text-xl {
+    font-size: var(--font-size-xl);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  .avatar-text-2xl {
+    font-size: var(--font-size-2xl);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  /* Fallback color variants */
+  .avatar-fallback-default {
+    background-color: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
+  }
+
+  .avatar-fallback-primary {
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-700);
+  }
+
+  .avatar-fallback-accent {
+    background-color: var(--color-accent-100);
+    color: var(--color-accent-700);
+  }
+
+  .avatar-fallback-muted {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     STATUS INDICATOR
+     For availability/online status
+     ============================================ */
+
+  .avatar-status {
+    position: absolute;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-surface-primary);
+  }
+
+  /* Status positions by size */
+  .avatar-status-sm {
+    width: 8px;
+    height: 8px;
+    bottom: 0;
+    right: 0;
+  }
+
+  .avatar-status-md {
+    width: 10px;
+    height: 10px;
+    bottom: 1px;
+    right: 1px;
+  }
+
+  .avatar-status-lg {
+    width: 12px;
+    height: 12px;
+    bottom: 2px;
+    right: 2px;
+  }
+
+  .avatar-status-xl {
+    width: 14px;
+    height: 14px;
+    bottom: 3px;
+    right: 3px;
+  }
+
+  .avatar-status-2xl {
+    width: 16px;
+    height: 16px;
+    bottom: 4px;
+    right: 4px;
+  }
+
+  /* Status colors */
+  .avatar-status-online {
+    background-color: var(--color-success-500);
+  }
+
+  .avatar-status-offline {
+    background-color: var(--color-text-tertiary);
+  }
+
+  .avatar-status-busy {
+    background-color: var(--color-emergency-500);
+  }
+
+  .avatar-status-away {
+    background-color: var(--color-warning-500);
+  }
+
+  /* ============================================
+     AVATAR GROUP
+     For stacked avatar displays
+     ============================================ */
+
+  .avatar-group {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+
+  .avatar-group .avatar-base {
+    margin-left: -8px;
+    box-shadow: 0 0 0 2px var(--color-surface-primary);
+  }
+
+  .avatar-group .avatar-base:last-child {
+    margin-left: 0;
+  }
+
+  /* Tighter overlap for larger groups */
+  .avatar-group-tight .avatar-base {
+    margin-left: -12px;
+  }
+
+  /* Size-specific group overlaps */
+  .avatar-group .avatar-size-sm {
+    margin-left: -6px;
+  }
+
+  .avatar-group .avatar-size-lg {
+    margin-left: -10px;
+  }
+
+  .avatar-group .avatar-size-xl {
+    margin-left: -14px;
+  }
+
+  /* +N overflow indicator (add this to a regular avatar in the group) */
+  .avatar-overflow {
+    background-color: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  /* ============================================
+     INTERACTIVE STATES
+     For clickable avatars (rare use case)
+     ============================================ */
+
+  .avatar-interactive {
+    cursor: pointer;
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .avatar-interactive:hover {
+    transform: scale(1.05);
+  }
+
+  .avatar-interactive:active {
+    transform: scale(0.98);
+  }
+
+  .avatar-interactive:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For avatars on dark backgrounds
+     ============================================ */
+
+  .section-inverse .avatar-fallback-default,
+  .bg-inverse .avatar-fallback-default {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .avatar-fallback-primary,
+  .bg-inverse .avatar-fallback-primary {
+    background-color: var(--color-primary-500);
+    color: white;
+  }
+
+  .section-inverse .avatar-fallback-accent,
+  .bg-inverse .avatar-fallback-accent {
+    background-color: var(--color-accent-500);
+    color: white;
+  }
+
+  .section-inverse .avatar-bordered.avatar-border-default,
+  .bg-inverse .avatar-bordered.avatar-border-default {
+    box-shadow:
+      0 0 0 3px var(--color-surface-inverse),
+      0 0 0 4px rgba(255, 255, 255, 0.2);
+  }
+
+  .section-inverse .avatar-status,
+  .bg-inverse .avatar-status {
+    border-color: var(--color-surface-inverse);
+  }
+
+  .section-inverse .avatar-group .avatar-base,
+  .bg-inverse .avatar-group .avatar-base {
+    box-shadow: 0 0 0 2px var(--color-surface-inverse);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .avatar-interactive:hover,
+    .avatar-interactive:active {
+      transform: none;
+    }
+  }
+</style>

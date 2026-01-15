@@ -1,0 +1,688 @@
+---
+/**
+ * CTASection Component
+ *
+ * The conversion powerhouse. Every page on the site should funnel toward
+ * a phone call, and this section is where we make the ask unmistakable.
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Bold, confident typography that commands attention
+ * - Phone number as hero element - impossible to miss
+ * - Industrial geometric accents add distinctive character
+ * - Warm urgency, never desperate or salesy
+ *
+ * Variants:
+ * - primary:   Trust Blue background - confident, professional CTA
+ * - emergency: Urgent Red gradient - 24/7 emergencies, furnace dead at midnight
+ * - dark:      Slate inverse - sophisticated, end-of-page anchor
+ * - gradient:  Primary gradient sweep - hero-level prominence
+ *
+ * The phone number appears prominently because that's how we win.
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import Button from '../primitives/Button.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+import { getIconPath } from '../../lib/icons';
+
+interface Props {
+  /** Visual variant determines background and urgency level */
+  variant?: 'primary' | 'emergency' | 'dark' | 'gradient';
+  /** Main headline - the compelling ask */
+  headline: string;
+  /** Supporting description text */
+  description?: string;
+  /** Primary call-to-action button */
+  primaryCTA: {
+    label: string;
+    href: string;
+  };
+  /** Optional secondary call-to-action */
+  secondaryCTA?: {
+    label: string;
+    href: string;
+  };
+  /** Show phone number prominently (default: true) */
+  showPhone?: boolean;
+  /** Show business hours info (default: false) */
+  showHours?: boolean;
+  /** Content alignment */
+  align?: 'left' | 'center';
+  /** Compact version with less padding */
+  compact?: boolean;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  variant = 'primary',
+  headline,
+  description,
+  primaryCTA,
+  secondaryCTA,
+  showPhone = true,
+  showHours = false,
+  align = 'center',
+  compact = false,
+  class: className = '',
+} = Astro.props;
+
+// Get business data
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const businessHours = profile.hours.business_hours;
+const is24_7 = profile.hours.emergency_service;
+const responseTime = profile.hours.response_time_statement;
+
+// Variant configurations
+const variantConfig = {
+  primary: {
+    sectionVariant: 'primary' as const,
+    buttonVariant: 'primary' as const,
+    secondaryButtonVariant: 'outline' as const,
+    phoneColor: 'text-white',
+    accentClass: 'cta-section-primary',
+  },
+  emergency: {
+    sectionVariant: 'accent' as const,
+    buttonVariant: 'emergency' as const,
+    secondaryButtonVariant: 'outline' as const,
+    phoneColor: 'text-white',
+    accentClass: 'cta-section-emergency',
+  },
+  dark: {
+    sectionVariant: 'dark' as const,
+    buttonVariant: 'primary' as const,
+    secondaryButtonVariant: 'outline' as const,
+    phoneColor: 'text-white',
+    accentClass: 'cta-section-dark',
+  },
+  gradient: {
+    sectionVariant: 'gradient' as const,
+    buttonVariant: 'primary' as const,
+    secondaryButtonVariant: 'outline' as const,
+    phoneColor: 'text-white',
+    accentClass: 'cta-section-gradient',
+  },
+};
+
+const config = variantConfig[variant];
+const isEmergency = variant === 'emergency';
+
+// Build container classes
+const containerClasses = [
+  'cta-section-container',
+  config.accentClass,
+  align === 'center' ? 'cta-section-centered' : 'cta-section-left',
+  compact ? 'cta-section-compact' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Section
+  variant={config.sectionVariant}
+  padding={compact ? 'sm' : 'md'}
+  class="cta-section-wrapper"
+>
+  {/* Decorative background elements */}
+  <div class="cta-section-decor" aria-hidden="true">
+    <div class="cta-decor-grid" />
+    {isEmergency && <div class="cta-decor-pulse" />}
+  </div>
+
+  <Container size="lg" class={containerClasses}>
+    <div class="cta-section-content">
+      {/* Phone Number Hero - The star of the show */}
+      {showPhone && (
+        <div class="cta-phone-hero">
+          <a href={phoneLink} class="cta-phone-link" data-cta-context="cta-section-phone">
+            <span class="cta-phone-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+            </span>
+            <span class="cta-phone-number">{phoneDisplay}</span>
+          </a>
+          {isEmergency && is24_7 && (
+            <span class="cta-emergency-badge">
+              <span class="cta-emergency-dot" aria-hidden="true" />
+              24/7 Emergency
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Headline */}
+      <div class="cta-headline-wrap">
+        <Heading
+          level={2}
+          size="3xl"
+          color="inverse"
+          align={align}
+          balance={true}
+          class="cta-headline"
+        >
+          {headline}
+        </Heading>
+      </div>
+
+      {/* Description */}
+      {description && (
+        <div class="cta-description-wrap">
+          <Text
+            size="lg"
+            color="inverse"
+            align={align}
+            class="cta-description"
+          >
+            {description}
+          </Text>
+        </div>
+      )}
+
+      {/* Hours info */}
+      {showHours && (
+        <div class="cta-hours-wrap">
+          <div class="cta-hours">
+            <svg class="cta-hours-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span class="cta-hours-text">
+              {is24_7 ? '24/7 Emergency Service' : businessHours}
+            </span>
+          </div>
+          {responseTime && (
+            <div class="cta-response-time">
+              {responseTime}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CTA Buttons */}
+      <div class="cta-buttons">
+        <Button
+          variant={config.buttonVariant}
+          size="lg"
+          href={primaryCTA.href}
+          iconLeft="phone"
+          class="cta-button-primary"
+          data-cta-context="cta-section-primary"
+        >
+          {primaryCTA.label}
+        </Button>
+
+        {secondaryCTA && (
+          <Button
+            variant={config.secondaryButtonVariant}
+            size="lg"
+            href={secondaryCTA.href}
+            class="cta-button-secondary"
+            data-cta-context="cta-section-secondary"
+          >
+            {secondaryCTA.label}
+          </Button>
+        )}
+      </div>
+
+      {/* Trust reinforcement */}
+      <div class="cta-trust-line">
+        <span class="cta-trust-item">
+          <svg class="cta-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          No Hidden Fees
+        </span>
+        <span class="cta-trust-divider" aria-hidden="true" />
+        <span class="cta-trust-item">
+          <svg class="cta-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          Licensed & Insured
+        </span>
+        <span class="cta-trust-divider" aria-hidden="true" />
+        <span class="cta-trust-item">
+          <svg class="cta-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          Satisfaction Guaranteed
+        </span>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style is:global>
+  /**
+   * CTASection Styles
+   *
+   * "Trustworthy Industrial Modern" conversion engine.
+   * The phone number is ALWAYS the hero.
+   */
+
+  /* ============================================
+     BASE STRUCTURE
+     ============================================ */
+
+  .cta-section-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-section-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .cta-section-centered .cta-section-content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .cta-section-left .cta-section-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  /* ============================================
+     PHONE NUMBER HERO
+     The star of the show - impossible to miss
+     ============================================ */
+
+  .cta-phone-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .cta-section-left .cta-phone-hero {
+    align-items: flex-start;
+  }
+
+  .cta-phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-xl);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .cta-phone-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .cta-phone-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--color-accent-500);
+    border-radius: var(--radius-lg);
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .cta-phone-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cta-phone-number {
+    font-family: var(--font-family-heading);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* Emergency badge */
+  .cta-emergency-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1-5) var(--space-3);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+
+  .cta-emergency-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-success-500);
+    animation: emergency-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes emergency-pulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* ============================================
+     HEADLINE & DESCRIPTION
+     ============================================ */
+
+  .cta-headline-wrap {
+    max-width: 50ch;
+  }
+
+  .cta-headline {
+    text-wrap: balance;
+  }
+
+  .cta-description-wrap {
+    max-width: 60ch;
+  }
+
+  .cta-description {
+    opacity: 0.9;
+  }
+
+  /* ============================================
+     HOURS INFO
+     ============================================ */
+
+  .cta-hours-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .cta-section-left .cta-hours-wrap {
+    align-items: flex-start;
+  }
+
+  .cta-hours {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+  }
+
+  .cta-hours-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+
+  .cta-response-time {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: rgba(248, 250, 252, 0.7);
+  }
+
+  /* ============================================
+     CTA BUTTONS
+     ============================================ */
+
+  .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+  }
+
+  .cta-section-centered .cta-buttons {
+    justify-content: center;
+  }
+
+  .cta-button-primary {
+    flex-shrink: 0;
+  }
+
+  /* Secondary button styling for inverse backgrounds */
+  .cta-button-secondary {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: var(--color-text-inverse) !important;
+  }
+
+  .cta-button-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* ============================================
+     TRUST LINE
+     ============================================ */
+
+  .cta-trust-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: var(--space-4);
+  }
+
+  .cta-section-left .cta-trust-line {
+    justify-content: flex-start;
+  }
+
+  .cta-trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: rgba(248, 250, 252, 0.8);
+  }
+
+  .cta-trust-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-success-400);
+    flex-shrink: 0;
+  }
+
+  .cta-trust-divider {
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial Modern accents
+     ============================================ */
+
+  .cta-section-decor {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Subtle grid pattern */
+  .cta-decor-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Emergency variant pulse effect */
+  .cta-decor-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    );
+    animation: cta-pulse-bg 4s ease-in-out infinite;
+  }
+
+  @keyframes cta-pulse-bg {
+    0%, 100% {
+      opacity: 0.5;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  }
+
+  /* ============================================
+     VARIANT-SPECIFIC STYLES
+     ============================================ */
+
+  /* Primary - Trust Blue */
+  .cta-section-primary .cta-phone-icon {
+    background: var(--color-accent-500);
+  }
+
+  /* Emergency - Override with urgent red styling */
+  .cta-section-emergency .cta-phone-icon {
+    background: rgba(255, 255, 255, 0.2);
+    animation: icon-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes icon-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+    }
+  }
+
+  /* Gradient - Extra dramatic */
+  .cta-section-gradient .cta-section-decor::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 60%;
+    height: 200%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.02) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%
+    );
+    transform: rotate(-12deg);
+  }
+
+  /* Dark - Sophisticated inverse */
+  .cta-section-dark .cta-phone-link {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .cta-section-dark .cta-phone-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ============================================
+     COMPACT VARIANT
+     ============================================ */
+
+  .cta-section-compact .cta-section-content {
+    gap: var(--space-4);
+  }
+
+  .cta-section-compact .cta-phone-hero {
+    margin-bottom: 0;
+  }
+
+  .cta-section-compact .cta-trust-line {
+    padding-top: var(--space-4);
+    margin-top: var(--space-2);
+  }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .cta-phone-link {
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4);
+    }
+
+    .cta-phone-number {
+      font-size: 1.5rem;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .cta-button-primary,
+    .cta-button-secondary {
+      width: 100%;
+    }
+
+    .cta-trust-line {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .cta-trust-divider {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-emergency-dot,
+    .cta-decor-pulse,
+    .cta-section-emergency .cta-phone-icon {
+      animation: none;
+    }
+  }
+</style>

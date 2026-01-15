@@ -1,0 +1,525 @@
+---
+/**
+ * InlineCTA Component
+ *
+ * A lighter-weight inline call-to-action for embedding within content.
+ * Where CTASection is a full-width conversion block, InlineCTA is designed
+ * to flow naturally within page content while still driving action.
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Clear, confident messaging without being overwhelming
+ * - Accent color used strategically to draw the eye
+ * - Industrial geometric touches for distinctive character
+ *
+ * Variants:
+ * - card:    Elevated card with background, shadow, and contained presence
+ * - banner:  Full-width strip with subtle background - interrupts content flow
+ * - minimal: Text-forward with subtle CTA link - least intrusive
+ *
+ * Use Cases:
+ * - Mid-article conversion opportunity ("Ready to upgrade?")
+ * - Service page inline prompt
+ * - Location page local CTA
+ * - Blog post sidebar/mid-content break
+ */
+
+import Button from '../primitives/Button.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+
+interface Props {
+  /** Visual variant */
+  variant?: 'card' | 'banner' | 'minimal';
+  /** Main headline - the compelling hook */
+  headline: string;
+  /** Optional supporting text */
+  description?: string;
+  /** CTA button label */
+  ctaLabel: string;
+  /** CTA button link */
+  ctaHref: string;
+  /** Use phone link for CTA (default: false) */
+  usePhoneCTA?: boolean;
+  /** Show phone number separately (default: false) */
+  showPhone?: boolean;
+  /** Icon to display (default: varies by variant) */
+  icon?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  variant = 'card',
+  headline,
+  description,
+  ctaLabel,
+  ctaHref,
+  usePhoneCTA = false,
+  showPhone = false,
+  icon,
+  class: className = '',
+} = Astro.props;
+
+// Get business data for phone
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+
+// Determine final CTA href
+const finalCtaHref = usePhoneCTA ? phoneLink : ctaHref;
+
+// Variant configurations
+const variantConfig = {
+  card: {
+    containerClass: 'inline-cta-card',
+    buttonVariant: 'primary' as const,
+    buttonSize: 'md' as const,
+    showIcon: true,
+  },
+  banner: {
+    containerClass: 'inline-cta-banner',
+    buttonVariant: 'primary' as const,
+    buttonSize: 'md' as const,
+    showIcon: false,
+  },
+  minimal: {
+    containerClass: 'inline-cta-minimal',
+    buttonVariant: 'ghost' as const,
+    buttonSize: 'sm' as const,
+    showIcon: false,
+  },
+};
+
+const config = variantConfig[variant];
+
+// Build container classes
+const containerClasses = [
+  'inline-cta',
+  config.containerClass,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<aside class={containerClasses} role="complementary" aria-label="Call to action">
+  {/* Card variant - elevated container with icon accent */}
+  {variant === 'card' && (
+    <div class="inline-cta-card-inner">
+      {/* Decorative accent line - Industrial Modern touch */}
+      <div class="inline-cta-card-accent" aria-hidden="true" />
+
+      <div class="inline-cta-card-content">
+        {/* Icon badge */}
+        {config.showIcon && (
+          <div class="inline-cta-icon-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          </div>
+        )}
+
+        <div class="inline-cta-card-text">
+          <Heading level={3} size="lg" class="inline-cta-headline">
+            {headline}
+          </Heading>
+
+          {description && (
+            <Text size="base" color="secondary" class="inline-cta-description">
+              {description}
+            </Text>
+          )}
+        </div>
+
+        <div class="inline-cta-card-actions">
+          {showPhone && (
+            <a href={phoneLink} class="inline-cta-phone-link" data-cta-context="inline-cta-phone">
+              <span class="inline-cta-phone-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </span>
+              <span class="inline-cta-phone-number">{phoneDisplay}</span>
+            </a>
+          )}
+
+          <Button
+            variant={config.buttonVariant}
+            size={config.buttonSize}
+            href={finalCtaHref}
+            iconLeft={usePhoneCTA ? 'phone' : undefined}
+            iconRight={!usePhoneCTA ? 'arrow-right' : undefined}
+            data-cta-context="inline-cta-primary"
+          >
+            {ctaLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Banner variant - full-width interruption strip */}
+  {variant === 'banner' && (
+    <div class="inline-cta-banner-inner">
+      <div class="inline-cta-banner-content">
+        <div class="inline-cta-banner-text">
+          <span class="inline-cta-banner-headline">{headline}</span>
+          {description && (
+            <span class="inline-cta-banner-description">{description}</span>
+          )}
+        </div>
+
+        <div class="inline-cta-banner-actions">
+          {showPhone && (
+            <a href={phoneLink} class="inline-cta-banner-phone" data-cta-context="inline-cta-phone">
+              {phoneDisplay}
+            </a>
+          )}
+
+          <Button
+            variant={config.buttonVariant}
+            size={config.buttonSize}
+            href={finalCtaHref}
+            iconLeft={usePhoneCTA ? 'phone' : undefined}
+            data-cta-context="inline-cta-primary"
+          >
+            {ctaLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Minimal variant - text-forward subtle prompt */}
+  {variant === 'minimal' && (
+    <div class="inline-cta-minimal-inner">
+      <div class="inline-cta-minimal-content">
+        <span class="inline-cta-minimal-headline">{headline}</span>
+
+        {showPhone && (
+          <a href={phoneLink} class="inline-cta-minimal-phone" data-cta-context="inline-cta-phone">
+            {phoneDisplay}
+          </a>
+        )}
+
+        <Button
+          variant={config.buttonVariant}
+          size={config.buttonSize}
+          href={finalCtaHref}
+          iconRight="arrow-right"
+          data-cta-context="inline-cta-primary"
+        >
+          {ctaLabel}
+        </Button>
+      </div>
+    </div>
+  )}
+</aside>
+
+<style is:global>
+  /**
+   * InlineCTA Styles
+   *
+   * Lighter-weight CTA for embedding within content.
+   * "Trustworthy Industrial Modern" aesthetic.
+   */
+
+  /* ============================================
+     BASE STYLES
+     ============================================ */
+
+  .inline-cta {
+    margin: var(--space-8) 0;
+  }
+
+  /* ============================================
+     CARD VARIANT
+     Elevated container with shadow and accent
+     ============================================ */
+
+  .inline-cta-card-inner {
+    position: relative;
+    background: var(--color-surface-tertiary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition:
+      box-shadow var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .inline-cta-card-inner:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  /* Industrial accent line - left border highlight */
+  .inline-cta-card-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      var(--color-accent-500),
+      var(--color-accent-600)
+    );
+  }
+
+  .inline-cta-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    padding-left: calc(var(--space-6) + 4px);
+  }
+
+  @media (min-width: 768px) {
+    .inline-cta-card-content {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-6);
+    }
+  }
+
+  /* Icon badge */
+  .inline-cta-icon-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100));
+    border-radius: var(--radius-lg);
+    color: var(--color-primary-600);
+    flex-shrink: 0;
+  }
+
+  .inline-cta-icon-badge svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Text content */
+  .inline-cta-card-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .inline-cta-headline {
+    color: var(--color-text-primary);
+  }
+
+  .inline-cta-description {
+    max-width: 45ch;
+  }
+
+  /* Actions */
+  .inline-cta-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  @media (min-width: 768px) {
+    .inline-cta-card-actions {
+      flex-direction: row;
+      align-items: center;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Phone link in card */
+  .inline-cta-phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .inline-cta-phone-link:hover {
+    border-color: var(--color-primary-300);
+    background: var(--color-primary-50);
+  }
+
+  .inline-cta-phone-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--color-primary-600);
+    flex-shrink: 0;
+  }
+
+  .inline-cta-phone-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .inline-cta-phone-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-700);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* ============================================
+     BANNER VARIANT
+     Full-width strip interruption
+     ============================================ */
+
+  .inline-cta-banner-inner {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-700) 100%
+    );
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle industrial pattern */
+  .inline-cta-banner-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  .inline-cta-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    .inline-cta-banner-content {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .inline-cta-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  @media (min-width: 768px) {
+    .inline-cta-banner-text {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+    }
+  }
+
+  .inline-cta-banner-headline {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .inline-cta-banner-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: rgba(248, 250, 252, 0.85);
+  }
+
+  .inline-cta-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .inline-cta-banner-phone {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    text-decoration: none;
+    letter-spacing: var(--letter-spacing-wide);
+    padding: var(--space-2) var(--space-3);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+
+  .inline-cta-banner-phone:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ============================================
+     MINIMAL VARIANT
+     Text-forward subtle prompt
+     ============================================ */
+
+  .inline-cta-minimal-inner {
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--color-border-secondary);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .inline-cta-minimal-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .inline-cta-minimal-headline {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  .inline-cta-minimal-phone {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .inline-cta-minimal-phone:hover {
+    color: var(--color-primary-700);
+    text-decoration: underline;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .inline-cta-card-inner {
+      transition: none;
+    }
+
+    .inline-cta-card-inner:hover {
+      transform: none;
+    }
+  }
+</style>

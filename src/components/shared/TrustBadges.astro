@@ -1,0 +1,637 @@
+---
+/**
+ * TrustBadges Component
+ *
+ * A grid of trust credential badges showcasing certifications, ratings,
+ * and key differentiators. Designed to look like professional certification
+ * marks - earned, not marketed.
+ *
+ * Design Philosophy:
+ * These badges should feel like the credentials you see on a licensed
+ * tradesperson's van - official, verifiable, and proud. The industrial
+ * aesthetic reinforces expertise and professionalism.
+ *
+ * Variants:
+ * - default:  Standard badge grid for sections
+ * - compact:  Smaller, tighter layout for inline use
+ * - featured: Larger, more prominent display with enhanced styling
+ *
+ * @example
+ * <TrustBadges />
+ * <TrustBadges variant="compact" />
+ * <TrustBadges variant="featured" items={customItems} />
+ */
+
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
+
+interface BadgeItem {
+  /** Icon name from icons.ts */
+  icon: string;
+  /** Short label (e.g., "TSSA Licensed") */
+  label: string;
+  /** Optional value (e.g., "4.8", "30+") */
+  value?: string;
+  /** Optional description for featured variant */
+  description?: string;
+  /** Highlight this badge with accent color */
+  highlight?: boolean;
+}
+
+interface Props {
+  /** Custom badge items - if not provided, uses defaults from business profile */
+  items?: BadgeItem[];
+  /** Layout variant */
+  variant?: 'default' | 'compact' | 'featured';
+  /** Maximum number of badges to show */
+  limit?: number;
+  /** Theme for dark backgrounds */
+  inverse?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  items,
+  variant = 'default',
+  limit,
+  inverse = false,
+  class: className = '',
+} = Astro.props;
+
+// Fetch business profile
+const profile = await getBusinessProfile();
+
+// Calculate years in business
+const currentYear = new Date().getFullYear();
+const yearsInBusiness = currentYear - profile.business.established_year;
+
+// Default badge items from business profile
+const defaultItems: BadgeItem[] = [
+  {
+    icon: 'star',
+    label: 'Google Rating',
+    value: profile.reputation.google_rating.toString(),
+    description: `Based on ${profile.reputation.google_review_count}+ verified reviews`,
+    highlight: true,
+  },
+  {
+    icon: 'shield',
+    label: 'Years Experience',
+    value: `${yearsInBusiness}+`,
+    description: `Serving Ontario since ${profile.business.established_year}`,
+  },
+  {
+    icon: 'certificate',
+    label: 'TSSA Licensed',
+    description: 'Fully certified gas technicians',
+  },
+  {
+    icon: 'check',
+    label: 'WSIB Covered',
+    description: 'Full workplace safety insurance',
+  },
+  {
+    icon: 'clock',
+    label: '24/7 Emergency',
+    description: profile.hours.response_time_statement,
+    highlight: profile.hours.emergency_service,
+  },
+];
+
+// Use provided items or defaults
+let badges = items || defaultItems;
+
+// Apply limit if specified
+if (limit && limit > 0) {
+  badges = badges.slice(0, limit);
+}
+
+// Variant class mapping
+const variantClasses: Record<string, string> = {
+  default:  'trust-badges--default',
+  compact:  'trust-badges--compact',
+  featured: 'trust-badges--featured',
+};
+
+const classes = [
+  'trust-badges',
+  variantClasses[variant],
+  inverse ? 'trust-badges--inverse' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={classes}>
+  {badges.map((badge, index) => (
+    <div
+      class:list={[
+        'trust-badge',
+        badge.highlight && 'trust-badge--highlight',
+      ]}
+      style={`--badge-index: ${index}`}
+    >
+      {/* Industrial corner accent */}
+      {variant === 'featured' && (
+        <div class="trust-badge__corner-accent" aria-hidden="true" />
+      )}
+
+      {/* Icon with container */}
+      <div class="trust-badge__icon-container">
+        <div class="trust-badge__icon-bg">
+          <Icon
+            name={badge.icon}
+            size={variant === 'compact' ? 'md' : variant === 'featured' ? 'xl' : 'lg'}
+            color={badge.highlight ? 'accent' : inverse ? 'inverse' : 'primary'}
+          />
+        </div>
+        {/* Star rating display for rating badge */}
+        {badge.icon === 'star' && badge.value && variant !== 'compact' && (
+          <div class="trust-badge__stars" aria-label={`${badge.value} out of 5 stars`}>
+            {[1, 2, 3, 4, 5].map((star) => {
+              const rating = parseFloat(badge.value || '0');
+              return (
+                <span
+                  class:list={[
+                    'badge-star',
+                    star <= Math.floor(rating) ? 'badge-star--filled' : '',
+                    star === Math.ceil(rating) && rating % 1 >= 0.3 ? 'badge-star--partial' : '',
+                  ]}
+                >
+                  <Icon name="star" size="xs" />
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div class="trust-badge__content">
+        {badge.value && (
+          <span class="trust-badge__value">{badge.value}</span>
+        )}
+        <span class="trust-badge__label">{badge.label}</span>
+        {variant === 'featured' && badge.description && (
+          <span class="trust-badge__description">{badge.description}</span>
+        )}
+      </div>
+
+      {/* Verified checkmark for featured */}
+      {variant === 'featured' && (
+        <div class="trust-badge__verified" aria-hidden="true">
+          <Icon name="check" size="xs" />
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
+<style>
+  /**
+   * TrustBadges Styles
+   * Professional credential badges with industrial modern aesthetic
+   */
+
+  /* ================================================================
+     BASE CONTAINER
+     ================================================================ */
+
+  .trust-badges {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* ================================================================
+     GRID LAYOUTS BY VARIANT
+     ================================================================ */
+
+  /* Default: Responsive grid */
+  .trust-badges--default {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+  }
+
+  /* Compact: Tighter horizontal flow */
+  .trust-badges--compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: flex-start;
+  }
+
+  /* Featured: Larger cards with more space */
+  .trust-badges--featured {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-6);
+  }
+
+  /* ================================================================
+     INDIVIDUAL BADGE
+     ================================================================ */
+
+  .trust-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    position: relative;
+    overflow: hidden;
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: badgeFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--badge-index, 0) * 60ms);
+  }
+
+  @keyframes badgeFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ================================================================
+     DEFAULT VARIANT BADGE
+     ================================================================ */
+
+  .trust-badges--default .trust-badge {
+    padding: var(--space-4);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-secondary);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-badges--default .trust-badge:hover {
+    background-color: var(--color-surface-primary);
+    border-color: var(--color-border-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .trust-badges--default .trust-badge--highlight {
+    background-color: var(--color-accent-50);
+    border-color: var(--color-accent-200);
+  }
+
+  .trust-badges--default .trust-badge--highlight:hover {
+    background-color: var(--color-accent-100);
+    border-color: var(--color-accent-300);
+  }
+
+  /* ================================================================
+     COMPACT VARIANT BADGE
+     ================================================================ */
+
+  .trust-badges--compact .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-surface-tertiary);
+    border-radius: var(--radius-full);
+    gap: var(--space-2);
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-badges--compact .trust-badge:hover {
+    background-color: var(--color-primary-50);
+    transform: translateY(-1px);
+  }
+
+  .trust-badges--compact .trust-badge--highlight {
+    background-color: var(--color-accent-100);
+  }
+
+  .trust-badges--compact .trust-badge--highlight:hover {
+    background-color: var(--color-accent-200);
+  }
+
+  /* ================================================================
+     FEATURED VARIANT BADGE
+     Premium styling with industrial accents
+     ================================================================ */
+
+  .trust-badges--featured .trust-badge {
+    flex-direction: column;
+    padding: var(--space-6);
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-secondary);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+  }
+
+  .trust-badges--featured .trust-badge:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-border-primary);
+  }
+
+  .trust-badges--featured .trust-badge--highlight {
+    border-color: var(--color-accent-200);
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-50) 0%,
+      var(--color-surface-primary) 50%
+    );
+  }
+
+  .trust-badges--featured .trust-badge--highlight:hover {
+    border-color: var(--color-accent-400);
+  }
+
+  /* Industrial corner accent for featured */
+  .trust-badge__corner-accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-primary-50) 50%
+    );
+    opacity: 0.5;
+  }
+
+  .trust-badge--highlight .trust-badge__corner-accent {
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-accent-100) 50%
+    );
+  }
+
+  /* ================================================================
+     ICON CONTAINER
+     ================================================================ */
+
+  .trust-badge__icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .trust-badge__icon-bg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-lg);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-badge--highlight .trust-badge__icon-bg {
+    background-color: var(--color-accent-100);
+  }
+
+  /* Compact icon bg */
+  .trust-badges--compact .trust-badge__icon-bg {
+    width: auto;
+    height: auto;
+    padding: 0;
+    background-color: transparent;
+  }
+
+  /* Featured icon bg - larger */
+  .trust-badges--featured .trust-badge__icon-bg {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--space-2);
+  }
+
+  /* ================================================================
+     STAR RATING DISPLAY
+     ================================================================ */
+
+  .trust-badge__stars {
+    display: flex;
+    gap: 2px;
+    margin-top: var(--space-1);
+  }
+
+  .badge-star {
+    color: var(--color-border-primary);
+  }
+
+  .badge-star--filled {
+    color: var(--color-accent-500);
+  }
+
+  .badge-star--partial {
+    color: var(--color-accent-300);
+  }
+
+  /* ================================================================
+     CONTENT
+     ================================================================ */
+
+  .trust-badge__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .trust-badge__value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-none);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .trust-badges--compact .trust-badge__value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .trust-badges--featured .trust-badge__value {
+    font-size: var(--font-size-3xl);
+  }
+
+  .trust-badge--highlight .trust-badge__value {
+    color: var(--color-accent-700);
+  }
+
+  .trust-badge__label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+  }
+
+  .trust-badges--compact .trust-badge__label {
+    font-size: var(--font-size-xs);
+  }
+
+  .trust-badges--featured .trust-badge__label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .trust-badge__description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    line-height: var(--line-height-normal);
+    margin-top: var(--space-1);
+  }
+
+  /* ================================================================
+     VERIFIED CHECKMARK (Featured only)
+     ================================================================ */
+
+  .trust-badge__verified {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-success-500);
+    border-radius: var(--radius-full);
+    color: white;
+    opacity: 0;
+    transform: scale(0.8);
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-bounce);
+  }
+
+  .trust-badges--featured .trust-badge:hover .trust-badge__verified {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* ================================================================
+     INVERSE THEME (for dark backgrounds)
+     ================================================================ */
+
+  .trust-badges--inverse .trust-badge {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .trust-badges--inverse .trust-badge:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .trust-badges--inverse .trust-badge__icon-bg {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .trust-badges--inverse .trust-badge__value {
+    color: var(--color-text-inverse);
+  }
+
+  .trust-badges--inverse .trust-badge__label {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .trust-badges--inverse .trust-badge__description {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .trust-badges--inverse .trust-badge--highlight {
+    background-color: rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.3);
+  }
+
+  .trust-badges--inverse .trust-badge--highlight .trust-badge__value {
+    color: var(--color-accent-400);
+  }
+
+  .trust-badges--inverse .trust-badge__corner-accent {
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      rgba(255, 255, 255, 0.05) 50%
+    );
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .trust-badges--default {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .trust-badges--featured {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-badges--featured .trust-badge {
+      flex-direction: row;
+      padding: var(--space-4);
+    }
+
+    .trust-badges--featured .trust-badge__icon-bg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0;
+    }
+
+    .trust-badges--featured .trust-badge__value {
+      font-size: var(--font-size-xl);
+    }
+
+    .trust-badge__corner-accent {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trust-badges--default {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-badges--compact {
+      justify-content: center;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .trust-badge {
+      opacity: 1;
+      animation: none;
+    }
+
+    .trust-badge__verified {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

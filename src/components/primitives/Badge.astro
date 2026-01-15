@@ -1,33 +1,379 @@
 ---
+/**
+ * Badge Component
+ *
+ * A small, inline indicator for labels, statuses, and categorical markers.
+ * Follows the "Trustworthy Industrial Modern" aesthetic with purposeful color
+ * usage and subtle industrial accents.
+ *
+ * Design Philosophy:
+ * Badges should feel like professional labels - clear, readable, and
+ * informative without being flashy. Think of quality equipment labels
+ * or professional certification marks.
+ *
+ * Variants:
+ * - default:  Neutral gray - general labels, metadata
+ * - primary:  Trust blue - brand-related, links, categories
+ * - accent:   Action orange - highlights, featured items (use sparingly!)
+ * - success:  Green - positive status, verified, completed
+ * - warning:  Amber - attention needed, time-sensitive
+ * - error:    Red - errors, urgent, emergency indicators
+ *
+ * Sizes:
+ * - sm: Compact for inline use, metadata
+ * - md: Default for standalone labels
+ */
+
 interface Props {
-  variant?: 'default' | 'primary' | 'success' | 'warning';
+  /** Visual style variant */
+  variant?: 'default' | 'primary' | 'accent' | 'success' | 'warning' | 'error';
+  /** Size of the badge */
   size?: 'sm' | 'md';
+  /** Renders as pill shape (full rounded) vs subtle rounded */
+  pill?: boolean;
+  /** Renders with a dot indicator before text */
+  dot?: boolean;
+  /** Additional CSS classes */
   class?: string;
 }
 
 const {
   variant = 'default',
   size = 'md',
+  pill = false,
+  dot = false,
   class: className = '',
 } = Astro.props;
 
-const variantClasses = {
-  default: 'bg-muted text-muted-foreground border border-border',
-  primary: 'bg-primary/10 text-primary border border-primary/20',
-  success: 'bg-green-50 text-green-700 border border-green-200',
-  warning: 'bg-orange-50 text-orange-700 border border-orange-200',
+// Variant configurations
+const variantConfig: Record<string, { bg: string; text: string; dot: string; border?: string }> = {
+  default: {
+    bg: 'badge-bg-default',
+    text: 'badge-text-default',
+    dot: 'badge-dot-default',
+  },
+  primary: {
+    bg: 'badge-bg-primary',
+    text: 'badge-text-primary',
+    dot: 'badge-dot-primary',
+  },
+  accent: {
+    bg: 'badge-bg-accent',
+    text: 'badge-text-accent',
+    dot: 'badge-dot-accent',
+  },
+  success: {
+    bg: 'badge-bg-success',
+    text: 'badge-text-success',
+    dot: 'badge-dot-success',
+  },
+  warning: {
+    bg: 'badge-bg-warning',
+    text: 'badge-text-warning',
+    dot: 'badge-dot-warning',
+  },
+  error: {
+    bg: 'badge-bg-error',
+    text: 'badge-text-error',
+    dot: 'badge-dot-error',
+  },
 };
 
-const sizeClasses = {
-  sm: 'px-2 py-1 text-xs',
-  md: 'px-3 py-1.5 text-sm',
+// Size configurations
+const sizeConfig: Record<string, string> = {
+  sm: 'badge-sm',
+  md: 'badge-md',
 };
 
-const baseClasses = 'inline-flex items-center gap-1.5 rounded-full font-medium';
-
-const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+// Build class string
+const currentVariant = variantConfig[variant];
+const classes = [
+  'badge-base',
+  currentVariant.bg,
+  currentVariant.text,
+  sizeConfig[size],
+  pill ? 'badge-pill' : 'badge-rounded',
+  className,
+].filter(Boolean).join(' ');
 ---
 
-<div class={classes}>
+<span class={classes}>
+  {dot && <span class={`badge-dot ${currentVariant.dot}`} aria-hidden="true" />}
   <slot />
-</div>
+</span>
+
+<style is:global>
+  /**
+   * Badge Component Styles
+   * Professional, clear, trustworthy labels
+   */
+
+  /* ============================================
+     BASE BADGE
+     ============================================ */
+
+  .badge-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1-5);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-none);
+    white-space: nowrap;
+    vertical-align: middle;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  /* ============================================
+     SIZE VARIANTS
+     ============================================ */
+
+  .badge-sm {
+    padding: var(--space-0-5) var(--space-2);
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .badge-md {
+    padding: var(--space-1) var(--space-2-5);
+    font-size: var(--font-size-sm);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  /* ============================================
+     SHAPE VARIANTS
+     ============================================ */
+
+  .badge-rounded {
+    border-radius: var(--radius-md);
+  }
+
+  .badge-pill {
+    border-radius: var(--radius-full);
+  }
+
+  /* ============================================
+     COLOR VARIANTS - BACKGROUNDS
+     Using subtle tints for professional look
+     ============================================ */
+
+  /* Default: Neutral gray */
+  .badge-bg-default {
+    background-color: var(--color-surface-tertiary);
+  }
+
+  /* Primary: Trust blue tint */
+  .badge-bg-primary {
+    background-color: var(--color-primary-50);
+  }
+
+  /* Accent: Orange tint - use sparingly! */
+  .badge-bg-accent {
+    background-color: var(--color-accent-50);
+  }
+
+  /* Success: Green tint */
+  .badge-bg-success {
+    background-color: var(--color-success-50);
+  }
+
+  /* Warning: Amber tint */
+  .badge-bg-warning {
+    background-color: var(--color-warning-50);
+  }
+
+  /* Error: Red tint */
+  .badge-bg-error {
+    background-color: var(--color-emergency-50);
+  }
+
+  /* ============================================
+     COLOR VARIANTS - TEXT
+     Darker shades for readability
+     ============================================ */
+
+  .badge-text-default {
+    color: var(--color-text-secondary);
+  }
+
+  .badge-text-primary {
+    color: var(--color-primary-700);
+  }
+
+  .badge-text-accent {
+    color: var(--color-accent-700);
+  }
+
+  .badge-text-success {
+    color: var(--color-success-700);
+  }
+
+  .badge-text-warning {
+    color: var(--color-warning-700);
+  }
+
+  .badge-text-error {
+    color: var(--color-emergency-700);
+  }
+
+  /* ============================================
+     DOT INDICATOR
+     Status dots for visual hierarchy
+     ============================================ */
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  .badge-sm .badge-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .badge-dot-default {
+    background-color: var(--color-text-tertiary);
+  }
+
+  .badge-dot-primary {
+    background-color: var(--color-primary-500);
+  }
+
+  .badge-dot-accent {
+    background-color: var(--color-accent-500);
+  }
+
+  .badge-dot-success {
+    background-color: var(--color-success-500);
+  }
+
+  .badge-dot-warning {
+    background-color: var(--color-warning-500);
+  }
+
+  .badge-dot-error {
+    background-color: var(--color-emergency-500);
+  }
+
+  /* ============================================
+     SOLID VARIANTS (Alternative)
+     For higher contrast when needed
+     Add class="badge-solid" to use
+     ============================================ */
+
+  .badge-solid.badge-bg-default {
+    background-color: var(--color-text-secondary);
+    color: var(--color-text-inverse);
+  }
+
+  .badge-solid.badge-bg-primary {
+    background-color: var(--color-primary-600);
+    color: white;
+  }
+
+  .badge-solid.badge-bg-accent {
+    background-color: var(--color-accent-600);
+    color: white;
+  }
+
+  .badge-solid.badge-bg-success {
+    background-color: var(--color-success-600);
+    color: white;
+  }
+
+  .badge-solid.badge-bg-warning {
+    background-color: var(--color-warning-600);
+    color: white;
+  }
+
+  .badge-solid.badge-bg-error {
+    background-color: var(--color-emergency-600);
+    color: white;
+  }
+
+  /* Solid variant dot override */
+  .badge-solid .badge-dot {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* ============================================
+     OUTLINED VARIANTS (Alternative)
+     For minimal style on busy backgrounds
+     Add class="badge-outlined" to use
+     ============================================ */
+
+  .badge-outlined.badge-bg-default {
+    background-color: transparent;
+    border: 1px solid var(--color-border-primary);
+    color: var(--color-text-secondary);
+  }
+
+  .badge-outlined.badge-bg-primary {
+    background-color: transparent;
+    border: 1px solid var(--color-primary-300);
+    color: var(--color-primary-600);
+  }
+
+  .badge-outlined.badge-bg-accent {
+    background-color: transparent;
+    border: 1px solid var(--color-accent-300);
+    color: var(--color-accent-600);
+  }
+
+  .badge-outlined.badge-bg-success {
+    background-color: transparent;
+    border: 1px solid var(--color-success-500);
+    color: var(--color-success-600);
+  }
+
+  .badge-outlined.badge-bg-warning {
+    background-color: transparent;
+    border: 1px solid var(--color-warning-500);
+    color: var(--color-warning-600);
+  }
+
+  .badge-outlined.badge-bg-error {
+    background-color: transparent;
+    border: 1px solid var(--color-emergency-500);
+    color: var(--color-emergency-600);
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For badges on dark backgrounds
+     ============================================ */
+
+  .section-inverse .badge-bg-default,
+  .bg-inverse .badge-bg-default {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .badge-bg-primary,
+  .bg-inverse .badge-bg-primary {
+    background-color: var(--color-primary-400);
+    color: var(--color-primary-900);
+  }
+
+  .section-inverse .badge-bg-accent,
+  .bg-inverse .badge-bg-accent {
+    background-color: var(--color-accent-400);
+    color: var(--color-accent-900);
+  }
+
+  /* ============================================
+     UPPERCASE VARIANT
+     For category labels, eyebrow-style badges
+     Add class="badge-uppercase" to use
+     ============================================ */
+
+  .badge-uppercase {
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+</style>

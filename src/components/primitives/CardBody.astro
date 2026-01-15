@@ -2,32 +2,233 @@
 /**
  * CardBody Component
  *
- * TEXT AREA RULES:
- * - Padding applies ONLY to the text/content section
- * - Padding uses the global spacing scale
- * - Text block is visually separated from image via spacing
+ * The main content area of a card, providing consistent padding
+ * and flexible growth to fill available space.
+ *
+ * Design Philosophy:
+ * Card content should breathe. Generous padding creates a sense
+ * of quality and prevents the cramped feeling of cheap design.
+ * The body grows to fill available space, pushing footer content
+ * to the bottom in flex layouts.
+ *
+ * Usage:
+ * - Wrap your main card content (titles, descriptions, etc.)
+ * - Pair with CardHeader and/or CardFooter for structured layouts
+ * - Use flex-grow to push footer to bottom in variable height cards
+ *
+ * Common Patterns:
+ * <Card>
+ *   <CardMedia />
+ *   <CardBody>
+ *     <Heading />
+ *     <Text />
+ *   </CardBody>
+ *   <CardFooter />
+ * </Card>
  */
 
 interface Props {
-  padding?: 'sm' | 'md' | 'lg';
+  /** Internal padding size */
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Allow body to grow and fill available space */
+  grow?: boolean;
+  /** Flex layout direction for content */
+  stack?: boolean;
+  /** Gap between stacked children */
+  gap?: 'sm' | 'md' | 'lg';
+  /** Additional CSS classes */
   class?: string;
 }
 
 const {
   padding = 'md',
+  grow = true,
+  stack = true,
+  gap = 'sm',
   class: className = '',
 } = Astro.props;
 
-// Use global spacing scale from tokens.css
-const paddingClasses = {
-  sm: 'p-4',   // --card-padding-sm (1rem/16px)
-  md: 'p-6',   // --card-padding-md (1.5rem/24px)
-  lg: 'p-8',   // --card-padding-lg (2rem/32px)
-}[padding];
+// Padding classes
+const paddingClasses: Record<string, string> = {
+  none: '',
+  sm: 'card-body-padding-sm',
+  md: 'card-body-padding-md',
+  lg: 'card-body-padding-lg',
+};
 
-const classes = `${paddingClasses} ${className}`;
+// Gap classes for stacked content
+const gapClasses: Record<string, string> = {
+  sm: 'card-body-gap-sm',
+  md: 'card-body-gap-md',
+  lg: 'card-body-gap-lg',
+};
+
+// Build class string
+const classes = [
+  'card-body',
+  paddingClasses[padding],
+  grow ? 'card-body-grow' : '',
+  stack ? `card-body-stack ${gapClasses[gap]}` : '',
+  className,
+].filter(Boolean).join(' ');
 ---
 
 <div class={classes}>
   <slot />
 </div>
+
+<style is:global>
+  /**
+   * CardBody Component Styles
+   * Flexible content area with consistent spacing
+   */
+
+  /* ============================================
+     BASE BODY
+     ============================================ */
+
+  .card-body {
+    position: relative;
+  }
+
+  /* Grow to fill available space (pushes footer down) */
+  .card-body-grow {
+    flex: 1 1 auto;
+  }
+
+  /* Stack children vertically */
+  .card-body-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ============================================
+     PADDING VARIANTS
+     ============================================ */
+
+  .card-body-padding-sm {
+    padding: var(--card-padding-sm);
+  }
+
+  .card-body-padding-md {
+    padding: var(--card-padding-md);
+  }
+
+  .card-body-padding-lg {
+    padding: var(--card-padding-lg);
+  }
+
+  /* ============================================
+     GAP VARIANTS
+     Space between stacked children
+     ============================================ */
+
+  .card-body-gap-sm {
+    gap: var(--space-2);
+  }
+
+  .card-body-gap-md {
+    gap: var(--space-3);
+  }
+
+  .card-body-gap-lg {
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     CONTENT UTILITIES
+     Common card body content patterns
+     ============================================ */
+
+  /* Push last child to bottom of body */
+  .card-body-stack > :last-child:not(:only-child).mt-auto,
+  .card-body-stack > .card-body-push {
+    margin-top: auto;
+  }
+
+  /* Truncate text overflow with ellipsis */
+  .card-body .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-body .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-body .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     TYPOGRAPHY DEFAULTS
+     Default text styling within cards
+     ============================================ */
+
+  /* Card title styling */
+  .card-body h2,
+  .card-body h3,
+  .card-body h4,
+  .card-body .card-title {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  /* Card description styling */
+  .card-body p,
+  .card-body .card-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Small metadata text */
+  .card-body small,
+  .card-body .card-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     Colors when card is on dark background
+     ============================================ */
+
+  .section-inverse .card-body h2,
+  .section-inverse .card-body h3,
+  .section-inverse .card-body h4,
+  .section-inverse .card-body .card-title {
+    color: var(--color-text-primary);
+  }
+
+  /* When card itself has dark background */
+  .card-dark .card-body h2,
+  .card-dark .card-body h3,
+  .card-dark .card-body h4,
+  .card-dark .card-body .card-title {
+    color: var(--color-text-inverse);
+  }
+
+  .card-dark .card-body p,
+  .card-dark .card-body .card-description {
+    color: var(--color-primary-100);
+  }
+
+  .card-dark .card-body small,
+  .card-dark .card-body .card-meta {
+    color: var(--color-primary-200);
+  }
+</style>

@@ -1,0 +1,437 @@
+---
+/**
+ * ServicePill Component
+ *
+ * A compact, clickable pill/tag for quick service navigation.
+ * Used in filter bars, related services sections, and compact lists.
+ *
+ * Design Philosophy:
+ * Service pills are wayfinding elements. They help users quickly:
+ * 1. See available service categories at a glance
+ * 2. Navigate to specific services with minimal friction
+ * 3. Understand they're in the right place (active state)
+ *
+ * The "Trustworthy Industrial Modern" aesthetic means:
+ * - Clean, pill-shaped buttons
+ * - Clear active/inactive states
+ * - Subtle but confident hover effects
+ * - Never flashy or distracting
+ *
+ * Variants:
+ * - default:  Standard pill for navigation/filters
+ * - active:   Currently selected/active state
+ * - muted:    De-emphasized for secondary contexts
+ * - category: Colored based on service category
+ */
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Display label */
+  label: string;
+  /** Link URL */
+  href: string;
+  /** Visual state variant */
+  variant?: 'default' | 'active' | 'muted' | 'category';
+  /** Service category for category variant coloring */
+  category?: 'heating' | 'cooling' | 'indoor-air-quality' | 'water-heating' | 'commercial' | 'maintenance';
+  /** Size variant */
+  size?: 'sm' | 'md' | 'lg';
+  /** Show icon before label */
+  icon?: string;
+  /** Show arrow/chevron after label */
+  showArrow?: boolean;
+  /** Is this the currently active item */
+  isActive?: boolean;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  label,
+  href,
+  variant: variantProp = 'default',
+  category,
+  size = 'md',
+  icon,
+  showArrow = false,
+  isActive = false,
+  class: className = '',
+} = Astro.props;
+
+// If isActive is true, force the active variant
+const variant = isActive ? 'active' : variantProp;
+
+// Category icons for automatic icon selection when category variant
+const categoryIcons: Record<string, string> = {
+  heating: 'flame',
+  cooling: 'snowflake',
+  'indoor-air-quality': 'air',
+  'water-heating': 'water',
+  commercial: 'tools',
+  maintenance: 'tools',
+};
+
+// Use provided icon, or category icon if category variant, or nothing
+const displayIcon = icon || (variant === 'category' && category ? categoryIcons[category] : undefined);
+
+// Size configurations
+const sizeConfig = {
+  sm: {
+    padding: 'service-pill-sm',
+    iconSize: 'xs' as const,
+  },
+  md: {
+    padding: 'service-pill-md',
+    iconSize: 'sm' as const,
+  },
+  lg: {
+    padding: 'service-pill-lg',
+    iconSize: 'md' as const,
+  },
+};
+
+const config = sizeConfig[size];
+
+// Build class string
+const classes = [
+  'service-pill',
+  `service-pill-${variant}`,
+  config.padding,
+  category ? `service-pill-category-${category}` : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<a href={href} class={classes}>
+  {displayIcon && (
+    <span class="service-pill-icon">
+      <Icon name={displayIcon} size={config.iconSize} />
+    </span>
+  )}
+  <span class="service-pill-label">{label}</span>
+  {showArrow && (
+    <span class="service-pill-arrow">
+      <Icon name="chevronRight" size="xs" />
+    </span>
+  )}
+</a>
+
+<style is:global>
+  /**
+   * ServicePill Component Styles
+   * Compact, clickable navigation elements
+   */
+
+  /* ============================================
+     BASE PILL
+     ============================================ */
+
+  .service-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-none);
+    text-decoration: none;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .service-pill:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     SIZE VARIANTS
+     ============================================ */
+
+  .service-pill-sm {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-size-xs);
+    gap: var(--space-1);
+  }
+
+  .service-pill-md {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
+
+  .service-pill-lg {
+    padding: var(--space-2-5) var(--space-5);
+    font-size: var(--font-size-base);
+  }
+
+  /* ============================================
+     VARIANT: DEFAULT
+     Standard navigation pill
+     ============================================ */
+
+  .service-pill-default {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .service-pill-default:hover {
+    background-color: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+  }
+
+  .service-pill-default:active {
+    transform: scale(0.98);
+  }
+
+  /* ============================================
+     VARIANT: ACTIVE
+     Currently selected state
+     ============================================ */
+
+  .service-pill-active {
+    background-color: var(--color-primary-600);
+    color: white;
+    border: 1px solid var(--color-primary-600);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .service-pill-active:hover {
+    background-color: var(--color-primary-700);
+    border-color: var(--color-primary-700);
+  }
+
+  .service-pill-active:active {
+    transform: scale(0.98);
+  }
+
+  /* ============================================
+     VARIANT: MUTED
+     De-emphasized for secondary contexts
+     ============================================ */
+
+  .service-pill-muted {
+    background-color: transparent;
+    color: var(--color-text-tertiary);
+    border: 1px solid transparent;
+  }
+
+  .service-pill-muted:hover {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  /* ============================================
+     VARIANT: CATEGORY
+     Colored based on service category
+     ============================================ */
+
+  .service-pill-category {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .service-pill-category:hover {
+    border-color: var(--color-border-primary);
+  }
+
+  /* Heating - warm orange tint */
+  .service-pill-category-heating {
+    background-color: var(--color-accent-50);
+    color: var(--color-accent-700);
+    border-color: var(--color-accent-200);
+  }
+
+  .service-pill-category-heating:hover {
+    background-color: var(--color-accent-100);
+    border-color: var(--color-accent-300);
+  }
+
+  /* Cooling - cool blue tint */
+  .service-pill-category-cooling {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-700);
+    border-color: var(--color-primary-200);
+  }
+
+  .service-pill-category-cooling:hover {
+    background-color: var(--color-primary-100);
+    border-color: var(--color-primary-300);
+  }
+
+  /* Air Quality - fresh green tint */
+  .service-pill-category-indoor-air-quality {
+    background-color: var(--color-success-50);
+    color: var(--color-success-700);
+    border-color: rgba(34, 197, 94, 0.2);
+  }
+
+  .service-pill-category-indoor-air-quality:hover {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  /* Water Heating - blue/cyan tint */
+  .service-pill-category-water-heating {
+    background-color: var(--color-info-50);
+    color: var(--color-info-600);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .service-pill-category-water-heating:hover {
+    background-color: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  /* Commercial - neutral/professional */
+  .service-pill-category-commercial {
+    background-color: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+  }
+
+  .service-pill-category-commercial:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-200);
+  }
+
+  /* Maintenance - subtle green/teal */
+  .service-pill-category-maintenance {
+    background-color: rgba(20, 184, 166, 0.08);
+    color: rgb(15, 118, 110);
+    border-color: rgba(20, 184, 166, 0.2);
+  }
+
+  .service-pill-category-maintenance:hover {
+    background-color: rgba(20, 184, 166, 0.12);
+    border-color: rgba(20, 184, 166, 0.3);
+  }
+
+  /* ============================================
+     ICON & ARROW
+     ============================================ */
+
+  .service-pill-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+
+  .service-pill:hover .service-pill-icon {
+    opacity: 1;
+  }
+
+  .service-pill-arrow {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .service-pill:hover .service-pill-arrow {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  .service-pill-label {
+    flex-shrink: 0;
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .service-pill-default {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-inverse);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .section-inverse .service-pill-default:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .section-inverse .service-pill-muted {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .section-inverse .service-pill-muted:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-inverse);
+  }
+
+  /* ============================================
+     PILL GROUP
+     Wrapper for multiple pills (utility class)
+     ============================================ */
+
+  .service-pills-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .service-pills-group-sm {
+    gap: var(--space-1-5);
+  }
+
+  .service-pills-group-lg {
+    gap: var(--space-3);
+  }
+
+  /* Scrollable horizontal group */
+  .service-pills-scrollable {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-primary) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .service-pills-scrollable::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .service-pills-scrollable::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .service-pills-scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-primary);
+    border-radius: var(--radius-full);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-pill,
+    .service-pill-arrow {
+      transition: none;
+    }
+
+    .service-pill:active {
+      transform: none;
+    }
+
+    .service-pill:hover .service-pill-arrow {
+      transform: none;
+    }
+  }
+</style>

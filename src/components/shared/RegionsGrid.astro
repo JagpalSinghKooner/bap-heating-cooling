@@ -1,0 +1,693 @@
+---
+/**
+ * RegionsGrid Component
+ *
+ * A responsive grid layout for displaying service regions.
+ * Each region groups multiple cities into a geographic area,
+ * making it easier for users to find their local service area.
+ *
+ * Design Philosophy:
+ * Regions represent B.A.P's service coverage at a glance.
+ * When someone asks "Do you serve my area?", this grid
+ * provides immediate reassurance. The design emphasizes:
+ * 1. Geographic coverage visualization
+ * 2. Quick access to city-specific pages
+ * 3. Trust signals through comprehensive coverage
+ * 4. A sense of "local expertise" in each region
+ *
+ * Variants:
+ * - cards:   Rich cards with city preview and description
+ * - compact: Minimal cards showing region name and city count
+ * - list:    Vertical list for sidebar use
+ */
+import { getCollection } from 'astro:content';
+import Card from '../primitives/Card.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Icon from '../primitives/Icon.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import Badge from '../primitives/Badge.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+
+interface Props {
+  /** Number of grid columns on desktop */
+  columns?: 2 | 3;
+  /** Display variant */
+  variant?: 'cards' | 'compact' | 'list';
+  /** Show the city count badge */
+  showCityCount?: boolean;
+  /** Show list of cities in each region */
+  showCities?: boolean;
+  /** Maximum cities to preview per region */
+  maxCityPreview?: number;
+  /** Optional section header */
+  title?: string;
+  /** Optional section description */
+  description?: string;
+  /** Optional eyebrow text */
+  eyebrow?: string;
+  /** Header alignment */
+  headerAlign?: 'left' | 'center';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  columns = 2,
+  variant = 'cards',
+  showCityCount = true,
+  showCities = true,
+  maxCityPreview = 5,
+  title,
+  description,
+  eyebrow,
+  headerAlign = 'center',
+  class: className = '',
+} = Astro.props;
+
+// Fetch regions and locations
+const regions = await getCollection('regions');
+const locations = await getCollection('locations');
+
+// Create a lookup map for location titles
+const locationTitles: Record<string, string> = {};
+locations.forEach(loc => {
+  locationTitles[loc.id] = loc.data.title;
+});
+
+// Sort regions alphabetically by title
+const sortedRegions = regions.sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+// Map regions to display format
+const regionItems = sortedRegions.map(region => {
+  const cities = region.data.cities || [];
+  const cityNames = cities
+    .map(citySlug => locationTitles[citySlug] || citySlug)
+    .sort((a, b) => a.localeCompare(b));
+
+  return {
+    title: region.data.title,
+    description: region.data.description,
+    slug: region.id,
+    href: `/regions/${region.id}/`,
+    primaryCity: region.data.primaryCity,
+    primaryCityName: locationTitles[region.data.primaryCity] || region.data.primaryCity,
+    cities: cityNames,
+    cityCount: cities.length,
+  };
+});
+
+// Column class mapping
+const columnClasses = {
+  2: 'regions-grid-cols-2',
+  3: 'regions-grid-cols-3',
+};
+
+// Build class string
+const classes = [
+  'regions-grid',
+  `regions-grid-${variant}`,
+  columnClasses[columns],
+  className,
+].filter(Boolean).join(' ');
+---
+
+{regionItems.length > 0 && (
+  <div class={classes}>
+    {/* Optional Section Header */}
+    {title && (
+      <div class="regions-grid-header">
+        <SectionHeader
+          eyebrow={eyebrow}
+          headline={title}
+          description={description}
+          align={headerAlign}
+        />
+      </div>
+    )}
+
+    {/* Regions Grid */}
+    <div class="regions-grid-items">
+      {regionItems.map((region, index) => (
+        <div
+          class="regions-grid-item"
+          style={`--stagger-index: ${index}`}
+        >
+          {variant === 'list' ? (
+            /* List variant - compact horizontal layout */
+            <a href={region.href} class="region-list-item">
+              <div class="region-list-icon">
+                <Icon name="map" size="md" color="primary" />
+              </div>
+              <div class="region-list-content">
+                <span class="region-list-title">{region.title}</span>
+                {showCityCount && (
+                  <span class="region-list-count">
+                    {region.cityCount} {region.cityCount === 1 ? 'city' : 'cities'}
+                  </span>
+                )}
+              </div>
+              <Icon name="chevronRight" size="sm" class="region-list-arrow" />
+            </a>
+          ) : (
+            /* Card variants */
+            <Card
+              href={region.href}
+              variant={variant === 'compact' ? 'outlined' : 'default'}
+              interactive
+              padding="none"
+              class="region-card"
+            >
+              <CardBody padding={variant === 'compact' ? 'sm' : 'md'} gap="md">
+                {/* Header with icon and badge */}
+                <div class="region-card-header">
+                  <div class="region-card-icon">
+                    <Icon name="map" size={variant === 'compact' ? 'lg' : 'xl'} color="primary" />
+                  </div>
+                  {showCityCount && (
+                    <Badge variant="primary" size="sm" class="region-card-badge">
+                      {region.cityCount} {region.cityCount === 1 ? 'city' : 'cities'}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Region title */}
+                <Heading
+                  level={3}
+                  size={variant === 'compact' ? 'md' : 'lg'}
+                  weight="bold"
+                  class="region-card-title"
+                >
+                  {region.title}
+                </Heading>
+
+                {/* Description - only for full cards */}
+                {variant === 'cards' && region.description && (
+                  <Text
+                    size="sm"
+                    color="secondary"
+                    truncate
+                    maxLines={2}
+                    class="region-card-description"
+                  >
+                    {region.description}
+                  </Text>
+                )}
+
+                {/* Cities preview */}
+                {showCities && variant === 'cards' && region.cities.length > 0 && (
+                  <div class="region-card-cities">
+                    <div class="region-card-cities-header">
+                      <Icon name="mapPin" size="sm" color="muted" />
+                      <Text size="xs" color="secondary" weight="semibold">
+                        Cities served
+                      </Text>
+                    </div>
+                    <div class="region-card-cities-list">
+                      {region.cities.slice(0, maxCityPreview).map((city, i) => (
+                        <span class="region-card-city">
+                          {city}{i < Math.min(region.cities.length - 1, maxCityPreview - 1) ? ',' : ''}
+                        </span>
+                      ))}
+                      {region.cities.length > maxCityPreview && (
+                        <span class="region-card-city-more">
+                          +{region.cities.length - maxCityPreview} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* CTA indicator */}
+                <div class="region-card-cta">
+                  <span class="region-card-cta-text">Explore region</span>
+                  <Icon name="arrowRight" size="sm" />
+                </div>
+              </CardBody>
+
+              {/* Decorative map accent bar */}
+              <div class="region-card-accent" aria-hidden="true" />
+            </Card>
+          )}
+        </div>
+      ))}
+    </div>
+
+    {/* Empty state */}
+    {regionItems.length === 0 && (
+      <div class="regions-grid-empty">
+        <p>No regions found.</p>
+      </div>
+    )}
+  </div>
+)}
+
+<style is:global>
+  /**
+   * RegionsGrid Component Styles
+   * Geographic coverage with local expertise feel
+   */
+
+  /* ============================================
+     BASE GRID
+     ============================================ */
+
+  .regions-grid {
+    width: 100%;
+  }
+
+  .regions-grid-header {
+    margin-bottom: var(--space-10);
+  }
+
+  .regions-grid-items {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .regions-grid-item {
+    /* Animation stagger support */
+    animation: regionFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 75ms);
+    opacity: 0;
+  }
+
+  @keyframes regionFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     COLUMN VARIANTS
+     Mobile-first responsive columns
+     ============================================ */
+
+  /* Base: 1 column on mobile */
+  .regions-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  /* 2 columns */
+  .regions-grid-cols-2 .regions-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .regions-grid-cols-2 .regions-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* 3 columns */
+  .regions-grid-cols-3 .regions-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .regions-grid-cols-3 .regions-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .regions-grid-cols-3 .regions-grid-items {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ============================================
+     REGION CARD STYLES
+     ============================================ */
+
+  .region-card {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .region-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .region-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-14);
+    height: var(--space-14);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    flex-shrink: 0;
+    transition:
+      background var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .region-card:hover .region-card-icon {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100) 0%,
+      var(--color-primary-200) 100%
+    );
+    transform: scale(1.05);
+  }
+
+  .region-card-badge {
+    flex-shrink: 0;
+  }
+
+  .region-card-title {
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .region-card:hover .region-card-title {
+    color: var(--color-primary-700);
+  }
+
+  .region-card-description {
+    color: var(--color-text-secondary);
+  }
+
+  /* Cities preview section */
+  .region-card-cities {
+    padding: var(--space-4);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    margin-top: auto;
+  }
+
+  .region-card-cities-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .region-card-cities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .region-card-city {
+    white-space: nowrap;
+  }
+
+  .region-card-city-more {
+    color: var(--color-primary-600);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+  }
+
+  /* CTA indicator */
+  .region-card-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .region-card:hover .region-card-cta {
+    color: var(--color-primary-700);
+    gap: var(--space-3);
+  }
+
+  .region-card-cta-text {
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .region-card:hover .region-card-cta-text {
+    transform: translateX(2px);
+  }
+
+  /* Decorative accent bar - subtle geographic feel */
+  .region-card-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-400) 0%,
+      var(--color-primary-500) 50%,
+      var(--color-primary-600) 100%
+    );
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .region-card:hover .region-card-accent {
+    opacity: 1;
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Tighter layout for dense grids
+     ============================================ */
+
+  .regions-grid-compact .regions-grid-items {
+    gap: var(--space-4);
+  }
+
+  .regions-grid-compact .region-card-icon {
+    width: var(--space-10);
+    height: var(--space-10);
+  }
+
+  .regions-grid-compact .region-card-header {
+    gap: var(--space-2);
+  }
+
+  .regions-grid-compact .region-card-cta {
+    padding-top: var(--space-2);
+  }
+
+  /* ============================================
+     VARIANT: LIST
+     Vertical list for sidebars
+     ============================================ */
+
+  .regions-grid-list .regions-grid-items {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-2);
+  }
+
+  .region-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .region-list-item:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+    transform: translateX(4px);
+  }
+
+  .region-list-item:active {
+    transform: translateX(2px);
+  }
+
+  .region-list-item:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .region-list-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+
+  .region-list-item:hover .region-list-icon {
+    background-color: var(--color-primary-100);
+  }
+
+  .region-list-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .region-list-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .region-list-item:hover .region-list-title {
+    color: var(--color-primary-700);
+  }
+
+  .region-list-count {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .region-list-arrow {
+    flex-shrink: 0;
+    color: var(--color-text-tertiary);
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .region-list-item:hover .region-list-arrow {
+    color: var(--color-primary-600);
+    transform: translateX(2px);
+  }
+
+  /* ============================================
+     EMPTY STATE
+     ============================================ */
+
+  .regions-grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .region-card {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .section-inverse .region-card:hover {
+    background-color: white;
+  }
+
+  .section-inverse .region-card-cities {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  .section-inverse .region-list-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .region-list-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .section-inverse .region-list-icon {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .region-list-item:hover .region-list-icon {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section-inverse .region-list-title {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .region-list-item:hover .region-list-title {
+    color: white;
+  }
+
+  .section-inverse .region-list-count {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .section-inverse .region-list-arrow {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .section-inverse .region-list-item:hover .region-list-arrow {
+    color: white;
+  }
+
+  .section-inverse .regions-grid-empty {
+    color: var(--color-text-inverse);
+    opacity: 0.7;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .regions-grid-item {
+      animation: none;
+      opacity: 1;
+    }
+
+    .region-card-icon,
+    .region-card-cta,
+    .region-card-cta-text,
+    .region-card-accent,
+    .region-list-item,
+    .region-list-arrow {
+      transition: none;
+    }
+
+    .region-card:hover .region-card-icon {
+      transform: none;
+    }
+
+    .region-card:hover .region-card-cta-text {
+      transform: none;
+    }
+
+    .region-list-item:hover,
+    .region-list-item:active {
+      transform: none;
+    }
+
+    .region-list-item:hover .region-list-arrow {
+      transform: none;
+    }
+  }
+</style>

@@ -1,29 +1,340 @@
 ---
+/**
+ * SectionHeader Component
+ *
+ * Composite component for section headers that combines:
+ * - Eyebrow (optional category/context label)
+ * - Headline (main section title)
+ * - Description (optional supporting text)
+ *
+ * The "Trustworthy Industrial Modern" aesthetic uses section headers to:
+ * - Create ruthless information hierarchy
+ * - Signal authority through clear organization
+ * - Guide users through content with confident typography
+ *
+ * Design System Notes:
+ * - Eyebrows use industrial precision styling (uppercase, tracked)
+ * - Headlines use Plus Jakarta Sans for confident authority
+ * - Descriptions use Source Sans 3 for comfortable reading
+ * - Generous spacing creates breathing room between elements
+ */
+
+import Eyebrow from './Eyebrow.astro';
+import Heading from './Heading.astro';
+import Text from './Text.astro';
+
 interface Props {
+  /** Optional eyebrow text above the headline */
   eyebrow?: string;
+  /** Main headline text (required) */
   headline: string;
+  /** Optional description text below the headline */
   description?: string;
+  /** Text alignment for all elements */
   align?: 'left' | 'center' | 'right';
+  /** Visual size of the headline */
+  headlineSize?: 'md' | 'lg' | 'xl';
+  /** Semantic heading level (defaults to h2 for sections) */
+  headlineLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Color variant for text - adjusts for dark sections */
+  variant?: 'default' | 'inverse' | 'primary';
+  /** Eyebrow style variant */
+  eyebrowVariant?: 'default' | 'badge' | 'tag';
+  /** Eyebrow color override */
+  eyebrowColor?: 'primary' | 'accent' | 'inverse' | 'muted';
+  /** Optional icon for the eyebrow */
+  eyebrowIcon?: string;
+  /** Whether to apply text balance to headline */
+  balanceHeadline?: boolean;
+  /** Enable entrance animation */
+  animate?: boolean;
+  /** Max width for the header content */
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'none';
+  /** Additional classes */
   class?: string;
 }
 
-const { eyebrow, headline, description, align = 'center', class: className = '' } = Astro.props;
+const {
+  eyebrow,
+  headline,
+  description,
+  align = 'center',
+  headlineSize = 'lg',
+  headlineLevel = 2,
+  variant = 'default',
+  eyebrowVariant = 'default',
+  eyebrowColor,
+  eyebrowIcon,
+  balanceHeadline = true,
+  animate = false,
+  maxWidth = 'lg',
+  class: className = '',
+} = Astro.props;
 
-const alignClasses = {
-  left: 'text-left',
-  center: 'text-center',
-  right: 'text-right',
+// Map headline size to Heading component size
+const headlineSizeMap: Record<string, string> = {
+  md: '2xl',   // ~30-36px
+  lg: '3xl',   // ~32-40px
+  xl: '4xl',   // ~40-48px
 };
 
-const descAlignClasses = {
-  left: '',
-  center: 'mx-auto',
-  right: 'ml-auto',
+// Map to description text size based on headline size
+const descriptionSizeMap: Record<string, 'base' | 'lg' | 'xl'> = {
+  md: 'base',
+  lg: 'lg',
+  xl: 'lg',
 };
+
+// Determine colors based on variant
+const colorConfig = {
+  default: {
+    eyebrow: eyebrowColor || 'primary',
+    headline: 'primary',
+    description: 'secondary',
+  },
+  inverse: {
+    eyebrow: eyebrowColor || 'inverse',
+    headline: 'inverse',
+    description: 'inverse',
+  },
+  primary: {
+    eyebrow: eyebrowColor || 'accent',
+    headline: 'inverse',
+    description: 'inverse',
+  },
+};
+
+const colors = colorConfig[variant];
+
+// Alignment classes for the container
+const alignClasses: Record<string, string> = {
+  left: 'section-header-left',
+  center: 'section-header-center',
+  right: 'section-header-right',
+};
+
+// Max width classes
+const maxWidthClasses: Record<string, string> = {
+  sm: 'max-w-container-sm',
+  md: 'max-w-container-md',
+  lg: 'max-w-container-lg',
+  xl: 'max-w-container-xl',
+  none: '',
+};
+
+// Build container classes
+const containerClasses = [
+  'section-header',
+  alignClasses[align],
+  maxWidth !== 'none' ? maxWidthClasses[maxWidth] : '',
+  animate ? 'section-header-animate' : '',
+  className,
+].filter(Boolean).join(' ');
+
+// Adjust eyebrow variant for inverse contexts
+const finalEyebrowVariant = variant === 'inverse' && eyebrowVariant === 'default'
+  ? 'default'
+  : eyebrowVariant;
 ---
 
-<div class:list={['mb-10', alignClasses[align], className]}>
-  {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
-  <h2 class:list={['section-title mb-4 max-w-3xl', descAlignClasses[align]]}>{headline}</h2>
-  {description && <p class:list={['max-w-2xl text-base text-muted-foreground', descAlignClasses[align]]}>{description}</p>}
-</div>
+<header class={containerClasses}>
+  {/* Eyebrow - optional category/context label */}
+  {eyebrow && (
+    <div class="section-header-eyebrow">
+      <Eyebrow
+        color={colors.eyebrow as any}
+        variant={finalEyebrowVariant}
+        icon={eyebrowIcon}
+        align={align}
+      >
+        {eyebrow}
+      </Eyebrow>
+    </div>
+  )}
+
+  {/* Headline - main section title */}
+  <div class="section-header-headline">
+    <Heading
+      level={headlineLevel}
+      size={headlineSizeMap[headlineSize] as any}
+      color={colors.headline as any}
+      align={align}
+      balance={balanceHeadline}
+    >
+      {headline}
+    </Heading>
+  </div>
+
+  {/* Description - optional supporting text */}
+  {description && (
+    <div class="section-header-description">
+      <Text
+        size={descriptionSizeMap[headlineSize]}
+        color={colors.description as any}
+        align={align}
+        leading="relaxed"
+      >
+        {description}
+      </Text>
+    </div>
+  )}
+
+  {/* Slot for additional content (buttons, links, etc.) */}
+  <slot />
+</header>
+
+<style is:global>
+  /**
+   * SectionHeader Styles
+   *
+   * Creates consistent section header layouts with proper spacing
+   * and typography hierarchy. Uses CSS custom properties from tokens.
+   */
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Alignment variations */
+  .section-header-left {
+    align-items: flex-start;
+  }
+
+  .section-header-center {
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-header-right {
+    align-items: flex-end;
+    margin-left: auto;
+  }
+
+  /* Max width constraints */
+  .max-w-container-sm {
+    max-width: var(--container-sm);
+  }
+
+  .max-w-container-md {
+    max-width: var(--container-md);
+  }
+
+  .max-w-container-lg {
+    max-width: var(--container-lg);
+  }
+
+  .max-w-container-xl {
+    max-width: var(--container-xl);
+  }
+
+  /* Eyebrow spacing */
+  .section-header-eyebrow {
+    margin-bottom: var(--space-4);
+  }
+
+  /* Headline spacing */
+  .section-header-headline {
+    /* No top margin if eyebrow is present (handled by eyebrow's margin-bottom) */
+  }
+
+  /* Description spacing */
+  .section-header-description {
+    margin-top: var(--space-4);
+    max-width: 65ch; /* Optimal line length for readability */
+  }
+
+  /* Center description when header is centered */
+  .section-header-center .section-header-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Right-align description when header is right-aligned */
+  .section-header-right .section-header-description {
+    margin-left: auto;
+  }
+
+  /* Slot content spacing (for additional elements like CTAs) */
+  .section-header > :global(*:not(.section-header-eyebrow):not(.section-header-headline):not(.section-header-description)) {
+    margin-top: var(--space-6);
+  }
+
+  /* ================================================================
+     ANIMATION - Staggered entrance
+     ================================================================ */
+
+  .section-header-animate .section-header-eyebrow,
+  .section-header-animate .section-header-headline,
+  .section-header-animate .section-header-description {
+    animation: sectionHeaderFadeUp var(--duration-slow) var(--ease-out) forwards;
+    opacity: 0;
+  }
+
+  .section-header-animate .section-header-eyebrow {
+    animation-delay: 0ms;
+  }
+
+  .section-header-animate .section-header-headline {
+    animation-delay: 100ms;
+  }
+
+  .section-header-animate .section-header-description {
+    animation-delay: 200ms;
+  }
+
+  @keyframes sectionHeaderFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    /* Tighter spacing on mobile */
+    .section-header-eyebrow {
+      margin-bottom: var(--space-3);
+    }
+
+    .section-header-description {
+      margin-top: var(--space-3);
+    }
+
+    /* Slot content spacing */
+    .section-header > :global(*:not(.section-header-eyebrow):not(.section-header-headline):not(.section-header-description)) {
+      margin-top: var(--space-5);
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-header-animate .section-header-eyebrow,
+    .section-header-animate .section-header-headline,
+    .section-header-animate .section-header-description {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* ================================================================
+     DARK SECTION SUPPORT
+     When used inside inverse/dark sections
+     ================================================================ */
+
+  .section-inverse .section-header-description {
+    opacity: 0.85;
+  }
+</style>

@@ -1,192 +1,537 @@
 ---
 /**
  * TrustSignals Component
- * Unified trust signals display supporting multiple layout variants
- * Consolidates: TrustBadges, TrustStripSection, ServiceTrustBand, TrustSignalsSection
+ *
+ * Displays key trust indicators that build credibility and confidence.
+ * Pulls data from the business profile for authentic, always-accurate information.
+ *
+ * Design Philosophy:
+ * Trust signals should feel like earned credentials - professional certification
+ * marks, not marketing fluff. Subtle industrial styling reinforces the "expert
+ * tradesperson" positioning.
+ *
+ * Variants:
+ * - horizontal: Inline row for headers, hero sections, compact spaces
+ * - vertical:   Stacked list for sidebars, detailed trust sections
+ * - compact:    Minimal with icons only, for tight spaces
+ *
+ * @example
+ * <TrustSignals variant="horizontal" />
+ * <TrustSignals variant="vertical" showRating showYears showLicense />
+ * <TrustSignals variant="compact" showEmergency />
  */
-import Section from '../primitives/Section.astro';
+
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
 
 interface Props {
-  variant: 'badges' | 'strip' | 'band' | 'stats';
-  location?: { title: string };
+  /** Layout variant */
+  variant?: 'horizontal' | 'vertical' | 'compact';
+  /** Show Google rating with stars */
+  showRating?: boolean;
+  /** Show total review count */
+  showReviewCount?: boolean;
+  /** Show years in business */
+  showYears?: boolean;
+  /** Show TSSA license badge */
+  showLicense?: boolean;
+  /** Show 24/7 emergency indicator */
+  showEmergency?: boolean;
+  /** Theme for dark backgrounds */
+  inverse?: boolean;
+  /** Additional CSS classes */
   class?: string;
 }
 
-const { variant, location, class: className = '' } = Astro.props;
+const {
+  variant = 'horizontal',
+  showRating = true,
+  showReviewCount = true,
+  showYears = true,
+  showLicense = true,
+  showEmergency = false,
+  inverse = false,
+  class: className = '',
+} = Astro.props;
+
+// Fetch business profile data
 const profile = await getBusinessProfile();
 
 // Calculate years in business
 const currentYear = new Date().getFullYear();
 const yearsInBusiness = currentYear - profile.business.established_year;
 
-// Check if we have trust signals to display (for badges variant)
-const hasRating = profile.reputation.google_rating > 0 && profile.reputation.google_review_count > 0;
-const hasYears = yearsInBusiness > 0;
-const hasLicense = profile.trust_and_compliance?.wsib || profile.trust_and_compliance?.insured_statement;
+// Extract trust data
+const googleRating = profile.reputation.google_rating;
+const reviewCount = profile.reputation.google_review_count;
+const hasEmergency = profile.hours.emergency_service;
+const tssaLicense = profile.trust_and_compliance?.licenses?.tssa?.numbers?.[0] || '';
 
-// Stats data for stats variant
-const stats = [
-  { number: `${yearsInBusiness}+`, label: 'Years in Business' },
-  { number: `${profile.reputation.google_review_count}+`, label: '5-Star Reviews' },
-  { number: '10,000+', label: 'Homes Serviced' },
-  { number: '24/7', label: 'Emergency Service' },
-];
+// Build the signals array based on what to show
+type Signal = {
+  id: string;
+  icon: string;
+  label: string;
+  value?: string;
+  highlight?: boolean;
+};
+
+const signals: Signal[] = [];
+
+if (showRating) {
+  signals.push({
+    id: 'rating',
+    icon: 'star',
+    label: 'Google Rating',
+    value: googleRating.toString(),
+    highlight: true,
+  });
+}
+
+if (showReviewCount) {
+  signals.push({
+    id: 'reviews',
+    icon: 'quote',
+    label: 'Reviews',
+    value: `${reviewCount}+`,
+  });
+}
+
+if (showYears) {
+  signals.push({
+    id: 'years',
+    icon: 'shield',
+    label: 'Years Experience',
+    value: `${yearsInBusiness}+`,
+  });
+}
+
+if (showLicense && tssaLicense) {
+  signals.push({
+    id: 'license',
+    icon: 'certificate',
+    label: 'TSSA Licensed',
+  });
+}
+
+if (showEmergency && hasEmergency) {
+  signals.push({
+    id: 'emergency',
+    icon: 'clock',
+    label: '24/7 Service',
+    highlight: true,
+  });
+}
+
+// Variant class mapping
+const variantClasses: Record<string, string> = {
+  horizontal: 'trust-signals--horizontal',
+  vertical:   'trust-signals--vertical',
+  compact:    'trust-signals--compact',
+};
+
+const classes = [
+  'trust-signals',
+  variantClasses[variant],
+  inverse ? 'trust-signals--inverse' : '',
+  className,
+].filter(Boolean).join(' ');
 ---
 
-{/* BADGES VARIANT - Simple inline badges with emoji icons */}
-{variant === 'badges' && (hasRating || hasYears || hasLicense) && (
-  <div class={`trust-badges ${className}`}>
-    {hasRating && (
-      <div class="trust-badge">
-        <span aria-hidden="true">&#11088;</span>
-        <span>
-          <strong>{profile.reputation.google_rating}</strong> ({profile.reputation.google_review_count}+ reviews)
+<div class={classes}>
+  {signals.map((signal, index) => (
+    <div
+      class:list={[
+        'trust-signal',
+        signal.highlight && 'trust-signal--highlight',
+      ]}
+      style={`--signal-index: ${index}`}
+    >
+      {/* Icon container with industrial accent */}
+      <div class="trust-signal__icon-wrap">
+        <Icon
+          name={signal.icon}
+          size={variant === 'compact' ? 'md' : 'lg'}
+          color={signal.id === 'rating' ? 'accent' : inverse ? 'inverse' : 'primary'}
+        />
+        {/* Star rating visual for rating signal */}
+        {signal.id === 'rating' && variant !== 'compact' && (
+          <div class="trust-signal__stars" aria-hidden="true">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                class:list={[
+                  'star',
+                  star <= Math.floor(googleRating) ? 'star--filled' : '',
+                  star === Math.ceil(googleRating) && googleRating % 1 > 0 ? 'star--partial' : '',
+                ]}
+              >
+                <Icon name="star" size="xs" />
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      {variant !== 'compact' && (
+        <div class="trust-signal__content">
+          {signal.value && (
+            <span class="trust-signal__value">{signal.value}</span>
+          )}
+          <span class="trust-signal__label">{signal.label}</span>
+        </div>
+      )}
+
+      {/* Tooltip for compact variant */}
+      {variant === 'compact' && (
+        <span class="trust-signal__tooltip">
+          {signal.value ? `${signal.value} ${signal.label}` : signal.label}
         </span>
-      </div>
-    )}
-
-    {hasYears && (
-      <div class="trust-badge">
-        <span aria-hidden="true">&#128197;</span>
-        <span>
-          <strong>{yearsInBusiness}+</strong> Years in Business
-        </span>
-      </div>
-    )}
-
-    {hasLicense && (
-      <div class="trust-badge">
-        <span aria-hidden="true">&#10003;</span>
-        <span>
-          Licensed & Insured
-        </span>
-      </div>
-    )}
-  </div>
-)}
-
-{/* STRIP VARIANT - 4-column grid with SVG icons */}
-{variant === 'strip' && (
-  <Section variant="compact">
-    <div class={className}>
-      <div class="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
-        {/* Google Rating */}
-        <div class="flex items-center gap-3 text-center justify-center md:justify-start">
-          <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center" aria-hidden="true">
-            <svg viewBox="0 0 24 24" class="h-5 w-5">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-          </div>
-          <div class="text-sm font-semibold text-foreground sm:text-base">
-            {profile.reputation.google_review_count}+ verified Google reviews ({profile.reputation.google_rating}&#9733;)
-          </div>
-        </div>
-
-        {/* Years in Business */}
-        <div class="flex items-center gap-3 text-center justify-center md:justify-start">
-          <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center" aria-hidden="true">
-            <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div class="text-sm font-semibold text-foreground sm:text-base">
-            Serving {location?.title || 'Wellington County'} since {profile.business.established_year}
-          </div>
-        </div>
-
-        {/* Licensed & Insured */}
-        <div class="flex items-center gap-3 text-center justify-center md:justify-start">
-          <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center" aria-hidden="true">
-            <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <div class="text-sm font-semibold text-foreground sm:text-base">
-            Licensed, insured & WSIB compliant
-          </div>
-        </div>
-
-        {/* Family Owned Business */}
-        <div class="flex items-center gap-3 text-center justify-center md:justify-start">
-          <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center" aria-hidden="true">
-            <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </div>
-          <div class="text-sm font-semibold text-foreground sm:text-base">
-            Family Owned Business
-          </div>
-        </div>
-      </div>
+      )}
     </div>
-  </Section>
-)}
+  ))}
+</div>
 
-{/* BAND VARIANT - Horizontal row with star rating, years, warranty */}
-{variant === 'band' && (
-  <Section variant="compact">
-    <div class={`flex flex-wrap items-center justify-center gap-6 text-center sm:gap-8 md:gap-12 ${className}`}>
-      {/* Social Proof - Rating & Reviews */}
-      <div class="flex items-center gap-2">
-        <div class="flex text-yellow-400">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <svg
-              class={`h-5 w-5 ${star <= Math.floor(profile.reputation.google_rating) ? 'fill-current' : 'fill-current opacity-30'}`}
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-        <span class="font-bold text-foreground">{profile.reputation.google_rating}</span>
-        <span class="text-sm text-muted-foreground">({profile.reputation.google_review_count}+ reviews)</span>
-      </div>
+<style>
+  /**
+   * TrustSignals Styles
+   * Industrial-modern trust indicators with subtle animated accents
+   */
 
-      {/* Divider */}
-      <div class="hidden h-8 w-px bg-border sm:block" aria-hidden="true"></div>
+  /* ================================================================
+     BASE CONTAINER
+     ================================================================ */
 
-      {/* Longevity - Years in Business */}
-      <div class="flex items-center gap-2">
-        <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-        <span class="font-bold text-foreground">{yearsInBusiness}+</span>
-        <span class="text-sm text-muted-foreground">Years in Business</span>
-      </div>
+  .trust-signals {
+    display: flex;
+    gap: var(--space-6);
+  }
 
-      {/* Divider */}
-      <div class="hidden h-8 w-px bg-border sm:block" aria-hidden="true"></div>
+  /* ================================================================
+     LAYOUT VARIANTS
+     ================================================================ */
 
-      {/* Risk Reversal - Warranty */}
-      <div class="flex items-center gap-2">
-        <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-        <span class="font-bold text-foreground">{profile.warranty.parts_and_labour_years}-Year</span>
-        <span class="text-sm text-muted-foreground">Warranty Included</span>
-      </div>
-    </div>
-  </Section>
-)}
+  /* Horizontal: Inline row */
+  .trust-signals--horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
 
-{/* STATS VARIANT - Large numbers row */}
-{variant === 'stats' && (
-  <Section variant="default">
-    <div class={`flex flex-wrap items-center justify-center gap-8 text-center sm:gap-12 lg:gap-16 ${className}`}>
-      {stats.map((stat) => (
-        <div>
-          <div class="text-3xl font-bold text-foreground sm:text-4xl">
-            {stat.number}
-          </div>
-          <div class="text-sm text-muted-foreground">
-            {stat.label}
-          </div>
-        </div>
-      ))}
-    </div>
-  </Section>
-)}
+  /* Vertical: Stacked list */
+  .trust-signals--vertical {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Compact: Icons only in tight row */
+  .trust-signals--compact {
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+
+  /* ================================================================
+     INDIVIDUAL SIGNAL
+     ================================================================ */
+
+  .trust-signal {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    position: relative;
+  }
+
+  /* Staggered animation on load */
+  .trust-signal {
+    opacity: 0;
+    animation: trustSignalFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--signal-index, 0) * 80ms);
+  }
+
+  @keyframes trustSignalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Horizontal variant: Add separator between items */
+  .trust-signals--horizontal .trust-signal:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--space-3) * -1);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-border-primary) 20%,
+      var(--color-border-primary) 80%,
+      transparent
+    );
+  }
+
+  .trust-signals--inverse .trust-signal:not(:last-child)::after {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.2) 80%,
+      transparent
+    );
+  }
+
+  /* Vertical variant: Full-width with subtle background */
+  .trust-signals--vertical .trust-signal {
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-primary-200);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-signals--vertical .trust-signal:hover {
+    border-left-color: var(--color-primary-500);
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .trust-signals--vertical .trust-signal--highlight {
+    border-left-color: var(--color-accent-400);
+    background-color: var(--color-accent-50);
+  }
+
+  .trust-signals--vertical .trust-signal--highlight:hover {
+    border-left-color: var(--color-accent-500);
+    background-color: var(--color-accent-100);
+  }
+
+  /* Compact variant: Just icons */
+  .trust-signals--compact .trust-signal {
+    padding: var(--space-2);
+    background-color: var(--color-surface-tertiary);
+    border-radius: var(--radius-md);
+    cursor: default;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-signals--compact .trust-signal:hover {
+    background-color: var(--color-primary-50);
+    transform: translateY(-2px);
+  }
+
+  .trust-signals--compact .trust-signal--highlight {
+    background-color: var(--color-accent-50);
+  }
+
+  .trust-signals--compact .trust-signal--highlight:hover {
+    background-color: var(--color-accent-100);
+  }
+
+  /* ================================================================
+     ICON WRAPPER
+     Industrial accent with subtle geometric details
+     ================================================================ */
+
+  .trust-signal__icon-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    position: relative;
+  }
+
+  /* ================================================================
+     STAR RATING VISUAL
+     ================================================================ */
+
+  .trust-signal__stars {
+    display: flex;
+    gap: 1px;
+  }
+
+  .star {
+    color: var(--color-border-primary);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .star--filled {
+    color: var(--color-accent-500);
+  }
+
+  .star--partial {
+    color: var(--color-accent-300);
+  }
+
+  /* ================================================================
+     CONTENT
+     ================================================================ */
+
+  .trust-signal__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-0-5);
+  }
+
+  .trust-signal__value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-none);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .trust-signals--inverse .trust-signal__value {
+    color: var(--color-text-inverse);
+  }
+
+  .trust-signal__label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-none);
+    white-space: nowrap;
+  }
+
+  .trust-signals--inverse .trust-signal__label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Highlight variant value color */
+  .trust-signal--highlight .trust-signal__value {
+    color: var(--color-accent-700);
+  }
+
+  .trust-signals--inverse .trust-signal--highlight .trust-signal__value {
+    color: var(--color-accent-400);
+  }
+
+  /* ================================================================
+     TOOLTIP (for compact variant)
+     ================================================================ */
+
+  .trust-signal__tooltip {
+    position: absolute;
+    bottom: calc(100% + var(--space-2));
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    border-radius: var(--radius-md);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      visibility var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+    z-index: var(--z-tooltip);
+    pointer-events: none;
+  }
+
+  /* Tooltip arrow */
+  .trust-signal__tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-surface-inverse);
+  }
+
+  /* Show tooltip on hover */
+  .trust-signals--compact .trust-signal:hover .trust-signal__tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  /* ================================================================
+     INVERSE THEME (for dark backgrounds)
+     ================================================================ */
+
+  .trust-signals--inverse .trust-signals--vertical .trust-signal {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .trust-signals--inverse .trust-signals--vertical .trust-signal:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-left-color: var(--color-primary-400);
+  }
+
+  .trust-signals--inverse .trust-signals--compact .trust-signal {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .trust-signals--inverse .trust-signals--compact .trust-signal:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .trust-signals--horizontal {
+      gap: var(--space-4);
+      justify-content: center;
+    }
+
+    /* Remove separators on mobile */
+    .trust-signals--horizontal .trust-signal::after {
+      display: none;
+    }
+
+    .trust-signal__value {
+      font-size: var(--font-size-lg);
+    }
+
+    .trust-signal__label {
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  /* Very small screens: Stack horizontally */
+  @media (max-width: 480px) {
+    .trust-signals--horizontal {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+
+    .trust-signals--horizontal .trust-signal {
+      justify-content: flex-start;
+      padding: var(--space-2) var(--space-3);
+      background-color: var(--color-surface-secondary);
+      border-radius: var(--radius-md);
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .trust-signal {
+      opacity: 1;
+      animation: none;
+    }
+  }
+</style>

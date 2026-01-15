@@ -1,0 +1,227 @@
+---
+/**
+ * Heading Component
+ *
+ * Semantic headings (h1-h6) with independent visual sizing.
+ * Uses Plus Jakarta Sans for section titles, Fraunces for display/hero.
+ *
+ * The "Trustworthy Industrial Modern" aesthetic calls for:
+ * - Bold, confident typography
+ * - Tight letter-spacing for impact
+ * - Clear hierarchy that builds trust
+ */
+
+interface Props {
+  /** Semantic HTML level (h1-h6) */
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Visual size - can differ from semantic level for flexibility */
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'display' | 'display-lg';
+  /** Font weight */
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold' | 'extrabold';
+  /** Text color variant */
+  color?: 'primary' | 'secondary' | 'inverse' | 'accent' | 'emergency';
+  /** Use display font (Fraunces) instead of heading font (Plus Jakarta Sans) */
+  display?: boolean;
+  /** Whether to apply gradient text effect */
+  gradient?: boolean;
+  /** Text alignment */
+  align?: 'left' | 'center' | 'right';
+  /** Enable text balance for better line wrapping */
+  balance?: boolean;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  level,
+  size,
+  weight = 'bold',
+  color = 'primary',
+  display = false,
+  gradient = false,
+  align,
+  balance = false,
+  class: className = '',
+} = Astro.props;
+
+// Determine visual size - defaults based on semantic level if not specified
+const defaultSizeMap: Record<number, string> = {
+  1: '4xl',
+  2: '3xl',
+  3: '2xl',
+  4: 'xl',
+  5: 'lg',
+  6: 'md',
+};
+const visualSize = size || defaultSizeMap[level];
+
+// Size configurations mapping to design tokens
+// Font sizes use clamp() in tokens.css for fluid scaling
+const sizeClasses: Record<string, string> = {
+  // Standard heading sizes
+  sm: 'text-heading-sm',      // ~17-18px
+  md: 'text-heading-md',      // ~18-20px
+  lg: 'text-heading-lg',      // ~20-24px
+  xl: 'text-heading-xl',      // ~24-30px
+  '2xl': 'text-heading-2xl',  // ~30-36px
+  '3xl': 'text-heading-3xl',  // ~32-40px
+  '4xl': 'text-heading-4xl',  // ~40-48px
+  // Display sizes for hero headlines
+  'display': 'text-display',       // ~36-60px
+  'display-lg': 'text-display-lg', // ~40-72px
+};
+
+// Weight classes
+const weightClasses: Record<string, string> = {
+  normal: 'font-normal',
+  medium: 'font-medium',
+  semibold: 'font-semibold',
+  bold: 'font-bold',
+  extrabold: 'font-extrabold',
+};
+
+// Color classes
+const colorClasses: Record<string, string> = {
+  primary: 'text-text-primary',
+  secondary: 'text-text-secondary',
+  inverse: 'text-text-inverse',
+  accent: 'text-accent-600',
+  emergency: 'text-emergency-600',
+};
+
+// Alignment classes
+const alignClasses: Record<string, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
+// Build class string
+const fontFamily = display || visualSize.startsWith('display') ? 'font-display' : 'font-heading';
+const letterSpacing = display || visualSize.startsWith('display') ? 'tracking-tighter' : 'tracking-tight';
+const lineHeight = visualSize === 'display-lg' ? 'leading-none' : 'leading-tight';
+
+const classes = [
+  fontFamily,
+  sizeClasses[visualSize] || sizeClasses['lg'],
+  weightClasses[weight],
+  !gradient ? colorClasses[color] : '',
+  letterSpacing,
+  lineHeight,
+  align ? alignClasses[align] : '',
+  balance ? 'text-balance' : '',
+  gradient ? 'heading-gradient' : '',
+  className,
+].filter(Boolean).join(' ');
+
+// Dynamic element based on level
+const Element = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+---
+
+<Element class={classes}>
+  <slot />
+</Element>
+
+<style is:global>
+  /**
+   * Heading typography styles
+   * Using CSS custom properties from tokens.css
+   */
+
+  /* Font families */
+  .font-display {
+    font-family: var(--font-family-display);
+    font-optical-sizing: auto;
+  }
+  .font-heading {
+    font-family: var(--font-family-heading);
+  }
+
+  /* Standard heading sizes */
+  .text-heading-sm {
+    font-size: var(--font-size-lg);
+  }
+  .text-heading-md {
+    font-size: var(--font-size-xl);
+  }
+  .text-heading-lg {
+    font-size: var(--font-size-2xl);
+  }
+  .text-heading-xl {
+    font-size: var(--font-size-3xl);
+  }
+  .text-heading-2xl {
+    font-size: var(--font-size-4xl);
+  }
+  .text-heading-3xl {
+    font-size: var(--font-size-5xl);
+  }
+  .text-heading-4xl {
+    font-size: var(--font-size-6xl);
+  }
+
+  /* Display sizes for hero content */
+  .text-display {
+    font-size: var(--font-size-display-lg);
+  }
+  .text-display-lg {
+    font-size: var(--font-size-display-hero);
+  }
+
+  /* Letter spacing */
+  .tracking-tighter {
+    letter-spacing: var(--letter-spacing-tighter);
+  }
+  .tracking-tight {
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  /* Line heights */
+  .leading-none {
+    line-height: var(--line-height-none);
+  }
+  .leading-tight {
+    line-height: var(--line-height-tight);
+  }
+
+  /* Text colors */
+  .text-text-primary {
+    color: var(--color-text-primary);
+  }
+  .text-text-secondary {
+    color: var(--color-text-secondary);
+  }
+  .text-text-inverse {
+    color: var(--color-text-inverse);
+  }
+  .text-accent-600 {
+    color: var(--color-accent-600);
+  }
+  .text-emergency-600 {
+    color: var(--color-emergency-600);
+  }
+
+  /* Text balance for better wrapping */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Gradient text effect for special headlines */
+  .heading-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-700) 0%,
+      var(--color-primary-500) 50%,
+      var(--color-accent-600) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Dark mode / inverse section support */
+  .section-inverse .text-text-primary,
+  [data-theme="dark"] .text-text-primary {
+    color: var(--color-text-inverse);
+  }
+</style>

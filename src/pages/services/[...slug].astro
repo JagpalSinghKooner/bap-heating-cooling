@@ -1,23 +1,12 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import ReviewsBlock from '../../components/ReviewsBlock.astro';
-import FAQSection from '../../components/shared/FAQSection.astro';
-import ServiceCategoriesSection from '../../components/homepage/ServiceCategoriesSection.astro';
-// Service page components
-import ServiceHero from '../../components/services/ServiceHero.astro';
-import ServiceTrustBand from '../../components/services/ServiceTrustBand.astro';
-import ServiceValueProps from '../../components/services/ServiceValueProps.astro';
-import GradientCTASection from '../../components/shared/GradientCTASection.astro';
-// New full-funnel components
-import ServiceProblemAgitation from '../../components/services/ServiceProblemAgitation.astro';
-import ServiceSolution from '../../components/services/ServiceSolution.astro';
-import ServiceProcess from '../../components/services/ServiceProcess.astro';
-import ServiceInclusions from '../../components/services/ServiceInclusions.astro';
-import ServiceSavings from '../../components/services/ServiceSavings.astro';
-import ServiceGuarantee from '../../components/services/ServiceGuarantee.astro';
-import ServiceLocalProof from '../../components/services/ServiceLocalProof.astro';
-import ServiceImageGallery from '../../components/services/ServiceImageGallery.astro';
+/**
+ * Service/Service-City Page - Gutted for Redesign
+ *
+ * Preserves all data fetching, routing logic, and schemas.
+ * Visual components will be rebuilt in Phase 5-6.
+ */
 
+import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
@@ -133,13 +122,6 @@ const locationSlug = location ? cleanSlug(location.id) : null;
 
 // Get business profile and generate schema
 const profile = await getBusinessProfile();
-
-// Supporting copy for CTA sections (matches original ServiceFinalCTA logic)
-const ctaSupportingCopy: Record<string, string> = {
-  installation: `Free estimates, no pressure. Get expert advice from TSSA-certified technicians who've served Ontario families for ${new Date().getFullYear() - profile.business.established_year}+ years.`,
-  repair: `Don't wait for the problem to get worse. Our technicians are available 24/7 with no overtime charges.`,
-  maintenance: `Keep your system running at peak efficiency. Prevent costly breakdowns with regular professional maintenance.`,
-};
 
 // Load all FAQs
 const allFAQs = await getCollection('faqs');
@@ -272,214 +254,12 @@ if (type === 'service-city' && location && locationSlug) {
   robots={robots}
   schema={schema}
 >
-  {type === 'service' ? (
-    <>
-      {/* 1. Hero Section */}
-      <ServiceHero
-        title={service.data.title}
-        description={service.data.description}
-        category={service.data.category}
-        serviceType={service.data.serviceType || 'installation'}
-      />
-
-      {/* 2. Trust Band */}
-      <ServiceTrustBand />
-
-      {/* 3. Problem Agitation - NEW */}
-      {mergedData.problems && mergedData.problems.length > 0 && (
-        <ServiceProblemAgitation
-          serviceTitle={service.data.title}
-          problems={mergedData.problems}
-        />
-      )}
-
-      {/* 4. Solution/Approach - NEW */}
-      {mergedData.approach && (
-        <ServiceSolution
-          serviceTitle={service.data.title}
-          approach={mergedData.approach}
-        />
-      )}
-
-      {/* 5. Value Props */}
-      <ServiceValueProps
-        serviceTitle={service.data.title}
-        valueProps={service.data.valueProps}
-      />
-
-      {/* 6. Process Steps - NEW */}
-      {mergedData.processSteps && mergedData.processSteps.length > 0 && (
-        <ServiceProcess
-          serviceTitle={service.data.title}
-          processSteps={mergedData.processSteps}
-        />
-      )}
-
-      {/* 7. What's Included - NEW */}
-      {mergedData.inclusions && (
-        <ServiceInclusions
-          serviceTitle={service.data.title}
-          inclusions={mergedData.inclusions}
-        />
-      )}
-
-      {/* 8. Savings - NEW */}
-      {mergedData.savings && (
-        <ServiceSavings
-          serviceTitle={service.data.title}
-          savings={mergedData.savings}
-        />
-      )}
-
-      {/* 9. Image Gallery - NEW */}
-      {mergedData.images && mergedData.images.length > 0 && (
-        <ServiceImageGallery
-          serviceTitle={service.data.title}
-          images={mergedData.images}
-        />
-      )}
-
-      {/* 10. Related Services */}
-      <ServiceCategoriesSection
-        currentServiceSlug={serviceSlug}
-      />
-
-      {/* 11. Reviews Section */}
-      <ReviewsBlock reviews={pageReviews} title={`${service.data.title} Customer Reviews`} />
-
-      {/* 12. Guarantee - NEW */}
-      {mergedData.guarantee && (
-        <ServiceGuarantee
-          serviceTitle={service.data.title}
-          guarantee={mergedData.guarantee}
-        />
-      )}
-
-      {/* 13. FAQs */}
-      {pageFAQs.length > 0 && (
-        <FAQSection faqs={pageFAQs} />
-      )}
-
-      {/* 14. Final CTA */}
-      <GradientCTASection
-        headline={`Ready for ${service.data.title}?`}
-        description={ctaSupportingCopy[service.data.serviceType || 'installation']}
-        variant={service.data.serviceType || 'installation'}
-        context="service-final"
-      />
-    </>
-  ) : location ? (
-    <>
-      {/* 1. Hero Section with Location */}
-      <ServiceHero
-        title={service.data.title}
-        description={service.data.description}
-        category={service.data.category}
-        serviceType={service.data.serviceType || 'installation'}
-        location={{ title: location.data.title, slug: locationSlug! }}
-      />
-
-      {/* 2. Trust Band */}
-      <ServiceTrustBand />
-
-      {/* 3. Problem Agitation - NEW */}
-      {mergedData.problems && mergedData.problems.length > 0 && (
-        <ServiceProblemAgitation
-          serviceTitle={service.data.title}
-          location={{ title: location.data.title }}
-          problems={mergedData.problems}
-        />
-      )}
-
-      {/* 4. Solution/Approach - NEW */}
-      {mergedData.approach && (
-        <ServiceSolution
-          serviceTitle={service.data.title}
-          location={{ title: location.data.title }}
-          approach={mergedData.approach}
-        />
-      )}
-
-      {/* 5. Value Props */}
-      <ServiceValueProps
-        serviceTitle={service.data.title}
-        valueProps={service.data.valueProps}
-        location={{ title: location.data.title }}
-      />
-
-      {/* 6. Process Steps - NEW */}
-      {mergedData.processSteps && mergedData.processSteps.length > 0 && (
-        <ServiceProcess
-          serviceTitle={service.data.title}
-          location={{ title: location.data.title }}
-          processSteps={mergedData.processSteps}
-        />
-      )}
-
-      {/* 7. What's Included - NEW */}
-      {mergedData.inclusions && (
-        <ServiceInclusions
-          serviceTitle={service.data.title}
-          inclusions={mergedData.inclusions}
-        />
-      )}
-
-      {/* 8. Savings - NEW */}
-      {mergedData.savings && (
-        <ServiceSavings
-          serviceTitle={service.data.title}
-          location={{ title: location.data.title }}
-          savings={mergedData.savings}
-        />
-      )}
-
-      {/* 9. Image Gallery - NEW */}
-      {mergedData.images && mergedData.images.length > 0 && (
-        <ServiceImageGallery
-          serviceTitle={service.data.title}
-          images={mergedData.images}
-        />
-      )}
-
-      {/* 10. Related Services in This Location */}
-      <ServiceCategoriesSection
-        currentServiceSlug={serviceSlug}
-        locationSlug={locationSlug || undefined}
-        locationTitle={location.data.title}
-      />
-
-      {/* 11. Local Proof - NEW (city pages only) */}
-      {mergedData.localProof && (
-        <ServiceLocalProof
-          serviceTitle={service.data.title}
-          location={{ title: location.data.title }}
-          localProof={mergedData.localProof}
-        />
-      )}
-
-      {/* 12. Reviews Section */}
-      <ReviewsBlock reviews={pageReviews} title={`${service.data.title} Reviews in ${location.data.title}`} />
-
-      {/* 13. Guarantee - NEW */}
-      {mergedData.guarantee && (
-        <ServiceGuarantee
-          serviceTitle={service.data.title}
-          guarantee={mergedData.guarantee}
-        />
-      )}
-
-      {/* 14. FAQs */}
-      {pageFAQs.length > 0 && (
-        <FAQSection faqs={pageFAQs} />
-      )}
-
-      {/* 15. Final CTA */}
-      <GradientCTASection
-        headline={`Ready for ${service.data.title} in ${location.data.title}?`}
-        description={ctaSupportingCopy[service.data.serviceType || 'installation']}
-        variant={service.data.serviceType || 'installation'}
-        context="service-final"
-      />
-    </>
-  ) : null}
+  <!-- Service/Service-City page placeholder - will be rebuilt in Phase 5-6 -->
+  <div class="redesign-placeholder">
+    <h1>{type === 'service' ? service.data.title : `${service.data.title} in ${location?.data.title}`}</h1>
+    <p>Service page redesign in progress. Components will be built using the frontend-design skill.</p>
+    <p class="text-sm" style="margin-top: 1rem; color: #94a3b8;">
+      Page type: {type} | Service: {serviceSlug} {locationSlug && `| Location: ${locationSlug}`}
+    </p>
+  </div>
 </BaseLayout>

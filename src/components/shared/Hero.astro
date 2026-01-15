@@ -1,0 +1,557 @@
+---
+/**
+ * Hero Component (Homepage)
+ *
+ * The commanding introduction to B.A.P Heating & Cooling.
+ * "Trustworthy Industrial Modern" - like a firm handshake, confident and warm.
+ *
+ * Design Philosophy:
+ * - Phone calls are the PRIMARY conversion goal
+ * - Trust indicators reinforce credibility immediately
+ * - Fraunces display font creates warm, handcrafted authority
+ * - Staggered reveal animation creates polished entrance
+ * - Industrial geometric accents add distinctive character
+ *
+ * This is NOT a generic hero - it's designed to make someone think:
+ * "These guys look legit. I should just call them."
+ */
+
+import Container from '../primitives/Container.astro';
+import Button from '../primitives/Button.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+
+interface Props {
+  /** Main headline - the big promise */
+  headline: string;
+  /** Supporting text beneath headline */
+  subheadline?: string;
+  /** Small label above headline */
+  eyebrow?: string;
+  /** Primary call-to-action (usually phone) */
+  primaryCTA: {
+    label: string;
+    href: string;
+    variant?: 'primary' | 'emergency';
+  };
+  /** Secondary call-to-action (usually book online) */
+  secondaryCTA?: {
+    label: string;
+    href: string;
+  };
+  /** Background image URL */
+  backgroundImage?: string;
+  /** Show trust signals row (rating, years, etc.) */
+  showTrustIndicators?: boolean;
+  /** Show "Open Now" availability badge */
+  showAvailability?: boolean;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  headline,
+  subheadline,
+  eyebrow,
+  primaryCTA,
+  secondaryCTA,
+  backgroundImage,
+  showTrustIndicators = true,
+  showAvailability = true,
+  class: className = '',
+} = Astro.props;
+
+// Get business data for trust indicators
+const profile = await getBusinessProfile();
+const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
+const rating = profile.reputation.google_rating;
+const reviewCount = profile.reputation.google_review_count;
+const is24_7 = profile.hours.emergency_service;
+
+// Calculate availability (simplified - you could enhance with actual business hours check)
+const isOpenNow = true; // Placeholder - implement actual hours check if needed
+---
+
+<section
+  class:list={['hero', className]}
+  role="banner"
+  aria-labelledby="hero-headline"
+>
+  <!-- Background with gradient overlay -->
+  <div class="hero-background">
+    {backgroundImage && (
+      <img
+        src={backgroundImage}
+        alt=""
+        class="hero-background-image"
+        loading="eager"
+        decoding="async"
+      />
+    )}
+    <div class="hero-gradient" aria-hidden="true" />
+
+    <!-- Industrial accent - diagonal stripes pattern (subtle) -->
+    <div class="hero-accent-pattern" aria-hidden="true" />
+  </div>
+
+  <Container size="xl" class="hero-container">
+    <div class="hero-content">
+      <!-- Eyebrow with badge styling -->
+      {eyebrow && (
+        <div class="hero-eyebrow animate-item" style="--delay: 0;">
+          <Eyebrow color="inverse" variant="badge" icon="shield-check">
+            {eyebrow}
+          </Eyebrow>
+        </div>
+      )}
+
+      <!-- Main Headline - Fraunces display font -->
+      <h1 id="hero-headline" class="hero-headline animate-item" style="--delay: 1;">
+        {headline}
+      </h1>
+
+      <!-- Subheadline -->
+      {subheadline && (
+        <p class="hero-subheadline animate-item" style="--delay: 2;">
+          {subheadline}
+        </p>
+      )}
+
+      <!-- CTA Buttons -->
+      <div class="hero-cta-group animate-item" style="--delay: 3;">
+        <Button
+          variant={primaryCTA.variant || 'primary'}
+          size="lg"
+          href={primaryCTA.href}
+          iconLeft="phone"
+          class="hero-cta-primary"
+          data-cta-context="hero-primary"
+        >
+          {primaryCTA.label}
+        </Button>
+
+        {secondaryCTA && (
+          <Button
+            variant="outline"
+            size="lg"
+            href={secondaryCTA.href}
+            class="hero-cta-secondary"
+            data-cta-context="hero-secondary"
+          >
+            {secondaryCTA.label}
+          </Button>
+        )}
+      </div>
+
+      <!-- Trust Indicators Row -->
+      {showTrustIndicators && (
+        <div class="hero-trust-row animate-item" style="--delay: 4;">
+          <!-- Google Rating -->
+          <div class="trust-indicator">
+            <div class="trust-stars" aria-label={`${rating} out of 5 stars`}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                  class:list={['trust-star', { filled: star <= Math.round(rating) }]}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span class="trust-value">{rating}</span>
+            <span class="trust-label">({reviewCount}+ reviews)</span>
+          </div>
+
+          <div class="trust-divider" aria-hidden="true" />
+
+          <!-- Years in Business -->
+          <div class="trust-indicator">
+            <span class="trust-value">{yearsInBusiness}+</span>
+            <span class="trust-label">Years</span>
+          </div>
+
+          <div class="trust-divider" aria-hidden="true" />
+
+          <!-- 24/7 Service (if applicable) -->
+          {is24_7 && (
+            <>
+              <div class="trust-indicator trust-indicator-highlight">
+                <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12,6 12,12 16,14" />
+                </svg>
+                <span class="trust-value">24/7</span>
+                <span class="trust-label">Emergency</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <!-- Availability Indicator -->
+      {showAvailability && (
+        <div class="hero-availability animate-item" style="--delay: 5;">
+          <span class="availability-dot" aria-hidden="true" />
+          <span class="availability-text">
+            {is24_7 ? 'Available 24/7 for emergencies' : isOpenNow ? 'Open now' : 'Call for availability'}
+          </span>
+        </div>
+      )}
+    </div>
+
+    <!-- Optional: Hero illustration/image slot -->
+    <div class="hero-visual animate-item" style="--delay: 2;">
+      <slot name="visual" />
+    </div>
+  </Container>
+
+  <!-- Industrial bottom edge accent -->
+  <div class="hero-edge-accent" aria-hidden="true">
+    <svg preserveAspectRatio="none" viewBox="0 0 1440 60" fill="none">
+      <path d="M0 60L1440 60L1440 0C1200 40 960 50 720 45C480 40 240 20 0 0L0 60Z" fill="currentColor" />
+    </svg>
+  </div>
+</section>
+
+<style is:global>
+  /**
+   * Hero Component Styles
+   *
+   * "Trustworthy Industrial Modern" - commanding presence,
+   * warm confidence, immediate trust signals.
+   */
+
+  .hero {
+    position: relative;
+    min-height: clamp(500px, 80vh, 800px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background-color: var(--color-surface-inverse);
+  }
+
+  /* ============================================
+     BACKGROUND LAYER
+     ============================================ */
+
+  .hero-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero-background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Gradient overlay for text legibility */
+  .hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.92) 0%,
+      rgba(15, 23, 42, 0.75) 50%,
+      rgba(26, 47, 89, 0.7) 100%
+    );
+  }
+
+  /* Industrial accent pattern - subtle diagonal lines */
+  .hero-accent-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.5) 10px,
+      rgba(255, 255, 255, 0.5) 11px
+    );
+    pointer-events: none;
+  }
+
+  /* ============================================
+     CONTAINER & LAYOUT
+     ============================================ */
+
+  .hero-container {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+    align-items: center;
+    padding-top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-16));
+    padding-bottom: var(--space-20);
+  }
+
+  @media (min-width: 1024px) {
+    .hero-container {
+      grid-template-columns: 1.2fr 0.8fr;
+    }
+  }
+
+  /* ============================================
+     CONTENT AREA
+     ============================================ */
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  /* Eyebrow */
+  .hero-eyebrow {
+    display: inline-flex;
+  }
+
+  /* Headline - Fraunces display font for warmth */
+  .hero-headline {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-display-hero);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tighter);
+    color: var(--color-text-inverse);
+    text-wrap: balance;
+    max-width: 18ch;
+  }
+
+  /* Add warm accent to key words (wrap with <em>) */
+  .hero-headline em {
+    font-style: normal;
+    color: var(--color-accent-400);
+    position: relative;
+  }
+
+  /* Subheadline */
+  .hero-subheadline {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-relaxed);
+    color: rgba(248, 250, 252, 0.8);
+    max-width: 50ch;
+  }
+
+  @media (min-width: 768px) {
+    .hero-subheadline {
+      font-size: var(--font-size-2xl);
+    }
+  }
+
+  /* ============================================
+     CTA BUTTONS
+     ============================================ */
+
+  .hero-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .hero-cta-primary {
+    /* Ensure phone CTA is prominent */
+    flex-shrink: 0;
+  }
+
+  /* Secondary CTA styled for dark background */
+  .hero-cta-secondary {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text-inverse);
+  }
+
+  .hero-cta-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text-inverse);
+  }
+
+  /* ============================================
+     TRUST INDICATORS ROW
+     ============================================ */
+
+  .hero-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .trust-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .trust-indicator-highlight {
+    color: var(--color-accent-400);
+  }
+
+  .trust-stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .trust-star {
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.2);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-star.filled {
+    color: var(--color-accent-400);
+  }
+
+  .trust-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+  }
+
+  .trust-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: rgba(248, 250, 252, 0.6);
+  }
+
+  .trust-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .trust-divider {
+    width: 1px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  @media (max-width: 640px) {
+    .trust-divider {
+      display: none;
+    }
+
+    .hero-trust-row {
+      gap: var(--space-6);
+    }
+  }
+
+  /* ============================================
+     AVAILABILITY INDICATOR
+     ============================================ */
+
+  .hero-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .availability-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-success-500);
+    animation: pulse-availability 2s ease-in-out infinite;
+  }
+
+  .availability-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-success-400);
+    font-weight: var(--font-weight-medium);
+  }
+
+  @keyframes pulse-availability {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* ============================================
+     VISUAL AREA (Optional slot content)
+     ============================================ */
+
+  .hero-visual {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-visual {
+      display: block;
+      position: relative;
+    }
+  }
+
+  /* ============================================
+     BOTTOM EDGE ACCENT
+     ============================================ */
+
+  .hero-edge-accent {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    color: var(--color-surface-primary);
+    z-index: 2;
+  }
+
+  .hero-edge-accent svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ============================================
+     STAGGERED ENTRANCE ANIMATION
+     ============================================ */
+
+  .animate-item {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: hero-reveal 0.7s var(--ease-out) forwards;
+    animation-delay: calc(var(--delay, 0) * 100ms + 150ms);
+  }
+
+  @keyframes hero-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-item {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .availability-dot {
+      animation: none;
+    }
+  }
+</style>

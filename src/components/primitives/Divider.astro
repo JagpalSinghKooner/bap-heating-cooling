@@ -1,0 +1,401 @@
+---
+/**
+ * Divider Component
+ *
+ * A visual separator that creates clear boundaries between content sections.
+ * Follows the "Trustworthy Industrial Modern" aesthetic with purposeful,
+ * clean demarcation inspired by professional equipment panels.
+ *
+ * Design Philosophy:
+ * Dividers should feel like quality industrial markings - functional,
+ * precise, and never decorative. They establish rhythm and create
+ * visual breathing room without drawing attention to themselves.
+ *
+ * Orientations:
+ * - horizontal: Default, spans full width of container
+ * - vertical:   For inline separation (requires explicit height or flex context)
+ *
+ * Variants:
+ * - solid:  Clean single line - default, professional
+ * - dashed: Industrial marking style - for subtle emphasis
+ * - dotted: Softer separation - for lighter visual weight
+ *
+ * Spacing:
+ * - none: No margin - for tight layouts
+ * - sm:   8px margin - compact spacing
+ * - md:   16px margin - default balanced spacing
+ * - lg:   24px margin - generous breathing room
+ * - xl:   32px margin - maximum separation
+ */
+
+interface Props {
+  /** Orientation of the divider */
+  orientation?: 'horizontal' | 'vertical';
+  /** Line style variant */
+  variant?: 'solid' | 'dashed' | 'dotted';
+  /** Spacing around the divider */
+  spacing?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Color variant for different contexts */
+  color?: 'default' | 'muted' | 'strong' | 'primary' | 'accent';
+  /** Line thickness */
+  thickness?: 'thin' | 'default' | 'thick';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  orientation = 'horizontal',
+  variant = 'solid',
+  spacing = 'md',
+  color = 'default',
+  thickness = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Orientation configurations
+const orientationConfig: Record<string, string> = {
+  horizontal: 'divider-horizontal',
+  vertical: 'divider-vertical',
+};
+
+// Variant configurations (line style)
+const variantConfig: Record<string, string> = {
+  solid: 'divider-solid',
+  dashed: 'divider-dashed',
+  dotted: 'divider-dotted',
+};
+
+// Spacing configurations
+const spacingConfig: Record<string, string> = {
+  none: 'divider-spacing-none',
+  sm: 'divider-spacing-sm',
+  md: 'divider-spacing-md',
+  lg: 'divider-spacing-lg',
+  xl: 'divider-spacing-xl',
+};
+
+// Color configurations
+const colorConfig: Record<string, string> = {
+  default: 'divider-color-default',
+  muted: 'divider-color-muted',
+  strong: 'divider-color-strong',
+  primary: 'divider-color-primary',
+  accent: 'divider-color-accent',
+};
+
+// Thickness configurations
+const thicknessConfig: Record<string, string> = {
+  thin: 'divider-thin',
+  default: 'divider-default-thickness',
+  thick: 'divider-thick',
+};
+
+// Build class string
+const classes = [
+  'divider-base',
+  orientationConfig[orientation],
+  variantConfig[variant],
+  spacingConfig[spacing],
+  colorConfig[color],
+  thicknessConfig[thickness],
+  className,
+].filter(Boolean).join(' ');
+---
+
+<hr class={classes} aria-hidden="true" />
+
+<style is:global>
+  /**
+   * Divider Component Styles
+   * Clean, industrial-modern visual separators
+   */
+
+  /* ============================================
+     BASE DIVIDER
+     ============================================ */
+
+  .divider-base {
+    border: none;
+    flex-shrink: 0;
+  }
+
+  /* ============================================
+     ORIENTATION VARIANTS
+     ============================================ */
+
+  .divider-horizontal {
+    width: 100%;
+    height: 0;
+    border-top-width: 1px;
+  }
+
+  .divider-vertical {
+    width: 0;
+    height: 100%;
+    min-height: 1rem;
+    align-self: stretch;
+    border-left-width: 1px;
+  }
+
+  /* ============================================
+     LINE STYLE VARIANTS
+     ============================================ */
+
+  .divider-solid {
+    border-style: solid;
+  }
+
+  .divider-dashed {
+    border-style: dashed;
+  }
+
+  .divider-dotted {
+    border-style: dotted;
+  }
+
+  /* ============================================
+     SPACING VARIANTS
+     ============================================ */
+
+  /* Horizontal spacing (vertical margins) */
+  .divider-horizontal.divider-spacing-none {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .divider-horizontal.divider-spacing-sm {
+    margin-top: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .divider-horizontal.divider-spacing-md {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .divider-horizontal.divider-spacing-lg {
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+
+  .divider-horizontal.divider-spacing-xl {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+
+  /* Vertical spacing (horizontal margins) */
+  .divider-vertical.divider-spacing-none {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .divider-vertical.divider-spacing-sm {
+    margin-left: var(--space-2);
+    margin-right: var(--space-2);
+  }
+
+  .divider-vertical.divider-spacing-md {
+    margin-left: var(--space-4);
+    margin-right: var(--space-4);
+  }
+
+  .divider-vertical.divider-spacing-lg {
+    margin-left: var(--space-6);
+    margin-right: var(--space-6);
+  }
+
+  .divider-vertical.divider-spacing-xl {
+    margin-left: var(--space-8);
+    margin-right: var(--space-8);
+  }
+
+  /* ============================================
+     COLOR VARIANTS
+     ============================================ */
+
+  .divider-color-default {
+    border-color: var(--color-border-primary);
+  }
+
+  .divider-color-muted {
+    border-color: var(--color-border-secondary);
+  }
+
+  .divider-color-strong {
+    border-color: var(--color-text-tertiary);
+  }
+
+  .divider-color-primary {
+    border-color: var(--color-primary-200);
+  }
+
+  .divider-color-accent {
+    border-color: var(--color-accent-200);
+  }
+
+  /* ============================================
+     THICKNESS VARIANTS
+     ============================================ */
+
+  /* Thin - subtle separation */
+  .divider-horizontal.divider-thin {
+    border-top-width: 1px;
+  }
+
+  .divider-vertical.divider-thin {
+    border-left-width: 1px;
+  }
+
+  /* Default - balanced */
+  .divider-horizontal.divider-default-thickness {
+    border-top-width: 1px;
+  }
+
+  .divider-vertical.divider-default-thickness {
+    border-left-width: 1px;
+  }
+
+  /* Thick - strong demarcation */
+  .divider-horizontal.divider-thick {
+    border-top-width: 2px;
+  }
+
+  .divider-vertical.divider-thick {
+    border-left-width: 2px;
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For dividers on dark backgrounds
+     ============================================ */
+
+  .section-inverse .divider-color-default,
+  .bg-inverse .divider-color-default {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .divider-color-muted,
+  .bg-inverse .divider-color-muted {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .section-inverse .divider-color-strong,
+  .bg-inverse .divider-color-strong {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section-inverse .divider-color-primary,
+  .bg-inverse .divider-color-primary {
+    border-color: var(--color-primary-400);
+  }
+
+  .section-inverse .divider-color-accent,
+  .bg-inverse .divider-color-accent {
+    border-color: var(--color-accent-400);
+  }
+
+  /* ============================================
+     DECORATIVE VARIANTS
+     Industrial Modern accent styles
+     Add these classes manually for special effects
+     ============================================ */
+
+  /* Gradient fade - elegant fade at edges */
+  .divider-gradient {
+    border: none !important;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-border-primary) 15%,
+      var(--color-border-primary) 85%,
+      transparent 100%
+    );
+  }
+
+  .divider-gradient.divider-thick {
+    height: 2px;
+  }
+
+  .divider-gradient.divider-color-primary {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-primary-200) 15%,
+      var(--color-primary-200) 85%,
+      transparent 100%
+    );
+  }
+
+  .divider-gradient.divider-color-accent {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-accent-200) 15%,
+      var(--color-accent-200) 85%,
+      transparent 100%
+    );
+  }
+
+  /* Inverse gradient */
+  .section-inverse .divider-gradient,
+  .bg-inverse .divider-gradient {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 15%,
+      rgba(255, 255, 255, 0.15) 85%,
+      transparent 100%
+    );
+  }
+
+  /* Industrial accent bar - bold separator */
+  .divider-industrial {
+    border: none !important;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 50%,
+      var(--color-primary-500) 100%
+    );
+    border-radius: var(--radius-full);
+  }
+
+  .divider-industrial.divider-color-accent {
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-500) 0%,
+      var(--color-accent-600) 50%,
+      var(--color-accent-500) 100%
+    );
+  }
+
+  /* Centered short divider - for section breaks */
+  .divider-centered {
+    width: 80px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .divider-centered.divider-industrial {
+    width: 60px;
+  }
+
+  /* With label - for "or" dividers, requires wrapper */
+  .divider-with-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    border: none !important;
+    height: auto;
+  }
+
+  .divider-with-label::before,
+  .divider-with-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--color-border-primary);
+  }
+</style>

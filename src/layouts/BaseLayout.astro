@@ -1,12 +1,14 @@
 ---
+/**
+ * BaseLayout - Gutted for Redesign
+ *
+ * This preserves all head/meta logic for SEO.
+ * Visual components will be rebuilt during Phase 3.
+ */
+
 import '../styles/global.css';
 import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../lib/getBusinessProfile';
 import { getCanonicalUrl } from '../lib/urlGovernance';
-import logo from '../images/bapheatingandcoolingltd.webp';
-import SeasonalCalloutBar from '../components/header/SeasonalCalloutBar.astro';
-import Header from '../components/header/Header.astro';
-import FloatingCTA from '../components/primitives/FloatingCTA.astro';
-import ExitIntentModal from '../components/shared/ExitIntentModal.astro';
 
 export interface Props {
   title?: string;
@@ -140,12 +142,14 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
     </a>
 
     <div class="flex min-h-screen flex-col">
-      <!-- Seasonal Callout Bar (sticky only) -->
-      <SeasonalCalloutBar />
-
-      <!-- Header (non-sticky) -->
-      <header role="banner">
-        <Header />
+      <!-- Header placeholder - will be rebuilt in Phase 3 -->
+      <header role="banner" class="bg-slate-900 text-white p-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+          <a href="/" class="text-xl font-bold">{companyName}</a>
+          <a href={getPhoneLink(profile)} class="text-sm hover:underline">
+            {getPhoneDisplay(profile)}
+          </a>
+        </div>
       </header>
 
       <!-- Main Content -->
@@ -153,291 +157,20 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
         <slot />
       </main>
 
-      <!-- Footer -->
-      <footer class="bg-slate-900 text-slate-300" role="contentinfo">
-        <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-
-          <!-- Main Content Grid -->
-          <div class="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:grid-cols-5">
-
-            <!-- Brand Column - spans 2 on mobile, 1 on larger -->
-            <div class="col-span-2 sm:col-span-4 lg:col-span-2">
-              <img
-                src={logo.src}
-                alt={companyName}
-                class="h-12 w-auto brightness-0 invert mb-5"
-              />
-              <p class="text-sm text-slate-400 mb-6 max-w-xs">
-                Family-owned HVAC company serving Ontario since {profile.business.established_year}. 24/7 emergency service with a 10-year warranty on all installations.
-              </p>
-              <!-- Contact Info -->
-              <div class="space-y-2">
-                <a
-                  href={getPhoneLink(profile)}
-                  class="flex items-center gap-2 text-white font-semibold hover:text-blue-400 transition-colors"
-                >
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {getPhoneDisplay(profile)}
-                </a>
-                <a
-                  href={getEmailLink(profile)}
-                  class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
-                >
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  {getEmail(profile)}
-                </a>
-              </div>
-            </div>
-
-            <!-- Services Column -->
-            <div>
-              <h4 class="text-sm font-semibold text-white mb-4">Services</h4>
-              <ul class="space-y-2 text-sm">
-                <li><a href="/services/heating/" class="hover:text-white transition-colors">Heating</a></li>
-                <li><a href="/services/cooling/" class="hover:text-white transition-colors">Cooling</a></li>
-                <li><a href="/services/indoor-air-quality/" class="hover:text-white transition-colors">Air Quality</a></li>
-                <li><a href="/services/water-heating/" class="hover:text-white transition-colors">Water Heating</a></li>
-              </ul>
-            </div>
-
-            <!-- Company Column -->
-            <div>
-              <h4 class="text-sm font-semibold text-white mb-4">Company</h4>
-              <ul class="space-y-2 text-sm">
-                <li><a href="/about-us/" class="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/locations/" class="hover:text-white transition-colors">Service Areas</a></li>
-                <li><a href="/contact-us/" class="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-              {profile.contact.booking.enabled && (
-                <a
-                  href={profile.contact.booking.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="mt-4 inline-flex items-center gap-2 rounded border border-slate-500 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-white hover:text-white"
-                >
-                  Book Online
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </a>
-              )}
-            </div>
-
-            <!-- Location Column -->
-            <div class="col-span-2 sm:col-span-2 lg:col-span-1">
-              <h4 class="text-sm font-semibold text-white mb-4">Location</h4>
-              <address class="not-italic text-sm text-slate-400 mb-3">
-                {profile.locations.primary.address_full}
-              </address>
-              {profile.locations.primary.google_maps_embed && (
-                <div class="overflow-hidden rounded-lg aspect-[4/3] max-w-[200px]">
-                  <iframe
-                    src={profile.locations.primary.google_maps_embed}
-                    width="100%"
-                    height="100%"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="Our location"
-                  ></iframe>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <!-- Divider -->
-          <div class="border-t border-slate-800 my-8"></div>
-
-          <!-- Bottom Row -->
-          <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-
-            <!-- Trust & Rating -->
-            <div class="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-              {profile.reputation.google_review_count > 0 && (
-                <a
-                  href="https://www.google.com/search?q=B.A.P+Heating+%26+Cooling"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center gap-2 hover:text-white transition-colors"
-                >
-                  <div class="flex text-yellow-400">
-                    {[1,2,3,4,5].map(() => (
-                      <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                    ))}
-                  </div>
-                  <span>{profile.reputation.google_rating} ({profile.reputation.google_review_count}+ reviews)</span>
-                </a>
-              )}
-              <span class="text-slate-600 hidden sm:inline">|</span>
-              <span class="text-slate-400">TSSA Certified</span>
-              <span class="text-slate-600 hidden sm:inline">|</span>
-              <span class="text-slate-400">Fully Insured</span>
-            </div>
-
-            <!-- Social Links -->
-            <div class="flex items-center gap-4">
-              {profile.social.facebook && (
-                <a
-                  href={profile.social.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-slate-400 hover:text-white transition-colors"
-                  aria-label="Facebook"
-                >
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                </a>
-              )}
-              {profile.social.instagram && (
-                <a
-                  href={profile.social.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-slate-400 hover:text-white transition-colors"
-                  aria-label="Instagram"
-                >
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
-                  </svg>
-                </a>
-              )}
-            </div>
-          </div>
-
-          <!-- Copyright -->
-          <div class="mt-8 pt-6 border-t border-slate-800 text-center sm:text-left">
-            <p class="text-xs text-slate-500">
-              &copy; {new Date().getFullYear()} {profile.business.legal_name}. All rights reserved. Serving Guelph, Kitchener, Waterloo, Cambridge and surrounding areas.
-            </p>
-          </div>
+      <!-- Footer placeholder - will be rebuilt in Phase 3 -->
+      <footer class="bg-slate-900 text-slate-300 p-8" role="contentinfo">
+        <div class="max-w-6xl mx-auto text-center">
+          <p class="mb-2">{companyName}</p>
+          <p class="text-sm">
+            <a href={getPhoneLink(profile)} class="hover:text-white">{getPhoneDisplay(profile)}</a>
+            {' | '}
+            <a href={getEmailLink(profile)} class="hover:text-white">{getEmail(profile)}</a>
+          </p>
+          <p class="text-xs text-slate-500 mt-4">
+            &copy; {new Date().getFullYear()} {profile.business.legal_name}. All rights reserved.
+          </p>
         </div>
       </footer>
-
-      <!-- Floating Mobile CTA -->
-      <FloatingCTA variant="call" />
-
-      <!-- Exit Intent Modal -->
-      <ExitIntentModal />
     </div>
-
-    <!-- Analytics Event Tracking -->
-    <script>
-      // Auto-track phone clicks, booking clicks, email clicks, and outbound links
-      document.addEventListener('DOMContentLoaded', () => {
-        // Track phone link clicks (including emergency detection)
-        document.querySelectorAll('a[href^="tel:"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target) {
-              const isEmergency = target.getAttribute('data-cta') === 'emergency';
-              const context = target.getAttribute('data-cta-context') || 'unknown';
-
-              if (typeof window.gtag !== 'undefined') {
-                if (isEmergency) {
-                  // Track as emergency call
-                  window.gtag('event', 'emergency_call_click', {
-                    event_category: 'engagement',
-                    event_label: context,
-                    value: 1
-                  });
-                } else {
-                  // Track as regular call
-                  window.gtag('event', 'phone_call_click', {
-                    event_category: 'engagement',
-                    event_label: context,
-                    value: 1
-                  });
-                }
-              }
-            }
-          });
-        });
-
-        // Track email link clicks
-        document.querySelectorAll('a[href^="mailto:"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target) {
-              const context = target.getAttribute('data-cta-context') || 'unknown';
-
-              if (typeof window.gtag !== 'undefined') {
-                window.gtag('event', 'email_click', {
-                  event_category: 'engagement',
-                  event_label: context,
-                  value: 1
-                });
-              }
-            }
-          });
-        });
-
-        // Track booking button clicks
-        document.querySelectorAll('a[href*="housecallpro.com"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target) {
-              const context = target.getAttribute('data-cta-context') ||
-                             target.closest('[data-source]')?.getAttribute('data-source') ||
-                             'unknown';
-              if (typeof window.gtag !== 'undefined') {
-                window.gtag('event', 'booking_click', {
-                  event_category: 'conversion',
-                  event_label: context,
-                  value: 1
-                });
-              }
-            }
-          });
-        });
-
-        // Track outbound links
-        document.querySelectorAll('a[target="_blank"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target && target.hostname !== window.location.hostname && typeof window.gtag !== 'undefined') {
-              window.gtag('event', 'outbound_link', {
-                event_category: 'engagement',
-                event_label: target.href
-              });
-            }
-          });
-        });
-
-        // Track service area region link clicks
-        document.querySelectorAll('a[data-cta-context="service-areas-region"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target && typeof window.gtag !== 'undefined') {
-              const regionName = target.getAttribute('data-region-name') || 'unknown';
-              window.gtag('event', 'service_area_region_click', {
-                event_category: 'navigation',
-                event_label: regionName,
-                value: 1
-              });
-            }
-          });
-        });
-
-        // Track service area city link clicks
-        document.querySelectorAll('a[data-cta-context="service-areas-city"]').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLAnchorElement;
-            if (target && typeof window.gtag !== 'undefined') {
-              const cityName = target.getAttribute('data-city-name') || 'unknown';
-              const regionName = target.getAttribute('data-region-name') || 'unknown';
-              window.gtag('event', 'service_area_city_click', {
-                event_category: 'navigation',
-                event_label: `${regionName} - ${cityName}`,
-                value: 1
-              });
-            }
-          });
-        });
-      });
-    </script>
   </body>
 </html>

@@ -1,0 +1,361 @@
+---
+/**
+ * CardFooter Component
+ *
+ * Footer section for cards, typically containing actions, metadata,
+ * or call-to-action buttons. Positioned at the bottom of cards.
+ *
+ * Design Philosophy:
+ * Card footers are decision points. Whether it's "Learn more",
+ * "Call now", or showing metadata, the footer guides the user's
+ * next action. Keep it focused and uncluttered.
+ *
+ * Common Patterns:
+ * - Single CTA button
+ * - Button group (primary + secondary)
+ * - Metadata row (date, author, category)
+ * - Price/value with action button
+ *
+ * Usage:
+ * <Card>
+ *   <CardMedia />
+ *   <CardBody>...</CardBody>
+ *   <CardFooter border>
+ *     <Button variant="ghost" iconRight="arrow-right">
+ *       Learn More
+ *     </Button>
+ *   </CardFooter>
+ * </Card>
+ */
+
+interface Props {
+  /** Internal padding size */
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Show top border separator */
+  border?: boolean;
+  /** Horizontal alignment of content */
+  align?: 'start' | 'center' | 'between' | 'end';
+  /** Muted/subtle background */
+  muted?: boolean;
+  /** Gap between children */
+  gap?: 'sm' | 'md' | 'lg';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  padding = 'md',
+  border = false,
+  align = 'start',
+  muted = false,
+  gap = 'sm',
+  class: className = '',
+} = Astro.props;
+
+// Padding classes
+const paddingClasses: Record<string, string> = {
+  none: '',
+  sm: 'card-footer-padding-sm',
+  md: 'card-footer-padding-md',
+  lg: 'card-footer-padding-lg',
+};
+
+// Alignment classes
+const alignClasses: Record<string, string> = {
+  start: 'card-footer-start',
+  center: 'card-footer-center',
+  between: 'card-footer-between',
+  end: 'card-footer-end',
+};
+
+// Gap classes
+const gapClasses: Record<string, string> = {
+  sm: 'card-footer-gap-sm',
+  md: 'card-footer-gap-md',
+  lg: 'card-footer-gap-lg',
+};
+
+// Build class string
+const classes = [
+  'card-footer',
+  paddingClasses[padding],
+  alignClasses[align],
+  gapClasses[gap],
+  border ? 'card-footer-border' : '',
+  muted ? 'card-footer-muted' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={classes}>
+  <slot />
+</div>
+
+<style is:global>
+  /**
+   * CardFooter Component Styles
+   * Action area at the bottom of cards
+   */
+
+  /* ============================================
+     BASE FOOTER
+     ============================================ */
+
+  .card-footer {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-top: auto; /* Push to bottom of card */
+  }
+
+  /* ============================================
+     PADDING VARIANTS
+     ============================================ */
+
+  .card-footer-padding-sm {
+    padding: var(--card-padding-sm);
+  }
+
+  .card-footer-padding-md {
+    padding: var(--card-padding-md);
+  }
+
+  .card-footer-padding-lg {
+    padding: var(--card-padding-lg);
+  }
+
+  /* ============================================
+     ALIGNMENT
+     ============================================ */
+
+  .card-footer-start {
+    justify-content: flex-start;
+  }
+
+  .card-footer-center {
+    justify-content: center;
+  }
+
+  .card-footer-between {
+    justify-content: space-between;
+  }
+
+  .card-footer-end {
+    justify-content: flex-end;
+  }
+
+  /* ============================================
+     GAP VARIANTS
+     ============================================ */
+
+  .card-footer-gap-sm {
+    gap: var(--space-2);
+  }
+
+  .card-footer-gap-md {
+    gap: var(--space-3);
+  }
+
+  .card-footer-gap-lg {
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     BORDER SEPARATOR
+     ============================================ */
+
+  .card-footer-border {
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  /* Subtle border for ghost/outlined cards */
+  .card-ghost .card-footer-border,
+  .card-outlined .card-footer-border {
+    border-top-color: var(--color-border-secondary);
+  }
+
+  /* ============================================
+     MUTED BACKGROUND
+     Subtle distinction from body
+     ============================================ */
+
+  .card-footer-muted {
+    background-color: var(--color-surface-secondary);
+  }
+
+  /* Muted on already-muted cards needs more contrast */
+  .card-ghost .card-footer-muted {
+    background-color: var(--color-surface-tertiary);
+  }
+
+  /* ============================================
+     TYPOGRAPHY & CONTENT
+     ============================================ */
+
+  /* Metadata text */
+  .card-footer span,
+  .card-footer p,
+  .card-footer time {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Price/value highlight */
+  .card-footer .card-footer-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+  }
+
+  /* Small label above value */
+  .card-footer .card-footer-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     BUTTON STYLING
+     Buttons in footer get full width on mobile
+     ============================================ */
+
+  /* Grow buttons to fill available space when appropriate */
+  .card-footer-between > *:only-child {
+    width: 100%;
+  }
+
+  /* Button group: equal width buttons */
+  .card-footer .button-group {
+    display: flex;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .card-footer .button-group > * {
+    flex: 1;
+  }
+
+  /* ============================================
+     LINK STYLING
+     Footer links with arrow indicator
+     ============================================ */
+
+  .card-footer a:not([class*="btn"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out),
+                gap var(--duration-fast) var(--ease-out);
+  }
+
+  .card-footer a:not([class*="btn"]):hover {
+    color: var(--color-primary-700);
+    gap: var(--space-2);
+  }
+
+  .card-footer a:not([class*="btn"]):focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Arrow icon for links */
+  .card-footer a:not([class*="btn"])::after {
+    content: '→';
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .card-footer a:not([class*="btn"]):hover::after {
+    transform: translateX(2px);
+  }
+
+  /* ============================================
+     INTERACTIVE CARD SUPPORT
+     When card is clickable, hide footer actions
+     ============================================ */
+
+  .card-interactive .card-footer a:not([class*="btn"])::after {
+    content: none;
+  }
+
+  /* ============================================
+     ICON INTEGRATION
+     ============================================ */
+
+  .card-footer svg,
+  .card-footer .card-footer-icon {
+    flex-shrink: 0;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     DARK THEME SUPPORT
+     ============================================ */
+
+  .card-dark .card-footer-border {
+    border-top-color: var(--color-primary-700);
+  }
+
+  .card-dark .card-footer-muted {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .card-dark .card-footer span,
+  .card-dark .card-footer p,
+  .card-dark .card-footer time {
+    color: var(--color-primary-200);
+  }
+
+  .card-dark .card-footer .card-footer-value {
+    color: var(--color-text-inverse);
+  }
+
+  .card-dark .card-footer a:not([class*="btn"]) {
+    color: var(--color-accent-400);
+  }
+
+  .card-dark .card-footer a:not([class*="btn"]):hover {
+    color: var(--color-accent-300);
+  }
+
+  .card-dark .card-footer svg,
+  .card-dark .card-footer .card-footer-icon {
+    color: var(--color-primary-300);
+  }
+
+  /* ============================================
+     SECTION INVERSE SUPPORT
+     When card is on dark section background
+     ============================================ */
+
+  .section-inverse .card-footer a:not([class*="btn"]) {
+    color: var(--color-primary-600);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-footer a:not([class*="btn"]):hover {
+      gap: var(--space-1);
+    }
+
+    .card-footer a:not([class*="btn"]):hover::after {
+      transform: none;
+    }
+  }
+</style>

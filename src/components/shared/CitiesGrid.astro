@@ -1,0 +1,618 @@
+---
+/**
+ * CitiesGrid Component
+ *
+ * A responsive grid layout for displaying cities/locations served by B.A.P.
+ * Links to location-specific pages where users can find local services.
+ *
+ * Design Philosophy:
+ * When someone lands on a location page or service area section, they're
+ * asking "Do you serve my area?" This grid provides a quick, scannable
+ * answer. The design emphasizes:
+ * 1. Easy visual scanning of city names
+ * 2. Clear indication these are clickable links
+ * 3. Subtle local trust signals (service count)
+ * 4. A sense of comprehensive coverage ("we're everywhere you need us")
+ *
+ * Variants:
+ * - cards:   Standard card grid with descriptions
+ * - compact: Minimal cards for dense layouts
+ * - pills:   Horizontal pill-style links for inline use
+ */
+import { getCollection } from 'astro:content';
+import Card from '../primitives/Card.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Icon from '../primitives/Icon.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import Badge from '../primitives/Badge.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import { buildLocationPath } from '../../lib/slugBuilder';
+
+interface Props {
+  /** Filter cities by region slug */
+  regionSlug?: string;
+  /** Number of grid columns on desktop */
+  columns?: 2 | 3 | 4;
+  /** Display variant */
+  variant?: 'cards' | 'compact' | 'pills';
+  /** Show the service count badge */
+  showServiceCount?: boolean;
+  /** Show city description */
+  showDescription?: boolean;
+  /** Maximum number of cities to display */
+  limit?: number;
+  /** Optional section header */
+  title?: string;
+  /** Optional section description */
+  description?: string;
+  /** Optional eyebrow text */
+  eyebrow?: string;
+  /** Header alignment */
+  headerAlign?: 'left' | 'center';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  regionSlug,
+  columns = 3,
+  variant = 'cards',
+  showServiceCount = false,
+  showDescription = false,
+  limit,
+  title,
+  description,
+  eyebrow,
+  headerAlign = 'center',
+  class: className = '',
+} = Astro.props;
+
+// Fetch all locations
+let locations = await getCollection('locations');
+
+// If filtering by region, we need to get the region data first
+if (regionSlug) {
+  const regions = await getCollection('regions');
+  const region = regions.find(r => r.id === regionSlug);
+
+  if (region) {
+    // Filter locations to only those in this region
+    const regionCities = region.data.cities || [];
+    locations = locations.filter(loc => regionCities.includes(loc.id));
+  }
+}
+
+// Sort locations alphabetically by title
+locations = locations.sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+// Apply limit if specified
+if (limit && limit > 0) {
+  locations = locations.slice(0, limit);
+}
+
+// Get service count per location if needed
+let serviceCounts: Record<string, number> = {};
+if (showServiceCount) {
+  const serviceCityEntries = await getCollection('service-city');
+  locations.forEach(loc => {
+    serviceCounts[loc.id] = serviceCityEntries.filter(
+      entry => entry.data.locationSlug === loc.id
+    ).length;
+  });
+}
+
+// Map locations to display format
+const cityItems = locations.map(loc => ({
+  title: loc.data.title,
+  description: loc.data.description,
+  region: loc.data.region,
+  slug: loc.id,
+  href: buildLocationPath(loc.id),
+  serviceCount: serviceCounts[loc.id] || 0,
+}));
+
+// Column class mapping
+const columnClasses = {
+  2: 'cities-grid-cols-2',
+  3: 'cities-grid-cols-3',
+  4: 'cities-grid-cols-4',
+};
+
+// Build class string
+const classes = [
+  'cities-grid',
+  `cities-grid-${variant}`,
+  columnClasses[columns],
+  className,
+].filter(Boolean).join(' ');
+---
+
+{cityItems.length > 0 && (
+  <div class={classes}>
+    {/* Optional Section Header */}
+    {title && (
+      <div class="cities-grid-header">
+        <SectionHeader
+          eyebrow={eyebrow}
+          headline={title}
+          description={description}
+          align={headerAlign}
+        />
+      </div>
+    )}
+
+    {/* Cities Grid */}
+    <div class="cities-grid-items">
+      {variant === 'pills' ? (
+        /* Pills variant - horizontal list */
+        cityItems.map((city, index) => (
+          <a
+            href={city.href}
+            class="city-pill"
+            style={`--stagger-index: ${index}`}
+          >
+            <Icon name="mapPin" size="sm" />
+            <span class="city-pill-name">{city.title}</span>
+            {showServiceCount && city.serviceCount > 0 && (
+              <span class="city-pill-count">{city.serviceCount}</span>
+            )}
+          </a>
+        ))
+      ) : (
+        /* Card variants */
+        cityItems.map((city, index) => (
+          <div
+            class="cities-grid-item"
+            style={`--stagger-index: ${index}`}
+          >
+            <Card
+              href={city.href}
+              variant={variant === 'compact' ? 'outlined' : 'default'}
+              interactive
+              padding="none"
+              class="city-card"
+            >
+              <CardBody padding={variant === 'compact' ? 'sm' : 'md'} gap="sm">
+                {/* Icon and title row */}
+                <div class="city-card-header">
+                  <div class="city-card-icon">
+                    <Icon name="mapPin" size={variant === 'compact' ? 'md' : 'lg'} color="primary" />
+                  </div>
+                  <div class="city-card-info">
+                    <Heading
+                      level={3}
+                      size={variant === 'compact' ? 'sm' : 'md'}
+                      weight="semibold"
+                      class="city-card-title"
+                    >
+                      {city.title}
+                    </Heading>
+                    {variant !== 'compact' && (
+                      <Text size="xs" color="secondary" class="city-card-region">
+                        {city.region}
+                      </Text>
+                    )}
+                  </div>
+                  {showServiceCount && city.serviceCount > 0 && (
+                    <Badge variant="primary" size="sm" class="city-card-badge">
+                      {city.serviceCount} services
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Description - only for full cards variant */}
+                {showDescription && variant === 'cards' && city.description && (
+                  <Text
+                    size="sm"
+                    color="secondary"
+                    truncate
+                    maxLines={2}
+                    class="city-card-description"
+                  >
+                    {city.description}
+                  </Text>
+                )}
+
+                {/* CTA indicator */}
+                {variant === 'cards' && (
+                  <div class="city-card-cta">
+                    <span class="city-card-cta-text">View services</span>
+                    <Icon name="arrowRight" size="sm" />
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          </div>
+        ))
+      )}
+    </div>
+
+    {/* Empty state */}
+    {cityItems.length === 0 && (
+      <div class="cities-grid-empty">
+        <p>No cities found for this region.</p>
+      </div>
+    )}
+  </div>
+)}
+
+<style is:global>
+  /**
+   * CitiesGrid Component Styles
+   * Clean, scannable location grid with local trust signals
+   */
+
+  /* ============================================
+     BASE GRID
+     ============================================ */
+
+  .cities-grid {
+    width: 100%;
+  }
+
+  .cities-grid-header {
+    margin-bottom: var(--space-10);
+  }
+
+  .cities-grid-items {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .cities-grid-item {
+    /* Animation stagger support */
+    animation: cityFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 40ms);
+    opacity: 0;
+  }
+
+  @keyframes cityFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     COLUMN VARIANTS
+     Mobile-first responsive columns
+     ============================================ */
+
+  /* Base: 1 column on mobile */
+  .cities-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  /* 2 columns */
+  .cities-grid-cols-2 .cities-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .cities-grid-cols-2 .cities-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* 3 columns */
+  .cities-grid-cols-3 .cities-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .cities-grid-cols-3 .cities-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cities-grid-cols-3 .cities-grid-items {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* 4 columns */
+  .cities-grid-cols-4 .cities-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .cities-grid-cols-4 .cities-grid-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .cities-grid-cols-4 .cities-grid-items {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cities-grid-cols-4 .cities-grid-items {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ============================================
+     CITY CARD STYLES
+     ============================================ */
+
+  .city-card {
+    height: 100%;
+  }
+
+  .city-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .city-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-10);
+    height: var(--space-10);
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary-50);
+    flex-shrink: 0;
+    transition:
+      background-color var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .city-card:hover .city-card-icon {
+    background-color: var(--color-primary-100);
+    transform: scale(1.05);
+  }
+
+  .city-card-info {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .city-card-title {
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .city-card:hover .city-card-title {
+    color: var(--color-primary-700);
+  }
+
+  .city-card-region {
+    margin-top: var(--space-1);
+  }
+
+  .city-card-badge {
+    flex-shrink: 0;
+  }
+
+  .city-card-description {
+    flex-grow: 1;
+  }
+
+  /* CTA indicator */
+  .city-card-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .city-card:hover .city-card-cta {
+    color: var(--color-primary-700);
+    gap: var(--space-3);
+  }
+
+  .city-card-cta-text {
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .city-card:hover .city-card-cta-text {
+    transform: translateX(2px);
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Tighter layout for sidebars and dense grids
+     ============================================ */
+
+  .cities-grid-compact .cities-grid-items {
+    gap: var(--space-3);
+  }
+
+  .cities-grid-compact .city-card-icon {
+    width: var(--space-8);
+    height: var(--space-8);
+  }
+
+  .cities-grid-compact .city-card-header {
+    gap: var(--space-2);
+  }
+
+  /* ============================================
+     VARIANT: PILLS
+     Horizontal pill-style links
+     ============================================ */
+
+  .cities-grid-pills .cities-grid-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .city-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+
+    /* Stagger animation */
+    animation: pillFadeIn var(--duration-normal) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 30ms);
+    opacity: 0;
+  }
+
+  @keyframes pillFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .city-pill:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+    color: var(--color-primary-700);
+    transform: translateY(-1px);
+  }
+
+  .city-pill:active {
+    transform: translateY(0);
+    background-color: var(--color-primary-100);
+  }
+
+  .city-pill:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .city-pill-name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .city-pill-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--space-5);
+    height: var(--space-5);
+    padding: 0 var(--space-2);
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-700);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    border-radius: var(--radius-full);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .city-pill:hover .city-pill-count {
+    background-color: var(--color-primary-200);
+  }
+
+  /* ============================================
+     EMPTY STATE
+     ============================================ */
+
+  .cities-grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .city-card-icon {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .city-card:hover .city-card-icon {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section-inverse .city-card-cta {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .city-card:hover .city-card-cta {
+    color: var(--color-primary-200);
+  }
+
+  .section-inverse .city-pill {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .city-pill:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+  }
+
+  .section-inverse .city-pill-count {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .section-inverse .cities-grid-empty {
+    color: var(--color-text-inverse);
+    opacity: 0.7;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .cities-grid-item,
+    .city-pill {
+      animation: none;
+      opacity: 1;
+    }
+
+    .city-card-icon,
+    .city-card-cta,
+    .city-card-cta-text,
+    .city-pill {
+      transition: none;
+    }
+
+    .city-card:hover .city-card-icon {
+      transform: none;
+    }
+
+    .city-card:hover .city-card-cta-text {
+      transform: none;
+    }
+
+    .city-pill:hover {
+      transform: none;
+    }
+  }
+</style>

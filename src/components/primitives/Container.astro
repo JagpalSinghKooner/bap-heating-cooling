@@ -1,37 +1,119 @@
 ---
 /**
- * Container Component - Global Layout Contract
- * HVAC Industry Standard: 1280px max-width (xl)
+ * Container Component
  *
- * MANDATORY: All content must be wrapped in Container or Section (which includes Container)
- * - Enforces consistent horizontal constraints
- * - Provides responsive padding
- * - Aligns to design token: --container-max-width (80rem / 1280px)
+ * Controls content width and horizontal padding.
+ * The backbone of layout consistency across the site.
+ *
+ * "Trustworthy Industrial Modern" aesthetic calls for:
+ * - Generous whitespace that breathes confidence
+ * - Consistent horizontal rhythm across breakpoints
+ * - Clear content boundaries that guide the eye
+ *
+ * Container Widths (from tokens.css):
+ * - xs:   480px  - Very narrow (modals, tooltips)
+ * - sm:   640px  - Narrow content (blog body, forms)
+ * - md:   768px  - Medium content
+ * - lg:   1024px - Standard content
+ * - xl:   1280px - Default max-width (recommended)
+ * - 2xl:  1440px - Wide layouts (hero sections)
+ * - full: 100%   - Edge-to-edge (backgrounds)
  */
 
 interface Props {
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  /** Maximum width constraint */
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  /** Whether to apply horizontal padding (default: true) */
+  padding?: boolean;
+  /** Center the container (default: true) */
+  centered?: boolean;
+  /** Additional classes */
   class?: string;
+  /** HTML element to render as */
+  as?: 'div' | 'section' | 'article' | 'main' | 'aside' | 'header' | 'footer';
 }
 
 const {
-  maxWidth = 'xl', // Default to 1280px for HVAC industry standard
+  size = 'xl',
+  padding = true,
+  centered = true,
   class: className = '',
+  as: Element = 'div',
 } = Astro.props;
 
-const maxWidthClasses = {
-  sm: 'max-w-3xl',    // 768px - Narrow content
-  md: 'max-w-5xl',    // 1024px - Standard content
-  lg: 'max-w-6xl',    // 1152px - Wide content
-  xl: 'max-w-7xl',    // 1280px - HVAC industry standard (default)
-  full: 'max-w-full', // No constraint - use sparingly
+// Size classes mapping to CSS custom properties
+const sizeClasses: Record<string, string> = {
+  xs: 'container-xs',
+  sm: 'container-sm',
+  md: 'container-md',
+  lg: 'container-lg',
+  xl: 'container-xl',
+  '2xl': 'container-2xl',
+  full: 'container-full',
 };
 
-const baseClasses = 'container mx-auto px-4 sm:px-6 lg:px-8';
-
-const classes = `${baseClasses} ${maxWidthClasses[maxWidth]} ${className}`;
+// Build class string
+const classes = [
+  sizeClasses[size],
+  centered ? 'mx-auto' : '',
+  padding ? 'container-padding' : '',
+  className,
+].filter(Boolean).join(' ');
 ---
 
-<div class={classes}>
+<Element class={classes}>
   <slot />
-</div>
+</Element>
+
+<style is:global>
+  /**
+   * Container width and padding utilities
+   * Using CSS custom properties from tokens.css
+   */
+
+  /* Container max-widths */
+  .container-xs {
+    max-width: var(--container-xs);
+    width: 100%;
+  }
+  .container-sm {
+    max-width: var(--container-sm);
+    width: 100%;
+  }
+  .container-md {
+    max-width: var(--container-md);
+    width: 100%;
+  }
+  .container-lg {
+    max-width: var(--container-lg);
+    width: 100%;
+  }
+  .container-xl {
+    max-width: var(--container-xl);
+    width: 100%;
+  }
+  .container-2xl {
+    max-width: var(--container-2xl);
+    width: 100%;
+  }
+  .container-full {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Container horizontal padding
+   * Uses clamp() for fluid responsive padding
+   * Defined in tokens.css as: clamp(1rem, 4vw, 2rem)
+   * Mobile: 16px, scales up to Desktop: 32px
+   */
+  .container-padding {
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+
+  /* Auto margins for centering */
+  .mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>

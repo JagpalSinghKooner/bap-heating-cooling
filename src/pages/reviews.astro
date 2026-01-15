@@ -1,11 +1,11 @@
 ---
 /**
- * Reviews Index Page
- * Shows all reviews from all sources (google/facebook/housecallpro/manual)
+ * Reviews Index Page - Gutted for Redesign
+ *
+ * Preserves all data fetching logic.
  */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ReviewsBlock from '../components/ReviewsBlock.astro';
-import PrimaryCTA from '../components/PrimaryCTA.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getAllReviewsForReviewsPage } from '../lib/reviewResolver';
@@ -39,25 +39,8 @@ const schema = schemas;
   description="Read reviews from our satisfied customers across Southern Ontario. See what people are saying about our heating and cooling services."
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    <section class="mb-8">
-      <h1 class="mb-4 text-4xl font-bold">Customer Reviews</h1>
-      <p class="text-lg text-muted-foreground">
-        See what our customers are saying about our heating and cooling services.
-      </p>
-    </section>
-
-    <ReviewsBlock reviews={pageReviews} title="All Reviews" />
-
-    <div class="mt-12 rounded-lg border bg-muted p-8">
-      <h2 class="mb-4 text-2xl font-semibold text-center">Ready to Experience Our Service?</h2>
-      <p class="mb-6 text-muted-foreground text-center">
-        Contact us today to schedule your heating and cooling service.
-      </p>
-      <div class="flex justify-center gap-4">
-        <PrimaryCTA variant="call" context="reviews-footer" />
-        <PrimaryCTA variant="book" context="reviews-footer" />
-      </div>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>Customer Reviews</h1>
+    <p>Reviews page redesign in progress. {pageReviews.length} reviews available.</p>
   </div>
 </BaseLayout>

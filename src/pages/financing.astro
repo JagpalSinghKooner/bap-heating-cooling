@@ -1,6 +1,11 @@
 ---
+/**
+ * Financing Page - Gutted for Redesign
+ *
+ * Preserves all data fetching logic.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PrimaryCTA from '../components/PrimaryCTA.astro';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
 
@@ -13,99 +18,8 @@ const schema = getLocalBusinessSchema(profile);
   description="Flexible financing options for your heating and cooling needs. Make your HVAC investment more affordable with our financing programs."
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    <header class="mb-12">
-      <h1 class="mb-6 text-4xl font-bold">Financing Options</h1>
-      <p class="text-xl text-muted-foreground">
-        Make your HVAC investment more affordable with flexible financing options.
-      </p>
-    </header>
-
-    <div class="mx-auto max-w-3xl space-y-8">
-      {profile.pricing_and_offers?.financing.available && (
-        <section class="rounded-lg border bg-card p-8">
-          <h2 class="mb-4 text-2xl font-semibold">Financing Available</h2>
-          <p class="mb-6 text-lg text-muted-foreground">
-            {profile.pricing_and_offers.financing.statement}
-          </p>
-
-          <div class="space-y-4">
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Flexible Payment Plans</h3>
-                <p class="text-muted-foreground">
-                  Choose a payment plan that fits your budget and financial situation.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Quick Approval Process</h3>
-                <p class="text-muted-foreground">
-                  Get approved quickly and start enjoying your new HVAC system right away.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Competitive Rates</h3>
-                <p class="text-muted-foreground">
-                  We work with financing partners to offer competitive rates and terms.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section class="rounded-lg bg-muted p-8">
-        <h2 class="mb-4 text-2xl font-semibold">Ready to Get Started?</h2>
-        <p class="mb-6 text-muted-foreground">
-          Contact us today to learn more about our financing options and get a free quote for your HVAC project.
-        </p>
-
-        <div class="flex gap-4">
-          <PrimaryCTA variant="call" context="financing-footer" />
-          <PrimaryCTA variant="book" context="financing-footer" />
-        </div>
-      </section>
-
-      <section>
-        <h2 class="mb-4 text-2xl font-semibold">Frequently Asked Questions</h2>
-        <div class="space-y-4">
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              How do I apply for financing?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              Contact us to discuss your project, and we'll guide you through the financing application process. It's quick and easy!
-            </p>
-          </details>
-
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              What credit score do I need?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              We work with financing partners that offer options for a range of credit profiles. Contact us to learn more about your specific situation.
-            </p>
-          </details>
-
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              Can I pay off my financing early?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              Most financing options allow early payoff without penalties. We'll provide full details about terms when you apply.
-            </p>
-          </details>
-        </div>
-      </section>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>Financing Options</h1>
+    <p>Financing page redesign in progress.</p>
   </div>
 </BaseLayout>

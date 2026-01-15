@@ -1,0 +1,450 @@
+---
+/**
+ * ServiceCard Component
+ *
+ * Displays a service offering in a card format with category badge,
+ * icon, title, description, and navigation link.
+ *
+ * Design Philosophy:
+ * Service cards are the gateway to conversions. They need to:
+ * 1. Immediately communicate what service this is
+ * 2. Build trust with professional presentation
+ * 3. Make the click-through irresistible
+ *
+ * The "Trustworthy Industrial Modern" aesthetic means:
+ * - Clear hierarchy with bold titles
+ * - Subtle category indicators
+ * - Confident hover states that invite action
+ * - Emergency/repair services get visual priority
+ *
+ * Variants:
+ * - default:  Standard card for grids and listings
+ * - compact:  Smaller version for sidebars and related services
+ * - featured: Larger with enhanced styling for highlighted services
+ */
+import Card from '../primitives/Card.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Badge from '../primitives/Badge.astro';
+import Icon from '../primitives/Icon.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import { buildServicePath, buildServiceCityPath } from '../../lib/slugBuilder';
+
+interface ServiceData {
+  title: string;
+  description: string;
+  category: string;
+  slug: string;
+  serviceType?: 'installation' | 'repair' | 'maintenance';
+  icon?: string;
+  priority?: boolean;
+}
+
+interface Props {
+  /** Service data object */
+  service: ServiceData;
+  /** Location slug for service-city linking */
+  locationSlug?: string;
+  /** Visual variant */
+  variant?: 'default' | 'compact' | 'featured';
+  /** Show category badge */
+  showCategory?: boolean;
+  /** Show description text */
+  showDescription?: boolean;
+  /** Show the service type badge */
+  showServiceType?: boolean;
+  /** Custom icon override */
+  icon?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  service,
+  locationSlug,
+  variant = 'default',
+  showCategory = true,
+  showDescription = true,
+  showServiceType = false,
+  icon,
+  class: className = '',
+} = Astro.props;
+
+// Build the correct link URL
+const href = locationSlug
+  ? buildServiceCityPath(service.slug, locationSlug)
+  : buildServicePath(service.slug);
+
+// Determine icon to use - explicit prop, then service data, then category default
+const categoryIcons: Record<string, string> = {
+  heating: 'flame',
+  cooling: 'snowflake',
+  'indoor-air-quality': 'air',
+  'water-heating': 'water',
+  commercial: 'tools',
+  maintenance: 'tools',
+};
+
+const serviceIcon = icon || service.icon || categoryIcons[service.category] || 'tools';
+
+// Service type determines accent color for repair urgency
+const isRepair = service.serviceType === 'repair';
+const isEmergency = isRepair && service.priority;
+
+// Category display names
+const categoryNames: Record<string, string> = {
+  heating: 'Heating',
+  cooling: 'Cooling',
+  'indoor-air-quality': 'Air Quality',
+  'water-heating': 'Water Heating',
+  commercial: 'Commercial',
+  maintenance: 'Maintenance',
+};
+
+// Service type display names
+const serviceTypeNames: Record<string, string> = {
+  installation: 'Installation',
+  repair: 'Repair',
+  maintenance: 'Maintenance',
+};
+
+// Variant-specific configurations
+const variantConfig = {
+  default: {
+    cardVariant: 'default' as const,
+    iconSize: 'xl' as const,
+    headingSize: 'lg' as const,
+    bodyPadding: 'md' as const,
+    showArrow: true,
+  },
+  compact: {
+    cardVariant: 'outlined' as const,
+    iconSize: 'lg' as const,
+    headingSize: 'md' as const,
+    bodyPadding: 'sm' as const,
+    showArrow: false,
+  },
+  featured: {
+    cardVariant: 'elevated' as const,
+    iconSize: '2xl' as const,
+    headingSize: 'xl' as const,
+    bodyPadding: 'lg' as const,
+    showArrow: true,
+  },
+};
+
+const config = variantConfig[variant];
+
+// Build class string
+const classes = [
+  'service-card',
+  `service-card-${variant}`,
+  isEmergency ? 'service-card-emergency' : '',
+  isRepair ? 'service-card-repair' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Card
+  href={href}
+  variant={config.cardVariant}
+  interactive
+  padding="none"
+  class={classes}
+>
+  <CardBody padding={config.bodyPadding} gap="md">
+    {/* Icon and badges row */}
+    <div class="service-card-header">
+      <div class={`service-card-icon ${isEmergency ? 'service-card-icon-emergency' : isRepair ? 'service-card-icon-repair' : ''}`}>
+        <Icon name={serviceIcon} size={config.iconSize} color={isEmergency ? 'emergency' : isRepair ? 'accent' : 'primary'} />
+      </div>
+
+      {(showCategory || showServiceType) && (
+        <div class="service-card-badges">
+          {showCategory && (
+            <Badge variant="default" size="sm" class="badge-uppercase">
+              {categoryNames[service.category] || service.category}
+            </Badge>
+          )}
+          {showServiceType && service.serviceType && (
+            <Badge
+              variant={isEmergency ? 'error' : isRepair ? 'accent' : 'primary'}
+              size="sm"
+            >
+              {serviceTypeNames[service.serviceType]}
+            </Badge>
+          )}
+        </div>
+      )}
+    </div>
+
+    {/* Title */}
+    <Heading level={3} size={config.headingSize} weight="bold" class="service-card-title">
+      {service.title}
+    </Heading>
+
+    {/* Description */}
+    {showDescription && variant !== 'compact' && (
+      <Text
+        size={variant === 'featured' ? 'base' : 'sm'}
+        color="secondary"
+        truncate
+        maxLines={variant === 'featured' ? 3 : 2}
+        class="service-card-description"
+      >
+        {service.description}
+      </Text>
+    )}
+
+    {/* CTA link indicator */}
+    {config.showArrow && (
+      <div class="service-card-cta">
+        <span class="service-card-cta-text">
+          {isEmergency ? 'Get Emergency Help' : isRepair ? 'Learn More' : 'View Service'}
+        </span>
+        <Icon name="arrowRight" size="sm" />
+      </div>
+    )}
+  </CardBody>
+
+  {/* Emergency accent stripe for urgent services */}
+  {isEmergency && <div class="service-card-emergency-stripe" aria-hidden="true" />}
+</Card>
+
+<style is:global>
+  /**
+   * ServiceCard Component Styles
+   * Professional, trustworthy service presentation
+   */
+
+  /* ============================================
+     BASE CARD
+     ============================================ */
+
+  .service-card {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     HEADER - Icon and Badges
+     ============================================ */
+
+  .service-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .service-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-14);
+    height: var(--space-14);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-primary-50);
+    flex-shrink: 0;
+    transition:
+      background-color var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .service-card:hover .service-card-icon {
+    background-color: var(--color-primary-100);
+    transform: scale(1.05);
+  }
+
+  /* Repair icon styling - warmer background */
+  .service-card-icon-repair {
+    background-color: var(--color-accent-50);
+  }
+
+  .service-card:hover .service-card-icon-repair {
+    background-color: var(--color-accent-100);
+  }
+
+  /* Emergency icon styling - urgent red background */
+  .service-card-icon-emergency {
+    background-color: var(--color-emergency-50);
+  }
+
+  .service-card:hover .service-card-icon-emergency {
+    background-color: var(--color-emergency-100);
+  }
+
+  .service-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: flex-end;
+  }
+
+  /* ============================================
+     TITLE
+     ============================================ */
+
+  .service-card-title {
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .service-card:hover .service-card-title {
+    color: var(--color-primary-700);
+  }
+
+  .service-card-repair:hover .service-card-title {
+    color: var(--color-accent-700);
+  }
+
+  .service-card-emergency:hover .service-card-title {
+    color: var(--color-emergency-700);
+  }
+
+  /* ============================================
+     DESCRIPTION
+     ============================================ */
+
+  .service-card-description {
+    flex-grow: 1;
+  }
+
+  /* ============================================
+     CTA INDICATOR
+     ============================================ */
+
+  .service-card-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .service-card:hover .service-card-cta {
+    color: var(--color-primary-700);
+    gap: var(--space-3);
+  }
+
+  .service-card-repair .service-card-cta {
+    color: var(--color-accent-600);
+  }
+
+  .service-card-repair:hover .service-card-cta {
+    color: var(--color-accent-700);
+  }
+
+  .service-card-emergency .service-card-cta {
+    color: var(--color-emergency-600);
+  }
+
+  .service-card-emergency:hover .service-card-cta {
+    color: var(--color-emergency-700);
+  }
+
+  .service-card-cta-text {
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .service-card:hover .service-card-cta-text {
+    transform: translateX(2px);
+  }
+
+  /* ============================================
+     EMERGENCY STRIPE
+     Visual urgency indicator
+     ============================================ */
+
+  .service-card-emergency-stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-emergency-500) 0%,
+      var(--color-emergency-600) 100%
+    );
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Smaller, denser layout for sidebars
+     ============================================ */
+
+  .service-card-compact .service-card-icon {
+    width: var(--space-10);
+    height: var(--space-10);
+  }
+
+  .service-card-compact .service-card-header {
+    gap: var(--space-2);
+  }
+
+  /* ============================================
+     VARIANT: FEATURED
+     Larger, more prominent presentation
+     ============================================ */
+
+  .service-card-featured {
+    border: 2px solid var(--color-border-primary);
+  }
+
+  .service-card-featured:hover {
+    border-color: var(--color-primary-300);
+  }
+
+  .service-card-featured.service-card-emergency {
+    border-color: var(--color-emergency-200);
+  }
+
+  .service-card-featured.service-card-emergency:hover {
+    border-color: var(--color-emergency-400);
+  }
+
+  .service-card-featured .service-card-icon {
+    width: var(--space-16);
+    height: var(--space-16);
+    border-radius: var(--radius-xl);
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .service-card {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .section-inverse .service-card:hover {
+    background-color: white;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-card-icon,
+    .service-card-cta,
+    .service-card-cta-text,
+    .service-card-title {
+      transition: none;
+    }
+
+    .service-card:hover .service-card-icon {
+      transform: none;
+    }
+
+    .service-card:hover .service-card-cta-text {
+      transform: none;
+    }
+  }
+</style>

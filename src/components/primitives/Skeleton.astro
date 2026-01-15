@@ -1,0 +1,393 @@
+---
+/**
+ * Skeleton Component
+ *
+ * A loading placeholder that indicates content is being fetched.
+ * Follows the "Trustworthy Industrial Modern" aesthetic with warm,
+ * professional shimmer animations that feel quality, not gimmicky.
+ *
+ * Design Philosophy:
+ * Loading states should feel confident and professional - like a
+ * well-designed "please wait" indicator on quality equipment. The
+ * shimmer is subtle and warm-tinted to match the brand, never harsh
+ * or attention-grabbing. Users should feel reassured, not anxious.
+ *
+ * Variants:
+ * - text:        Single line placeholder (default)
+ * - circular:    Avatar/icon placeholders
+ * - rectangular: Image/card placeholders
+ * - heading:     Larger text placeholder
+ * - paragraph:   Multi-line text block
+ *
+ * The shimmer animation uses a warm gradient that flows left-to-right,
+ * creating a quality feel that matches the industrial modern aesthetic.
+ */
+
+interface Props {
+  /** Shape variant of the skeleton */
+  variant?: 'text' | 'circular' | 'rectangular' | 'heading' | 'paragraph';
+  /** Width - accepts any CSS value (e.g., '100%', '200px', '80%') */
+  width?: string;
+  /** Height - accepts any CSS value (e.g., '20px', '1rem', '100px') */
+  height?: string;
+  /** Border radius override - for custom shapes */
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
+  /** Number of lines for paragraph variant */
+  lines?: number;
+  /** Disable animation for static placeholders */
+  static?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  variant = 'text',
+  width,
+  height,
+  rounded,
+  lines = 3,
+  static: isStatic = false,
+  class: className = '',
+} = Astro.props;
+
+// Variant configurations
+const variantConfig: Record<string, { class: string; defaultWidth?: string; defaultHeight?: string }> = {
+  text: {
+    class: 'skeleton-text',
+    defaultWidth: '100%',
+    defaultHeight: '1rem',
+  },
+  heading: {
+    class: 'skeleton-heading',
+    defaultWidth: '75%',
+    defaultHeight: '1.5rem',
+  },
+  circular: {
+    class: 'skeleton-circular',
+    defaultWidth: '40px',
+    defaultHeight: '40px',
+  },
+  rectangular: {
+    class: 'skeleton-rectangular',
+    defaultWidth: '100%',
+    defaultHeight: '120px',
+  },
+  paragraph: {
+    class: 'skeleton-paragraph',
+    defaultWidth: '100%',
+    defaultHeight: 'auto',
+  },
+};
+
+// Rounded configurations
+const roundedConfig: Record<string, string> = {
+  none: 'skeleton-rounded-none',
+  sm: 'skeleton-rounded-sm',
+  md: 'skeleton-rounded-md',
+  lg: 'skeleton-rounded-lg',
+  full: 'skeleton-rounded-full',
+};
+
+// Get current variant config
+const currentVariant = variantConfig[variant];
+
+// Determine dimensions
+const finalWidth = width || currentVariant.defaultWidth;
+const finalHeight = height || currentVariant.defaultHeight;
+
+// Build base classes
+const baseClasses = [
+  'skeleton-base',
+  currentVariant.class,
+  rounded ? roundedConfig[rounded] : '',
+  isStatic ? 'skeleton-static' : 'skeleton-animated',
+  className,
+].filter(Boolean).join(' ');
+
+// Inline styles for custom dimensions
+const inlineStyles = variant !== 'paragraph' ? `width: ${finalWidth}; height: ${finalHeight};` : `width: ${finalWidth};`;
+
+// Generate line widths for paragraph variant (varied for natural look)
+const lineWidths = ['100%', '95%', '88%', '100%', '72%'];
+---
+
+{variant === 'paragraph' ? (
+  <div class={`skeleton-paragraph-wrapper ${className}`} style={`width: ${finalWidth};`}>
+    {Array.from({ length: lines }).map((_, index) => (
+      <div
+        class={`skeleton-base skeleton-text ${isStatic ? 'skeleton-static' : 'skeleton-animated'}`}
+        style={`width: ${lineWidths[index % lineWidths.length]}; height: 1rem; animation-delay: ${index * 50}ms;`}
+        aria-hidden="true"
+      />
+    ))}
+  </div>
+) : (
+  <div
+    class={baseClasses}
+    style={inlineStyles}
+    aria-hidden="true"
+    role="presentation"
+  />
+)}
+
+<style is:global>
+  /**
+   * Skeleton Component Styles
+   * Professional, warm-tinted loading placeholders
+   */
+
+  /* ============================================
+     SHIMMER ANIMATION
+     Warm gradient flow for quality feel
+     ============================================ */
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Subtle pulse for static fallback */
+  @keyframes skeleton-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  /* ============================================
+     BASE SKELETON
+     ============================================ */
+
+  .skeleton-base {
+    display: block;
+    background-color: var(--color-surface-tertiary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Animated shimmer effect */
+  .skeleton-animated {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-tertiary) 0%,
+      var(--color-surface-secondary) 20%,
+      rgba(255, 255, 255, 0.5) 40%,
+      var(--color-surface-secondary) 60%,
+      var(--color-surface-tertiary) 80%,
+      var(--color-surface-tertiary) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  }
+
+  /* Static (no animation) */
+  .skeleton-static {
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+
+  /* ============================================
+     VARIANT STYLES
+     ============================================ */
+
+  /* Text - single line */
+  .skeleton-text {
+    border-radius: var(--radius-sm);
+  }
+
+  /* Heading - larger text */
+  .skeleton-heading {
+    border-radius: var(--radius-sm);
+  }
+
+  /* Circular - avatars, icons */
+  .skeleton-circular {
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  /* Rectangular - images, cards */
+  .skeleton-rectangular {
+    border-radius: var(--radius-lg);
+  }
+
+  /* Paragraph wrapper */
+  .skeleton-paragraph-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* ============================================
+     ROUNDED OVERRIDES
+     ============================================ */
+
+  .skeleton-rounded-none {
+    border-radius: 0 !important;
+  }
+
+  .skeleton-rounded-sm {
+    border-radius: var(--radius-sm) !important;
+  }
+
+  .skeleton-rounded-md {
+    border-radius: var(--radius-md) !important;
+  }
+
+  .skeleton-rounded-lg {
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .skeleton-rounded-full {
+    border-radius: var(--radius-full) !important;
+  }
+
+  /* ============================================
+     PRESET SIZE HELPERS
+     Use as additional classes for common patterns
+     ============================================ */
+
+  /* Avatar sizes (matching Avatar component) */
+  .skeleton-avatar-sm {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: var(--radius-full);
+  }
+
+  .skeleton-avatar-md {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: var(--radius-full);
+  }
+
+  .skeleton-avatar-lg {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: var(--radius-full);
+  }
+
+  .skeleton-avatar-xl {
+    width: 72px !important;
+    height: 72px !important;
+    border-radius: var(--radius-full);
+  }
+
+  /* Icon badge sizes (matching IconBadge component) */
+  .skeleton-icon-sm {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: var(--radius-full);
+  }
+
+  .skeleton-icon-md {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: var(--radius-full);
+  }
+
+  .skeleton-icon-lg {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: var(--radius-full);
+  }
+
+  /* Button sizes */
+  .skeleton-button-sm {
+    width: 80px !important;
+    height: 36px !important;
+    border-radius: var(--radius-md);
+  }
+
+  .skeleton-button-md {
+    width: 120px !important;
+    height: 44px !important;
+    border-radius: var(--radius-md);
+  }
+
+  .skeleton-button-lg {
+    width: 160px !important;
+    height: 52px !important;
+    border-radius: var(--radius-md);
+  }
+
+  /* Card image */
+  .skeleton-card-image {
+    width: 100% !important;
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    border-radius: var(--radius-lg);
+  }
+
+  .skeleton-card-image-square {
+    width: 100% !important;
+    aspect-ratio: 1 / 1;
+    height: auto !important;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For skeletons on dark backgrounds
+     ============================================ */
+
+  .section-inverse .skeleton-base,
+  .bg-inverse .skeleton-base {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .skeleton-animated,
+  .bg-inverse .skeleton-animated {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.12) 20%,
+      rgba(255, 255, 255, 0.2) 40%,
+      rgba(255, 255, 255, 0.12) 60%,
+      rgba(255, 255, 255, 0.08) 80%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* ============================================
+     SKELETON GROUPS
+     Helper for creating skeleton layouts
+     ============================================ */
+
+  .skeleton-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .skeleton-group-horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .skeleton-group-tight {
+    gap: var(--space-2);
+  }
+
+  .skeleton-group-loose {
+    gap: var(--space-4);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-animated {
+      animation: skeleton-pulse 2s ease-in-out infinite;
+      background: var(--color-surface-tertiary);
+    }
+  }
+</style>

@@ -1,0 +1,332 @@
+---
+/**
+ * StarRating Component
+ *
+ * Displays a star rating visualization (1-5 stars) with optional numeric value.
+ * Uses warm gold/amber tones to create trust and warmth - the feeling of
+ * "Real people trust them" when viewing reviews.
+ *
+ * Design Philosophy:
+ * Star ratings are social proof, so they need to feel authentic and trustworthy.
+ * The warm gold color creates psychological warmth, while the precise half-star
+ * support shows attention to detail. Empty stars are subtle but visible,
+ * reinforcing completeness even for perfect 5-star ratings.
+ *
+ * Features:
+ * - Full star, half-star, and empty star rendering
+ * - Three size variants for different contexts
+ * - Optional numeric value display
+ * - Accessible with proper ARIA labels
+ * - Warm gold color from design tokens
+ *
+ * @example
+ * <StarRating rating={4.5} size="md" showValue />
+ * <StarRating rating={5} size="lg" />
+ */
+
+interface Props {
+  /** Rating value from 1-5 (supports decimals for half stars) */
+  rating: number;
+  /** Size of the stars */
+  size?: 'sm' | 'md' | 'lg';
+  /** Show numeric rating value alongside stars */
+  showValue?: boolean;
+  /** Maximum stars to display (default: 5) */
+  max?: number;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  rating,
+  size = 'md',
+  showValue = false,
+  max = 5,
+  class: className = '',
+} = Astro.props;
+
+// Clamp rating between 0 and max
+const clampedRating = Math.min(Math.max(0, rating), max);
+
+// Calculate full stars, half stars, and empty stars
+const fullStars = Math.floor(clampedRating);
+const hasHalfStar = clampedRating % 1 >= 0.25 && clampedRating % 1 < 0.75;
+const halfStars = hasHalfStar ? 1 : (clampedRating % 1 >= 0.75 ? 0 : 0);
+const emptyStars = max - fullStars - (hasHalfStar ? 1 : 0) - (clampedRating % 1 >= 0.75 ? 0 : 0);
+
+// Adjust for ratings like 4.8 (should show 5 full stars)
+const adjustedFullStars = clampedRating % 1 >= 0.75 ? fullStars + 1 : fullStars;
+const adjustedEmptyStars = max - adjustedFullStars - (hasHalfStar ? 1 : 0);
+
+// Size configurations
+const sizeConfig: Record<string, { star: string; text: string; gap: string }> = {
+  sm: {
+    star: 'star-rating-star-sm',
+    text: 'star-rating-text-sm',
+    gap: 'star-rating-gap-sm',
+  },
+  md: {
+    star: 'star-rating-star-md',
+    text: 'star-rating-text-md',
+    gap: 'star-rating-gap-md',
+  },
+  lg: {
+    star: 'star-rating-star-lg',
+    text: 'star-rating-text-lg',
+    gap: 'star-rating-gap-lg',
+  },
+};
+
+const currentSize = sizeConfig[size];
+
+// Build class string
+const classes = [
+  'star-rating',
+  currentSize.gap,
+  className,
+].filter(Boolean).join(' ');
+
+// Format rating for display (e.g., 4.5 → "4.5", 5 → "5.0")
+const formattedRating = clampedRating.toFixed(1);
+
+// ARIA label for accessibility
+const ariaLabel = `Rating: ${formattedRating} out of ${max} stars`;
+---
+
+<div class={classes} role="img" aria-label={ariaLabel}>
+  <div class="star-rating-stars">
+    {/* Full stars */}
+    {Array.from({ length: adjustedFullStars }).map((_, i) => (
+      <svg
+        class={`star-rating-star star-rating-star-filled ${currentSize.star}`}
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      </svg>
+    ))}
+
+    {/* Half star */}
+    {hasHalfStar && (
+      <div class={`star-rating-star star-rating-star-half ${currentSize.star}`}>
+        {/* Empty star background */}
+        <svg
+          class="star-rating-star-empty-bg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        {/* Half-filled overlay */}
+        <svg
+          class="star-rating-star-half-fill"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <defs>
+            <clipPath id="halfStarClip">
+              <rect x="0" y="0" width="10" height="20" />
+            </clipPath>
+          </defs>
+          <path
+            clip-path="url(#halfStarClip)"
+            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+          />
+        </svg>
+      </div>
+    )}
+
+    {/* Empty stars */}
+    {Array.from({ length: adjustedEmptyStars }).map((_, i) => (
+      <svg
+        class={`star-rating-star star-rating-star-empty ${currentSize.star}`}
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      </svg>
+    ))}
+  </div>
+
+  {showValue && (
+    <span class={`star-rating-value ${currentSize.text}`}>
+      {formattedRating}
+    </span>
+  )}
+</div>
+
+<style is:global>
+  /**
+   * StarRating Component Styles
+   * Warm gold stars for trustworthy social proof
+   */
+
+  /* ============================================
+     BASE LAYOUT
+     ============================================ */
+
+  .star-rating {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .star-rating-stars {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ============================================
+     GAP SIZES
+     ============================================ */
+
+  .star-rating-gap-sm {
+    gap: var(--space-1-5);
+  }
+
+  .star-rating-gap-sm .star-rating-stars {
+    gap: 1px;
+  }
+
+  .star-rating-gap-md {
+    gap: var(--space-2);
+  }
+
+  .star-rating-gap-md .star-rating-stars {
+    gap: 2px;
+  }
+
+  .star-rating-gap-lg {
+    gap: var(--space-3);
+  }
+
+  .star-rating-gap-lg .star-rating-stars {
+    gap: 3px;
+  }
+
+  /* ============================================
+     STAR SIZES
+     ============================================ */
+
+  .star-rating-star {
+    flex-shrink: 0;
+  }
+
+  .star-rating-star-sm {
+    width: 14px;
+    height: 14px;
+  }
+
+  .star-rating-star-md {
+    width: 18px;
+    height: 18px;
+  }
+
+  .star-rating-star-lg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ============================================
+     STAR COLORS
+     Using warm gold/amber for trust and warmth
+     ============================================ */
+
+  /* Filled star - warm gold */
+  .star-rating-star-filled {
+    color: #f59e0b; /* amber-500 - warm gold */
+  }
+
+  /* Empty star - subtle gray */
+  .star-rating-star-empty {
+    color: var(--color-border-primary);
+  }
+
+  /* ============================================
+     HALF STAR
+     Composite of empty bg + filled half
+     ============================================ */
+
+  .star-rating-star-half {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .star-rating-star-half svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .star-rating-star-half .star-rating-star-empty-bg {
+    position: relative;
+    color: var(--color-border-primary);
+  }
+
+  .star-rating-star-half .star-rating-star-half-fill {
+    color: #f59e0b; /* amber-500 */
+  }
+
+  /* ============================================
+     VALUE TEXT
+     ============================================ */
+
+  .star-rating-value {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-none);
+  }
+
+  .star-rating-text-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .star-rating-text-md {
+    font-size: var(--font-size-base);
+  }
+
+  .star-rating-text-lg {
+    font-size: var(--font-size-xl);
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For use on dark backgrounds
+     ============================================ */
+
+  .section-inverse .star-rating-star-empty,
+  .bg-inverse .star-rating-star-empty {
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section-inverse .star-rating-star-half .star-rating-star-empty-bg,
+  .bg-inverse .star-rating-star-half .star-rating-star-empty-bg {
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section-inverse .star-rating-value,
+  .bg-inverse .star-rating-value {
+    color: var(--color-text-inverse);
+  }
+
+  /* ============================================
+     COMPACT VARIANT
+     Tighter spacing for inline use
+     ============================================ */
+
+  .star-rating-compact .star-rating-stars {
+    gap: 0;
+  }
+
+  .star-rating-compact.star-rating-gap-sm,
+  .star-rating-compact.star-rating-gap-md,
+  .star-rating-compact.star-rating-gap-lg {
+    gap: var(--space-1);
+  }
+</style>

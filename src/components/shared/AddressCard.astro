@@ -1,0 +1,646 @@
+---
+/**
+ * AddressCard Component
+ *
+ * A polished card displaying business location information with contact details.
+ * Designed to convey permanence and accessibility - "we're real people at a
+ * real location, and you can reach us."
+ *
+ * Design Philosophy:
+ * When someone's furnace breaks at 2am, they want to call a real business,
+ * not a faceless call center. The AddressCard makes contact info instantly
+ * scannable while reinforcing that B.A.P is an established, local company.
+ * Every element serves the goal: get them to call.
+ *
+ * Features:
+ * - Prominent phone number (always one tap away)
+ * - Structured address with Google Maps link
+ * - Email as secondary contact
+ * - Optional embedded map for location pages
+ * - Optional business hours display
+ *
+ * Variants:
+ * - default: Full card with all details
+ * - compact: Condensed for footers/sidebars
+ * - horizontal: Side-by-side layout for wider spaces
+ */
+
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Card from '../primitives/Card.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import Icon from '../primitives/Icon.astro';
+import MapEmbed from './MapEmbed.astro';
+
+interface LocationData {
+  /** Business/location name */
+  name: string;
+  /** Full street address */
+  address: string;
+  /** City name */
+  city: string;
+  /** Province/state abbreviation */
+  province: string;
+  /** Postal/ZIP code */
+  postalCode: string;
+  /** Phone number (display format) */
+  phone: string;
+  /** Phone number (E.164 format for tel: links) */
+  phoneE164?: string;
+  /** Email address */
+  email: string;
+  /** Google Maps embed URL */
+  embedUrl?: string;
+}
+
+interface Props {
+  /** Location data - if not provided, uses primary location from business profile */
+  location?: LocationData;
+  /** Which location from business profile to use */
+  profileLocation?: 'primary' | 'secondary';
+  /** Display variant */
+  variant?: 'default' | 'compact' | 'horizontal';
+  /** Show embedded map below address */
+  showMap?: boolean;
+  /** Map aspect ratio when displayed */
+  mapAspectRatio?: '16/9' | '4/3' | '1/1';
+  /** Show business hours */
+  showHours?: boolean;
+  /** Show "View larger map" link */
+  showMapLink?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  location,
+  profileLocation = 'primary',
+  variant = 'default',
+  showMap = false,
+  mapAspectRatio = '16/9',
+  showHours = false,
+  showMapLink = true,
+  class: className = '',
+} = Astro.props;
+
+// Get business profile for defaults
+const profile = await getBusinessProfile();
+
+// Resolve location data - prefer prop, fall back to business profile
+let resolvedLocation: LocationData;
+
+if (location) {
+  resolvedLocation = location;
+} else {
+  const profileLoc = profileLocation === 'secondary'
+    ? profile?.locations?.secondary
+    : profile?.locations?.primary;
+
+  if (profileLoc) {
+    // Parse address_full into components
+    const addressParts = profileLoc.address_full?.split(',').map((s: string) => s.trim()) || [];
+
+    resolvedLocation = {
+      name: profileLoc.name || profile?.business?.legal_name || 'B.A.P Heating & Cooling',
+      address: addressParts[0] || '',
+      city: profileLoc.city || addressParts[1] || '',
+      province: profileLoc.province || 'ON',
+      postalCode: profileLoc.postal_code || addressParts[2]?.replace(/[^A-Z0-9\s]/gi, '') || '',
+      phone: profile?.contact?.phone_display || '',
+      phoneE164: profileLoc.phone_e164 || profile?.contact?.phone_e164 || '',
+      email: profileLoc.email || profile?.contact?.email || '',
+      embedUrl: profileLoc.google_maps_embed || '',
+    };
+  } else {
+    // Fallback with empty data
+    resolvedLocation = {
+      name: 'B.A.P Heating & Cooling',
+      address: '',
+      city: '',
+      province: 'ON',
+      postalCode: '',
+      phone: '',
+      email: '',
+    };
+  }
+}
+
+// Format phone for tel: link
+const phoneLink = resolvedLocation.phoneE164 || resolvedLocation.phone?.replace(/[^\d+]/g, '');
+
+// Format full address for Google Maps link
+const fullAddress = [
+  resolvedLocation.address,
+  resolvedLocation.city,
+  resolvedLocation.province,
+  resolvedLocation.postalCode,
+].filter(Boolean).join(', ');
+
+// Get business hours if needed
+const businessHours = showHours ? profile?.hours?.business_hours : null;
+const isEmergency = profile?.hours?.emergency_service;
+
+// Build variant classes
+const variantClasses: Record<string, string> = {
+  default: 'address-card-default',
+  compact: 'address-card-compact',
+  horizontal: 'address-card-horizontal',
+};
+
+// Build class string
+const classes = [
+  'address-card',
+  variantClasses[variant],
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={classes}>
+  <Card variant="default" padding="none" radius="lg">
+    <CardBody padding={variant === 'compact' ? 'sm' : 'md'} gap="md">
+      {/* Header with location name */}
+      <div class="address-card-header">
+        <div class="address-card-header-icon">
+          <Icon name="building" size="lg" color="primary" />
+        </div>
+        <div class="address-card-header-content">
+          <Heading level={3} size={variant === 'compact' ? 'sm' : 'md'} weight="bold">
+            {resolvedLocation.name}
+          </Heading>
+          {variant !== 'compact' && businessHours && (
+            <div class="address-card-hours">
+              <Icon name="clock" size="sm" class="address-card-hours-icon" />
+              <Text size="sm" color="secondary">
+                {businessHours}
+                {isEmergency && (
+                  <span class="address-card-emergency-badge">24/7 Emergency</span>
+                )}
+              </Text>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Contact Details */}
+      <div class="address-card-details">
+        {/* Address */}
+        <div class="address-card-row">
+          <div class="address-card-row-icon">
+            <Icon name="mapPin" size="md" color="muted" />
+          </div>
+          <div class="address-card-row-content">
+            <address class="address-card-address">
+              <span class="address-street">{resolvedLocation.address}</span>
+              <span class="address-locality">
+                {resolvedLocation.city}, {resolvedLocation.province} {resolvedLocation.postalCode}
+              </span>
+            </address>
+            {showMapLink && fullAddress && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="address-card-link"
+              >
+                <span>Get directions</span>
+                <Icon name="externalLink" size="xs" />
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Phone - Most prominent */}
+        {resolvedLocation.phone && (
+          <div class="address-card-row address-card-row-phone">
+            <div class="address-card-row-icon">
+              <Icon name="phone" size="md" color="primary" />
+            </div>
+            <div class="address-card-row-content">
+              <a href={`tel:${phoneLink}`} class="address-card-phone">
+                {resolvedLocation.phone}
+              </a>
+              <Text size="xs" color="secondary" class="address-card-phone-hint">
+                Tap to call
+              </Text>
+            </div>
+          </div>
+        )}
+
+        {/* Email */}
+        {resolvedLocation.email && variant !== 'compact' && (
+          <div class="address-card-row">
+            <div class="address-card-row-icon">
+              <Icon name="mail" size="md" color="muted" />
+            </div>
+            <div class="address-card-row-content">
+              <a href={`mailto:${resolvedLocation.email}`} class="address-card-email">
+                {resolvedLocation.email}
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Optional Map */}
+      {showMap && resolvedLocation.embedUrl && (
+        <div class="address-card-map">
+          <MapEmbed
+            embedUrl={resolvedLocation.embedUrl}
+            address={fullAddress}
+            aspectRatio={mapAspectRatio}
+            variant="minimal"
+          />
+        </div>
+      )}
+    </CardBody>
+  </Card>
+</div>
+
+<style is:global>
+  /**
+   * AddressCard Component Styles
+   * Professional location display with prominent contact info
+   */
+
+  /* ============================================
+     BASE STRUCTURE
+     ============================================ */
+
+  .address-card {
+    width: 100%;
+  }
+
+  /* ============================================
+     HEADER SECTION
+     ============================================ */
+
+  .address-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .address-card-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-12);
+    height: var(--space-12);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+  }
+
+  .address-card-header-content {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .address-card-hours {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  .address-card-hours-icon {
+    opacity: 0.6;
+  }
+
+  .address-card-emergency-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--color-emergency-50);
+    color: var(--color-emergency-700);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-emergency-200);
+  }
+
+  /* ============================================
+     CONTACT DETAILS
+     ============================================ */
+
+  .address-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+  }
+
+  .address-card-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .address-card-row-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    flex-shrink: 0;
+    margin-top: var(--space-1);
+  }
+
+  .address-card-row-content {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  /* Address styling */
+  .address-card-address {
+    font-style: normal;
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .address-street {
+    display: block;
+  }
+
+  .address-locality {
+    display: block;
+    color: var(--color-text-secondary);
+  }
+
+  /* Get directions link */
+  .address-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      gap var(--duration-fast) var(--ease-out);
+  }
+
+  .address-card-link:hover {
+    color: var(--color-primary-700);
+    gap: var(--space-2);
+  }
+
+  .address-card-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Phone - Most prominent */
+  .address-card-row-phone {
+    padding: var(--space-3);
+    margin: 0 calc(var(--space-3) * -1);
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary-100);
+  }
+
+  .address-card-phone {
+    display: block;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-700);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .address-card-phone:hover {
+    color: var(--color-primary-800);
+  }
+
+  .address-card-phone:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .address-card-phone-hint {
+    margin-top: var(--space-1);
+  }
+
+  /* Email */
+  .address-card-email {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text-link);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .address-card-email:hover {
+    color: var(--color-text-link-hover);
+    text-decoration: underline;
+  }
+
+  .address-card-email:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ============================================
+     MAP SECTION
+     ============================================ */
+
+  .address-card-map {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     ============================================ */
+
+  .address-card-compact .address-card-header {
+    padding-bottom: var(--space-3);
+  }
+
+  .address-card-compact .address-card-header-icon {
+    width: var(--space-10);
+    height: var(--space-10);
+  }
+
+  .address-card-compact .address-card-details {
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+  }
+
+  .address-card-compact .address-card-row-icon {
+    width: var(--space-6);
+    height: var(--space-6);
+    margin-top: 0;
+  }
+
+  .address-card-compact .address-card-address {
+    font-size: var(--font-size-sm);
+  }
+
+  .address-card-compact .address-card-row-phone {
+    padding: var(--space-2);
+    margin: 0 calc(var(--space-2) * -1);
+  }
+
+  .address-card-compact .address-card-phone {
+    font-size: var(--font-size-lg);
+  }
+
+  .address-card-compact .address-card-phone-hint {
+    display: none;
+  }
+
+  /* ============================================
+     VARIANT: HORIZONTAL
+     ============================================ */
+
+  @media (min-width: 768px) {
+    .address-card-horizontal .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+    }
+
+    .address-card-horizontal .address-card-header {
+      grid-column: 1 / -1;
+    }
+
+    .address-card-horizontal .address-card-details {
+      padding-top: 0;
+    }
+
+    .address-card-horizontal .address-card-map {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .address-card-horizontal .address-card-row-phone {
+      margin: 0;
+    }
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .address-card-header {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .address-card-header-icon {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.15) 100%
+    );
+  }
+
+  .section-inverse .address-card-address {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .address-locality {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .section-inverse .address-card-link {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .address-card-link:hover {
+    color: var(--color-primary-200);
+  }
+
+  .section-inverse .address-card-row-phone {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .section-inverse .address-card-phone {
+    color: white;
+  }
+
+  .section-inverse .address-card-phone:hover {
+    color: var(--color-primary-200);
+  }
+
+  .section-inverse .address-card-email {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .address-card-email:hover {
+    color: var(--color-primary-200);
+  }
+
+  .section-inverse .address-card-emergency-badge {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .section-inverse .address-card-map {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .address-card-link,
+    .address-card-phone,
+    .address-card-email {
+      transition: none;
+    }
+
+    .address-card-link:hover {
+      gap: var(--space-1);
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .address-card-row-phone {
+      background-color: transparent;
+      border: 1px solid #ccc;
+    }
+
+    .address-card-link,
+    .address-card-phone,
+    .address-card-email {
+      color: black;
+    }
+
+    .address-card-link::after {
+      content: " (" attr(href) ")";
+      font-weight: normal;
+    }
+
+    .address-card-map {
+      display: none;
+    }
+  }
+</style>

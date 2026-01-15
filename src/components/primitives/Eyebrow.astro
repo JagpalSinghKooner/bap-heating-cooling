@@ -1,0 +1,226 @@
+---
+/**
+ * Eyebrow Component
+ *
+ * Small, uppercase label text that appears above section headings.
+ * Creates visual hierarchy and category context.
+ *
+ * The "Trustworthy Industrial Modern" aesthetic uses eyebrows to:
+ * - Signal authority and organization
+ * - Create clear content hierarchy
+ * - Add a touch of industrial precision (like stamped labels)
+ */
+
+import { getIconPath, type IconName } from '../../lib/icons';
+
+interface Props {
+  /** Text color variant */
+  color?: 'primary' | 'accent' | 'inverse' | 'muted' | 'emergency' | 'success';
+  /** Optional icon to display before text */
+  icon?: string;
+  /** Icon position */
+  iconPosition?: 'left' | 'right';
+  /** Size variant */
+  size?: 'sm' | 'md';
+  /** Visual style variant */
+  variant?: 'default' | 'badge' | 'tag';
+  /** Text alignment */
+  align?: 'left' | 'center' | 'right';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  color = 'primary',
+  icon,
+  iconPosition = 'left',
+  size = 'md',
+  variant = 'default',
+  align,
+  class: className = '',
+} = Astro.props;
+
+// Color configurations
+const colorClasses: Record<string, string> = {
+  primary: 'text-eyebrow-primary',
+  accent: 'text-eyebrow-accent',
+  inverse: 'text-eyebrow-inverse',
+  muted: 'text-eyebrow-muted',
+  emergency: 'text-eyebrow-emergency',
+  success: 'text-eyebrow-success',
+};
+
+// Badge variant background colors
+const badgeColorClasses: Record<string, string> = {
+  primary: 'bg-primary-50 text-primary-700 border-primary-200',
+  accent: 'bg-accent-50 text-accent-700 border-accent-200',
+  inverse: 'bg-surface-inverse/10 text-text-inverse border-transparent',
+  muted: 'bg-surface-tertiary text-text-secondary border-border-secondary',
+  emergency: 'bg-emergency-50 text-emergency-700 border-emergency-200',
+  success: 'bg-success-50 text-success-700 border-success-200',
+};
+
+// Size configurations
+const sizeClasses: Record<string, string> = {
+  sm: 'text-eyebrow-sm',
+  md: 'text-eyebrow-md',
+};
+
+// Icon size based on text size
+const iconSizeClasses: Record<string, string> = {
+  sm: 'w-3 h-3',
+  md: 'w-3.5 h-3.5',
+};
+
+// Badge padding based on size
+const badgePadding: Record<string, string> = {
+  sm: 'px-2 py-0.5',
+  md: 'px-2.5 py-1',
+};
+
+// Alignment classes
+const alignClasses: Record<string, string> = {
+  left: 'justify-start text-left',
+  center: 'justify-center text-center',
+  right: 'justify-end text-right',
+};
+
+// Build base classes
+const baseClasses = 'font-heading uppercase tracking-widest font-semibold';
+const iconClass = icon ? 'inline-flex items-center gap-1.5' : '';
+
+// Variant-specific classes
+let variantClasses = '';
+if (variant === 'badge') {
+  variantClasses = `${badgeColorClasses[color]} ${badgePadding[size]} rounded-full border`;
+} else if (variant === 'tag') {
+  variantClasses = `${badgeColorClasses[color]} ${badgePadding[size]} rounded-sm border`;
+} else {
+  variantClasses = colorClasses[color];
+}
+
+const classes = [
+  baseClasses,
+  sizeClasses[size],
+  variantClasses,
+  iconClass,
+  align ? alignClasses[align] : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<span class={classes}>
+  {icon && iconPosition === 'left' && (
+    <svg
+      class={`${iconSizeClasses[size]} flex-shrink-0`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+      set:html={getIconPath(icon)}
+    />
+  )}
+  <slot />
+  {icon && iconPosition === 'right' && (
+    <svg
+      class={`${iconSizeClasses[size]} flex-shrink-0`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+      set:html={getIconPath(icon)}
+    />
+  )}
+</span>
+
+<style is:global>
+  /**
+   * Eyebrow typography styles
+   * Small, uppercase label text for hierarchy
+   */
+
+  /* Eyebrow sizes */
+  .text-eyebrow-sm {
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-widest);
+  }
+  .text-eyebrow-md {
+    font-size: 13px; /* Specific size between xs and sm for optimal legibility */
+    letter-spacing: var(--letter-spacing-widest);
+  }
+
+  /* Tracking (letter-spacing) */
+  .tracking-widest {
+    letter-spacing: var(--letter-spacing-widest);
+  }
+
+  /* Eyebrow colors - default variant */
+  .text-eyebrow-primary {
+    color: var(--color-primary-600);
+  }
+  .text-eyebrow-accent {
+    color: var(--color-accent-600);
+  }
+  .text-eyebrow-inverse {
+    color: var(--color-text-inverse);
+    opacity: 0.9;
+  }
+  .text-eyebrow-muted {
+    color: var(--color-text-secondary);
+  }
+  .text-eyebrow-emergency {
+    color: var(--color-emergency-600);
+  }
+  .text-eyebrow-success {
+    color: var(--color-success-600);
+  }
+
+  /* Badge/Tag backgrounds */
+  .bg-primary-50 { background-color: var(--color-primary-50); }
+  .bg-accent-50 { background-color: var(--color-accent-50); }
+  .bg-emergency-50 { background-color: var(--color-emergency-50); }
+  .bg-success-50 { background-color: var(--color-success-50); }
+  .bg-surface-tertiary { background-color: var(--color-surface-tertiary); }
+
+  /* Badge/Tag text colors */
+  .text-primary-700 { color: var(--color-primary-700); }
+  .text-accent-700 { color: var(--color-accent-700); }
+  .text-emergency-700 { color: var(--color-emergency-700); }
+  .text-success-700 { color: var(--color-success-700); }
+
+  /* Badge/Tag borders */
+  .border-primary-200 { border-color: var(--color-primary-200); }
+  .border-accent-200 { border-color: var(--color-accent-200); }
+  .border-emergency-200 { border-color: var(--color-emergency-200); }
+  .border-success-200 { border-color: var(--color-success-200); }
+  .border-border-secondary { border-color: var(--color-border-secondary); }
+
+  /* Dark mode / inverse section adjustments */
+  .section-inverse .text-eyebrow-primary,
+  [data-theme="dark"] .text-eyebrow-primary {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .text-eyebrow-muted,
+  [data-theme="dark"] .text-eyebrow-muted {
+    color: rgba(248, 250, 252, 0.6);
+  }
+
+  /* Animation for badge variant - subtle entrance */
+  @keyframes eyebrow-pop {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .eyebrow-animate {
+    animation: eyebrow-pop var(--duration-normal) var(--ease-out);
+  }
+</style>

@@ -1,0 +1,585 @@
+---
+/**
+ * MapEmbed Component
+ *
+ * A responsive, performant Google Maps embed for displaying business locations.
+ * Designed with the "Trustworthy Industrial Modern" aesthetic - clean borders,
+ * subtle shadows, and a professional presentation that says "we're a real
+ * business at a real location."
+ *
+ * Design Philosophy:
+ * A map isn't just geographic information - it's proof of permanence. When a
+ * homeowner sees your physical address pinned on a map, it signals "these
+ * people aren't going anywhere." The component wraps the embed in a
+ * polished frame that feels substantial and trustworthy.
+ *
+ * Performance Features:
+ * - Lazy loading (loads only when scrolled into view)
+ * - Placeholder state with skeleton loader
+ * - Responsive aspect ratio maintained at all breakpoints
+ * - Graceful fallback for missing/invalid embed URLs
+ *
+ * Variants:
+ * - default: Standard map with rounded corners and shadow
+ * - minimal: No shadow, subtle border - for compact layouts
+ * - featured: Larger shadow, accent border - for location pages
+ */
+
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
+import Text from '../primitives/Text.astro';
+
+interface Props {
+  /** Street address for fallback display */
+  address?: string;
+  /** Google Maps embed URL - if not provided, uses primary location from business profile */
+  embedUrl?: string;
+  /** Map container height (CSS value) */
+  height?: string;
+  /** Aspect ratio for responsive sizing */
+  aspectRatio?: '16/9' | '4/3' | '3/2' | '1/1' | 'auto';
+  /** Visual style variant */
+  variant?: 'default' | 'minimal' | 'featured';
+  /** Enable lazy loading (recommended for performance) */
+  lazy?: boolean;
+  /** Show a title above the map */
+  title?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  address,
+  embedUrl,
+  height,
+  aspectRatio = '16/9',
+  variant = 'default',
+  lazy = true,
+  title,
+  class: className = '',
+} = Astro.props;
+
+// Get business profile for defaults
+const profile = await getBusinessProfile();
+
+// Resolve embed URL - prefer prop, fall back to business profile
+const resolvedEmbedUrl = embedUrl || profile?.locations?.primary?.google_maps_embed || '';
+
+// Resolve address for fallback display
+const resolvedAddress = address || profile?.locations?.primary?.address_full || '';
+
+// Determine if we have a valid embed URL
+const hasValidEmbed = resolvedEmbedUrl && resolvedEmbedUrl.includes('google.com/maps');
+
+// Build aspect ratio class
+const aspectClasses: Record<string, string> = {
+  '16/9': 'map-aspect-16-9',
+  '4/3': 'map-aspect-4-3',
+  '3/2': 'map-aspect-3-2',
+  '1/1': 'map-aspect-1-1',
+  'auto': '',
+};
+
+// Build variant classes
+const variantClasses: Record<string, string> = {
+  default: 'map-variant-default',
+  minimal: 'map-variant-minimal',
+  featured: 'map-variant-featured',
+};
+
+// Build class string
+const classes = [
+  'map-embed',
+  variantClasses[variant],
+  aspectRatio !== 'auto' ? aspectClasses[aspectRatio] : '',
+  className,
+].filter(Boolean).join(' ');
+
+// Custom height style
+const customStyle = height ? `--map-custom-height: ${height};` : '';
+---
+
+<div class={classes} style={customStyle}>
+  {/* Optional Title */}
+  {title && (
+    <div class="map-embed-header">
+      <Icon name="mapPin" size="md" color="primary" />
+      <Text weight="semibold" size="base">{title}</Text>
+    </div>
+  )}
+
+  {/* Map Container */}
+  <div class="map-embed-container">
+    {hasValidEmbed ? (
+      <>
+        {/* Loading skeleton - shown until iframe loads */}
+        <div class="map-embed-skeleton" aria-hidden="true">
+          <div class="map-skeleton-pulse"></div>
+          <div class="map-skeleton-content">
+            <Icon name="mapPin" size="xl" class="map-skeleton-icon" />
+            <span class="map-skeleton-text">Loading map...</span>
+          </div>
+        </div>
+
+        {/* Google Maps iframe */}
+        <iframe
+          src={resolvedEmbedUrl}
+          class="map-embed-iframe"
+          loading={lazy ? 'lazy' : 'eager'}
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+          title={`Map showing ${resolvedAddress || 'our location'}`}
+        ></iframe>
+      </>
+    ) : (
+      /* Fallback when no embed URL available */
+      <div class="map-embed-fallback">
+        <div class="map-fallback-content">
+          <Icon name="mapPin" size="xl" color="primary" />
+          {resolvedAddress ? (
+            <>
+              <Text size="sm" color="secondary" class="map-fallback-label">
+                Our Location
+              </Text>
+              <Text weight="medium" class="map-fallback-address">
+                {resolvedAddress}
+              </Text>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="map-fallback-link"
+              >
+                <span>View on Google Maps</span>
+                <Icon name="externalLink" size="sm" />
+              </a>
+            </>
+          ) : (
+            <Text size="sm" color="secondary">
+              Map location unavailable
+            </Text>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+<style is:global>
+  /**
+   * MapEmbed Component Styles
+   * Clean, professional map presentation with loading states
+   */
+
+  /* ============================================
+     BASE STRUCTURE
+     ============================================ */
+
+  .map-embed {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-embed-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border-secondary);
+    margin-bottom: var(--space-4);
+  }
+
+  .map-embed-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background-color: var(--color-surface-secondary);
+  }
+
+  /* ============================================
+     ASPECT RATIO VARIANTS
+     Maintain consistent proportions across breakpoints
+     ============================================ */
+
+  .map-aspect-16-9 .map-embed-container {
+    aspect-ratio: 16 / 9;
+  }
+
+  .map-aspect-4-3 .map-embed-container {
+    aspect-ratio: 4 / 3;
+  }
+
+  .map-aspect-3-2 .map-embed-container {
+    aspect-ratio: 3 / 2;
+  }
+
+  .map-aspect-1-1 .map-embed-container {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Custom height override */
+  .map-embed[style*="--map-custom-height"] .map-embed-container {
+    aspect-ratio: auto;
+    height: var(--map-custom-height);
+  }
+
+  /* Fallback for browsers without aspect-ratio */
+  @supports not (aspect-ratio: 16 / 9) {
+    .map-aspect-16-9 .map-embed-container {
+      padding-bottom: 56.25%;
+      height: 0;
+    }
+
+    .map-aspect-4-3 .map-embed-container {
+      padding-bottom: 75%;
+      height: 0;
+    }
+
+    .map-aspect-3-2 .map-embed-container {
+      padding-bottom: 66.67%;
+      height: 0;
+    }
+
+    .map-aspect-1-1 .map-embed-container {
+      padding-bottom: 100%;
+      height: 0;
+    }
+
+    .map-embed-iframe,
+    .map-embed-skeleton,
+    .map-embed-fallback {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* ============================================
+     VARIANT STYLES
+     ============================================ */
+
+  /* Default: Rounded corners, subtle shadow */
+  .map-variant-default .map-embed-container {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-primary);
+  }
+
+  /* Minimal: Clean borders, no shadow */
+  .map-variant-minimal .map-embed-container {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  /* Featured: Accent styling for emphasis */
+  .map-variant-featured .map-embed-container {
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 2px solid var(--color-primary-200);
+  }
+
+  .map-variant-featured::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: var(--space-6);
+    right: var(--space-6);
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    z-index: 1;
+  }
+
+  /* ============================================
+     IFRAME STYLES
+     ============================================ */
+
+  .map-embed-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 2;
+
+    /* Smooth fade-in when loaded */
+    animation: mapFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 200ms;
+    opacity: 0;
+  }
+
+  @keyframes mapFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* ============================================
+     LOADING SKELETON
+     Shows while iframe loads
+     ============================================ */
+
+  .map-embed-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-surface-secondary);
+    z-index: 1;
+  }
+
+  .map-skeleton-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-secondary) 0%,
+      var(--color-surface-tertiary) 50%,
+      var(--color-surface-secondary) 100%
+    );
+    background-size: 200% 100%;
+    animation: mapSkeletonPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes mapSkeletonPulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .map-skeleton-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text-tertiary);
+  }
+
+  .map-skeleton-icon {
+    opacity: 0.5;
+    animation: mapIconPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes mapIconPulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.7;
+    }
+  }
+
+  .map-skeleton-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* ============================================
+     FALLBACK STATE
+     When no embed URL is available
+     ============================================ */
+
+  .map-embed-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-surface-secondary);
+    background-image:
+      radial-gradient(circle at 25% 25%, var(--color-primary-50) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, var(--color-primary-50) 0%, transparent 50%);
+  }
+
+  .map-fallback-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    text-align: center;
+    max-width: 280px;
+  }
+
+  .map-fallback-label {
+    margin-top: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: var(--font-size-xs);
+  }
+
+  .map-fallback-address {
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .map-fallback-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-700);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary-200);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .map-fallback-link:hover {
+    background-color: var(--color-primary-100);
+    border-color: var(--color-primary-300);
+    transform: translateY(-1px);
+  }
+
+  .map-fallback-link:active {
+    transform: translateY(0);
+    background-color: var(--color-primary-150);
+  }
+
+  .map-fallback-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 640px) {
+    .map-variant-featured .map-embed-container {
+      border-radius: var(--radius-lg);
+    }
+
+    .map-fallback-content {
+      padding: var(--space-4);
+      max-width: 240px;
+    }
+
+    .map-embed-header {
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     (For maps on dark backgrounds)
+     ============================================ */
+
+  .section-inverse .map-variant-default .map-embed-container,
+  .section-inverse .map-variant-minimal .map-embed-container {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .section-inverse .map-variant-featured .map-embed-container {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .section-inverse .map-embed-header {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .section-inverse .map-embed-fallback {
+    background-color: rgba(255, 255, 255, 0.05);
+    background-image:
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  }
+
+  .section-inverse .map-fallback-link {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .map-fallback-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-embed-iframe {
+      animation: none;
+      opacity: 1;
+    }
+
+    .map-skeleton-pulse,
+    .map-skeleton-icon {
+      animation: none;
+    }
+
+    .map-fallback-link {
+      transition: none;
+    }
+
+    .map-fallback-link:hover {
+      transform: none;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .map-embed-container {
+      break-inside: avoid;
+      border: 1px solid #ccc;
+    }
+
+    .map-embed-iframe {
+      display: none;
+    }
+
+    .map-embed-fallback {
+      position: static;
+      background: #f5f5f5;
+    }
+
+    .map-fallback-link {
+      display: none;
+    }
+  }
+</style>

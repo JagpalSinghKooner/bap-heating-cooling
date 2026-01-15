@@ -1,6 +1,11 @@
 ---
+/**
+ * Rebates Page - Gutted for Redesign
+ *
+ * Preserves all data fetching logic.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PrimaryCTA from '../components/PrimaryCTA.astro';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
 
@@ -13,125 +18,8 @@ const schema = getLocalBusinessSchema(profile);
   description="Take advantage of government rebates and incentives for energy-efficient HVAC systems. We'll help you navigate the paperwork and maximize your savings."
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    <header class="mb-12">
-      <h1 class="mb-6 text-4xl font-bold">Rebates & Incentives</h1>
-      <p class="text-xl text-muted-foreground">
-        Save money with government rebates and incentives for energy-efficient HVAC systems.
-      </p>
-    </header>
-
-    <div class="mx-auto max-w-3xl space-y-8">
-      {profile.pricing_and_offers?.rebates.paperwork_supported && (
-        <section class="rounded-lg border bg-card p-8">
-          <h2 class="mb-4 text-2xl font-semibold">We Handle the Paperwork</h2>
-          <p class="mb-6 text-lg text-muted-foreground">
-            {profile.pricing_and_offers.rebates.statement}
-          </p>
-
-          <div class="space-y-4">
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Expert Guidance</h3>
-                <p class="text-muted-foreground">
-                  We stay current on all available federal, provincial, and municipal rebate programs.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Paperwork Assistance</h3>
-                <p class="text-muted-foreground">
-                  Our team helps you complete and submit all necessary rebate applications correctly.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-4">
-              <div class="text-primary">✓</div>
-              <div>
-                <h3 class="font-semibold">Maximize Savings</h3>
-                <p class="text-muted-foreground">
-                  We ensure you receive all eligible rebates and incentives for your HVAC upgrade.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section class="rounded-lg border p-8">
-        <h2 class="mb-4 text-2xl font-semibold">Available Rebate Programs</h2>
-        <div class="space-y-6">
-          <div>
-            <h3 class="mb-2 text-lg font-semibold">Federal Greener Homes Grant</h3>
-            <p class="text-muted-foreground">
-              Receive up to $5,000 for eligible home energy upgrades, including high-efficiency heating and cooling systems.
-            </p>
-          </div>
-
-          <div>
-            <h3 class="mb-2 text-lg font-semibold">Enbridge Gas Rebates</h3>
-            <p class="text-muted-foreground">
-              Save on qualifying energy-efficient furnaces, boilers, and water heaters through Enbridge Gas incentive programs.
-            </p>
-          </div>
-
-          <div>
-            <h3 class="mb-2 text-lg font-semibold">Municipal Incentives</h3>
-            <p class="text-muted-foreground">
-              Many Ontario municipalities offer additional incentives for energy-efficient home improvements. We'll help you identify what's available in your area.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="rounded-lg bg-muted p-8">
-        <h2 class="mb-4 text-2xl font-semibold">Ready to Save?</h2>
-        <p class="mb-6 text-muted-foreground">
-          Contact us for a free consultation and learn how much you can save with available rebates and incentives.
-        </p>
-
-        <div class="flex gap-4">
-          <PrimaryCTA variant="call" context="rebates-footer" />
-          <PrimaryCTA variant="book" context="rebates-footer" />
-        </div>
-      </section>
-
-      <section>
-        <h2 class="mb-4 text-2xl font-semibold">Frequently Asked Questions</h2>
-        <div class="space-y-4">
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              How do rebates work?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              After your qualifying HVAC system is installed, we help you complete the rebate application. The rebate is typically issued as a cheque or direct deposit within 6-12 weeks.
-            </p>
-          </details>
-
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              What equipment qualifies for rebates?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              High-efficiency furnaces, air conditioners, heat pumps, and water heaters often qualify. Equipment must meet specific efficiency ratings set by the rebate program.
-            </p>
-          </details>
-
-          <details class="rounded-lg border bg-card p-4">
-            <summary class="cursor-pointer font-semibold">
-              Can I combine multiple rebates?
-            </summary>
-            <p class="mt-4 text-muted-foreground">
-              In many cases, yes! Federal, provincial, and utility rebates can often be stacked. We'll identify all eligible programs for your project.
-            </p>
-          </details>
-        </div>
-      </section>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>Rebates & Incentives</h1>
+    <p>Rebates page redesign in progress.</p>
   </div>
 </BaseLayout>

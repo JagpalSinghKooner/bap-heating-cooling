@@ -1,0 +1,461 @@
+---
+/**
+ * FloatingCTA Component
+ *
+ * A fixed-position call-to-action bar for mobile and tablet users.
+ * Ensures the phone number is ALWAYS accessible for immediate action.
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Confident, solid presence anchored to bottom of viewport
+ * - Phone number as hero element - one tap to connect
+ * - Emergency variant pulses with urgency without being aggressive
+ *
+ * Behavior:
+ * - Fixed position at bottom of viewport
+ * - Only visible on mobile/tablet (hidden on lg+ screens)
+ * - Hides when near top or bottom of page (not needed)
+ * - Hides on scroll down (user is reading), shows on scroll up (user looking for action)
+ * - Smooth slide transition for non-jarring UX
+ *
+ * Variants:
+ * - call:      Standard trust blue - confident, always available
+ * - emergency: Urgent red with pulse - 24/7 emergencies
+ *
+ * Data Source:
+ * - Business profile for phone number
+ */
+
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+
+interface Props {
+  /** Visual variant determines urgency level */
+  variant?: 'call' | 'emergency';
+  /** Custom CTA label (default: "Call Now") */
+  label?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  variant = 'call',
+  label,
+  class: className = '',
+} = Astro.props;
+
+// Get business data
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const is24_7 = profile.hours.emergency_service;
+
+// Determine label based on variant
+const finalLabel = label || (variant === 'emergency' ? '24/7 Emergency' : 'Call Now');
+
+// Build container classes
+const containerClasses = [
+  'floating-cta',
+  `floating-cta-${variant}`,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={containerClasses} id="floating-cta" data-floating-cta aria-label="Quick contact">
+  <a href={phoneLink} class="floating-cta-link" data-cta-context="floating-cta-phone">
+    {/* Phone icon */}
+    <span class="floating-cta-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+      </svg>
+    </span>
+
+    {/* Content */}
+    <span class="floating-cta-content">
+      <span class="floating-cta-label">{finalLabel}</span>
+      <span class="floating-cta-phone">{phoneDisplay}</span>
+    </span>
+
+    {/* Emergency indicator */}
+    {variant === 'emergency' && is24_7 && (
+      <span class="floating-cta-pulse" aria-hidden="true" />
+    )}
+  </a>
+</div>
+
+<script>
+  /**
+   * FloatingCTA Scroll Behavior
+   *
+   * - Hides on scroll down (user reading content)
+   * - Shows on scroll up (user looking for action)
+   * - Hides near very top or bottom of page
+   */
+
+  function initFloatingCTA() {
+    const floatingCTA = document.querySelector('[data-floating-cta]') as HTMLElement | null;
+    if (!floatingCTA) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    let isVisible = true;
+
+    const SCROLL_THRESHOLD = 10; // Minimum scroll to trigger hide/show
+    const TOP_THRESHOLD = 100;   // Distance from top to start showing
+    const BOTTOM_THRESHOLD = 200; // Distance from bottom to hide
+
+    function updateVisibility() {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Calculate distances
+      const distanceFromTop = currentScrollY;
+      const distanceFromBottom = documentHeight - (currentScrollY + windowHeight);
+
+      // Hide near top of page (hero is visible)
+      if (distanceFromTop < TOP_THRESHOLD) {
+        hideFloatingCTA();
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      // Hide near bottom of page (footer CTA visible)
+      if (distanceFromBottom < BOTTOM_THRESHOLD) {
+        hideFloatingCTA();
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      // Scrolling down - hide (user is reading)
+      if (scrollDelta > SCROLL_THRESHOLD) {
+        hideFloatingCTA();
+      }
+      // Scrolling up - show (user looking for action)
+      else if (scrollDelta < -SCROLL_THRESHOLD) {
+        showFloatingCTA();
+      }
+
+      lastScrollY = currentScrollY;
+    }
+
+    function hideFloatingCTA() {
+      if (isVisible) {
+        floatingCTA!.classList.add('floating-cta-hidden');
+        isVisible = false;
+      }
+    }
+
+    function showFloatingCTA() {
+      if (!isVisible) {
+        floatingCTA!.classList.remove('floating-cta-hidden');
+        isVisible = true;
+      }
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateVisibility();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    // Initial check
+    updateVisibility();
+
+    // Throttled scroll listener
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Cleanup on navigation (for Astro's View Transitions)
+    document.addEventListener('astro:before-preparation', () => {
+      window.removeEventListener('scroll', onScroll);
+    });
+  }
+
+  // Initialize on page load
+  initFloatingCTA();
+
+  // Re-initialize on Astro navigation
+  document.addEventListener('astro:page-load', initFloatingCTA);
+</script>
+
+<style is:global>
+  /**
+   * FloatingCTA Styles
+   *
+   * Fixed-position mobile CTA bar.
+   * "Trustworthy Industrial Modern" aesthetic.
+   */
+
+  /* ============================================
+     BASE STYLES
+     ============================================ */
+
+  .floating-cta {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed);
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(
+      to top,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0.95) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border-secondary);
+    box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+
+    /* Smooth slide transition */
+    transform: translateY(0);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      opacity var(--duration-normal) var(--ease-out);
+
+    /* Hidden on desktop */
+    display: block;
+  }
+
+  @media (min-width: 1024px) {
+    .floating-cta {
+      display: none;
+    }
+  }
+
+  /* Hidden state */
+  .floating-cta-hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     CTA LINK
+     ============================================ */
+
+  .floating-cta-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+  }
+
+  /* Call variant - Trust Blue solid button */
+  .floating-cta-call .floating-cta-link {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-700) 100%
+    );
+    color: var(--color-text-inverse);
+    box-shadow: var(--shadow-primary);
+  }
+
+  .floating-cta-call .floating-cta-link:hover {
+    box-shadow: var(--shadow-primary-hover);
+    transform: translateY(-1px);
+  }
+
+  .floating-cta-call .floating-cta-link:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-primary);
+  }
+
+  /* Emergency variant - Urgent Red with pulse */
+  .floating-cta-emergency .floating-cta-link {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-600) 0%,
+      var(--color-emergency-700) 100%
+    );
+    color: var(--color-text-inverse);
+    box-shadow: var(--shadow-emergency);
+  }
+
+  .floating-cta-emergency .floating-cta-link:hover {
+    box-shadow: var(--shadow-emergency-hover);
+    transform: translateY(-1px);
+  }
+
+  .floating-cta-emergency .floating-cta-link:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-emergency);
+  }
+
+  /* ============================================
+     ICON
+     ============================================ */
+
+  .floating-cta-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+
+  .floating-cta-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* ============================================
+     CONTENT
+     ============================================ */
+
+  .floating-cta-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .floating-cta-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    opacity: 0.85;
+  }
+
+  .floating-cta-phone {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* ============================================
+     EMERGENCY PULSE
+     ============================================ */
+
+  .floating-cta-pulse {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background: var(--color-success-400);
+    border-radius: var(--radius-full);
+    animation: floating-cta-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes floating-cta-pulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 6px rgba(74, 222, 128, 0);
+    }
+  }
+
+  /* ============================================
+     INDUSTRIAL ACCENTS
+     ============================================ */
+
+  /* Subtle diagonal stripe pattern for call variant */
+  .floating-cta-call .floating-cta-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      -45deg,
+      transparent 0%,
+      transparent 48%,
+      rgba(255, 255, 255, 0.03) 48%,
+      rgba(255, 255, 255, 0.03) 52%,
+      transparent 52%,
+      transparent 100%
+    );
+    background-size: 8px 8px;
+    pointer-events: none;
+  }
+
+  /* Emergency variant - more prominent pattern */
+  .floating-cta-emergency .floating-cta-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      -45deg,
+      transparent 0%,
+      transparent 46%,
+      rgba(255, 255, 255, 0.04) 46%,
+      rgba(255, 255, 255, 0.04) 54%,
+      transparent 54%,
+      transparent 100%
+    );
+    background-size: 10px 10px;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 360px) {
+    .floating-cta-phone {
+      font-size: var(--font-size-lg);
+    }
+
+    .floating-cta-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .floating-cta-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .floating-cta {
+      transition: none;
+    }
+
+    .floating-cta-pulse {
+      animation: none;
+    }
+
+    .floating-cta-link {
+      transition: none;
+    }
+
+    .floating-cta-link:hover {
+      transform: none;
+    }
+  }
+
+  /* ============================================
+     FOCUS STATES
+     ============================================ */
+
+  .floating-cta-link:focus-visible {
+    outline: 2px solid var(--color-text-inverse);
+    outline-offset: 2px;
+  }
+</style>

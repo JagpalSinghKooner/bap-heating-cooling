@@ -1,17 +1,12 @@
 ---
+/**
+ * Homepage - Gutted for Redesign
+ *
+ * Preserves all data fetching and schema logic.
+ * Visual components will be rebuilt in Phase 4-6.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/hero/Hero.astro';
-import ReviewsBlock from '../components/ReviewsBlock.astro';
-import ServiceCategoriesSection from '../components/homepage/ServiceCategoriesSection.astro';
-import WhyChooseBAPSection from '../components/homepage/WhyChooseBAPSection.astro';
-import GallerySection from '../components/homepage/GallerySection.astro';
-import ProcessSection from '../components/homepage/ProcessSection.astro';
-import ServiceAreasSection from '../components/homepage/ServiceAreasSection.astro';
-import FinancingTeaserSection from '../components/homepage/FinancingTeaserSection.astro';
-import FAQSection from '../components/shared/FAQSection.astro';
-import GradientCTASection from '../components/shared/GradientCTASection.astro';
-import BrandLogosSection from '../components/homepage/BrandLogosSection.astro';
-import BlogPreviewSection from '../components/homepage/BlogPreviewSection.astro';
 import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
@@ -57,60 +52,9 @@ const schema = schemas;
   description="24/7 emergency HVAC in Guelph & Ontario. Furnace installation, AC repair, heat pumps. Family-owned since 1994. 10-year warranty. Free estimates: 519-835-4858"
   schema={schema}
 >
-  <!-- 1. Hero: Problem + Promise + Primary CTAs -->
-  <Hero
-    eyebrow="Family-Owned Since 1994"
-    headline="30+ Years Keeping Ontario Families Comfortable"
-    description="Licensed TSSA technicians. Same-day service available. 10-year warranty on all installations."
-    context="homepage-hero"
-  />
-
-  <!-- 2. Services: What we do -->
-  <ServiceCategoriesSection />
-
-  <!-- 3. Emergency CTA: Prominent 24/7 emergency service callout -->
-  <GradientCTASection
-    variant="emergency"
-    headline="Furnace Not Working? We're Here 24/7"
-    responseTime="Technician at your door typically within 60 minutes"
-    description="No overtime charges. Upfront pricing. We fix it right the first time."
-    context="emergency-section"
-  />
-
-  <!-- 4. Why Choose BAP: Trust + About + Differentiators (consolidated) -->
-  <WhyChooseBAPSection />
-
-  <!-- 5. Brand Logos: Manufacturer trust indicators -->
-  <BrandLogosSection />
-
-  <!-- 6. Process: How it works -->
-  <ProcessSection />
-
-  <!-- 7. Gallery: Visual proof of work -->
-  <GallerySection />
-
-  <!-- 8. Reviews: Social proof -->
-  <ReviewsBlock reviews={siteReviews} title="What Our Customers Say" />
-
-  <!-- 9. Financing: Can I afford it? -->
-  <FinancingTeaserSection />
-
-  <!-- 10. Service Areas: Do you serve my area? -->
-  <ServiceAreasSection />
-
-  <!-- 11. Blog: Expert advice and guides -->
-  <BlogPreviewSection />
-
-  <!-- 12. FAQ: Address remaining objections -->
-  {pageFAQs.length > 0 && (
-    <FAQSection faqs={pageFAQs} />
-  )}
-
-  <!-- 13. Final CTA: One strong conversion point -->
-  <GradientCTASection
-    variant="primary"
-    headline="Ready to get started?"
-    description="Call us today or book online. Free estimates, no pressure, just honest advice from your local HVAC experts."
-    context="final-cta"
-  />
+  <!-- Homepage placeholder - will be rebuilt in Phase 4-6 -->
+  <div class="redesign-placeholder">
+    <h1>Homepage</h1>
+    <p>Website redesign in progress. Components will be built using the frontend-design skill.</p>
+  </div>
 </BaseLayout>

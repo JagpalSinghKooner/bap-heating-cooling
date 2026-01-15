@@ -1,0 +1,295 @@
+---
+/**
+ * CardHeader Component
+ *
+ * Optional header section for cards with titles, icons, or metadata.
+ * Typically used above CardBody for structured card layouts.
+ *
+ * Design Philosophy:
+ * Headers establish context quickly. They're often paired with
+ * icons, badges, or category labels to help users scan and identify
+ * card content at a glance.
+ *
+ * Common Patterns:
+ * - Icon + Title header
+ * - Category badge + Date
+ * - Avatar + Author name + Time
+ * - Just a heading with bottom border
+ *
+ * Usage:
+ * <Card>
+ *   <CardHeader border>
+ *     <IconBadge icon="heating" />
+ *     <span>Furnace Services</span>
+ *   </CardHeader>
+ *   <CardBody>...</CardBody>
+ * </Card>
+ */
+
+interface Props {
+  /** Internal padding size */
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Show bottom border separator */
+  border?: boolean;
+  /** Horizontal layout for icon + text patterns */
+  horizontal?: boolean;
+  /** Alignment when horizontal */
+  align?: 'start' | 'center' | 'between' | 'end';
+  /** Gap between children */
+  gap?: 'xs' | 'sm' | 'md';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  padding = 'md',
+  border = false,
+  horizontal = true,
+  align = 'start',
+  gap = 'sm',
+  class: className = '',
+} = Astro.props;
+
+// Padding classes
+const paddingClasses: Record<string, string> = {
+  none: '',
+  sm: 'card-header-padding-sm',
+  md: 'card-header-padding-md',
+  lg: 'card-header-padding-lg',
+};
+
+// Alignment classes
+const alignClasses: Record<string, string> = {
+  start: 'justify-start',
+  center: 'justify-center',
+  between: 'justify-between',
+  end: 'justify-end',
+};
+
+// Gap classes
+const gapClasses: Record<string, string> = {
+  xs: 'card-header-gap-xs',
+  sm: 'card-header-gap-sm',
+  md: 'card-header-gap-md',
+};
+
+// Build class string
+const classes = [
+  'card-header',
+  paddingClasses[padding],
+  horizontal ? `card-header-horizontal ${alignClasses[align]}` : 'card-header-vertical',
+  gapClasses[gap],
+  border ? 'card-header-border' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={classes}>
+  <slot />
+</div>
+
+<style is:global>
+  /**
+   * CardHeader Component Styles
+   * Structured header area for card content
+   */
+
+  /* ============================================
+     BASE HEADER
+     ============================================ */
+
+  .card-header {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Horizontal layout (default) - icon + text side by side */
+  .card-header-horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Vertical layout - stacked content */
+  .card-header-vertical {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ============================================
+     PADDING VARIANTS
+     ============================================ */
+
+  .card-header-padding-sm {
+    padding: var(--card-padding-sm);
+  }
+
+  .card-header-padding-md {
+    padding: var(--card-padding-md);
+  }
+
+  .card-header-padding-lg {
+    padding: var(--card-padding-lg);
+  }
+
+  /* ============================================
+     GAP VARIANTS
+     ============================================ */
+
+  .card-header-gap-xs {
+    gap: var(--space-1);
+  }
+
+  .card-header-gap-sm {
+    gap: var(--space-2);
+  }
+
+  .card-header-gap-md {
+    gap: var(--space-3);
+  }
+
+  /* ============================================
+     ALIGNMENT (Horizontal mode)
+     ============================================ */
+
+  .card-header-horizontal.justify-start {
+    justify-content: flex-start;
+  }
+
+  .card-header-horizontal.justify-center {
+    justify-content: center;
+  }
+
+  .card-header-horizontal.justify-between {
+    justify-content: space-between;
+  }
+
+  .card-header-horizontal.justify-end {
+    justify-content: flex-end;
+  }
+
+  /* ============================================
+     BORDER SEPARATOR
+     ============================================ */
+
+  .card-header-border {
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  /* Subtle border for ghost/outlined cards */
+  .card-ghost .card-header-border,
+  .card-outlined .card-header-border {
+    border-bottom-color: var(--color-border-secondary);
+  }
+
+  /* ============================================
+     TYPOGRAPHY
+     Default text styling in headers
+     ============================================ */
+
+  .card-header h2,
+  .card-header h3,
+  .card-header h4 {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  .card-header span,
+  .card-header p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Category/label styling */
+  .card-header .card-category {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--color-primary-600);
+  }
+
+  /* ============================================
+     ICON INTEGRATION
+     Icon sizing when used in header
+     ============================================ */
+
+  .card-header svg,
+  .card-header .card-header-icon {
+    flex-shrink: 0;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    color: var(--color-primary-600);
+  }
+
+  /* Smaller icon variant */
+  .card-header-horizontal.card-header-gap-xs svg {
+    width: var(--icon-md);
+    height: var(--icon-md);
+  }
+
+  /* ============================================
+     ACTION BUTTON IN HEADER
+     For expandable/collapsible patterns
+     ============================================ */
+
+  .card-header button,
+  .card-header .card-header-action {
+    margin-left: auto;
+    padding: var(--space-1);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: color var(--duration-fast) var(--ease-out),
+                background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .card-header button:hover,
+  .card-header .card-header-action:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .card-header button:focus-visible,
+  .card-header .card-header-action:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     DARK THEME SUPPORT
+     ============================================ */
+
+  .card-dark .card-header h2,
+  .card-dark .card-header h3,
+  .card-dark .card-header h4 {
+    color: var(--color-text-inverse);
+  }
+
+  .card-dark .card-header span,
+  .card-dark .card-header p {
+    color: var(--color-primary-200);
+  }
+
+  .card-dark .card-header-border {
+    border-bottom-color: var(--color-primary-700);
+  }
+
+  .card-dark .card-header svg,
+  .card-dark .card-header .card-header-icon {
+    color: var(--color-primary-300);
+  }
+
+  .card-dark .card-header .card-category {
+    color: var(--color-accent-400);
+  }
+</style>

@@ -1,69 +1,300 @@
 ---
 /**
- * Section Wrapper Component - Global Layout Contract
- * Enforces consistent vertical rhythm across the entire site
+ * Section Component
  *
- * ARCHITECTURE:
- * - Section element: Full-bleed backgrounds (extends to viewport edges)
- * - Inner container: Content constrained to 1280px (max-w-7xl)
- * - This allows colored/image backgrounds while keeping content readable
+ * Semantic page sections with consistent vertical rhythm and background variants.
+ * The foundation for organizing page content with visual distinction.
  *
- * USAGE:
- * - Wrap every homepage section with this component
- * - Use variants to control background styling
- * - Do NOT add custom py-* or my-* to outer wrappers
- * - Do NOT nest additional containers inside Section
+ * "Trustworthy Industrial Modern" aesthetic calls for:
+ * - Generous vertical breathing room between sections
+ * - Alternating backgrounds to create rhythm and guide the eye
+ * - Warm surfaces for trust-building content
+ * - Bold color sections for CTAs that demand attention
  *
- * SPACING (matches design tokens):
- * - Mobile: py-14 (56px / 3.5rem)
- * - Tablet: py-20 (80px / 5rem)
- * - Desktop: py-24 (96px / 6rem)
+ * Section Rhythm Example (from DESIGN-SYSTEM.md):
+ * Homepage: default -> muted -> primary -> default -> muted -> dark -> default -> gradient
+ * Service:  gradient (hero) -> default -> muted -> default -> warm -> muted -> default -> primary
  *
- * CONTAINER:
- * - max-w-7xl (1280px) - HVAC industry standard
- * - Responsive padding: px-4 sm:px-6 lg:px-8
+ * Background Variants:
+ * - default:  White background, standard content
+ * - muted:    Light gray, alternate rhythm
+ * - warm:     Warm white, trust/testimonial sections
+ * - primary:  Trust Blue, CTA emphasis
+ * - accent:   Action Orange, urgent CTAs
+ * - dark:     Slate-900, footer/contrast sections
+ * - gradient: Custom gradient for hero sections
  */
 
 interface Props {
-  variant?: 'default' | 'muted' | 'brand' | 'accent' | 'compact';
+  /** Background/color variant */
+  variant?: 'default' | 'muted' | 'warm' | 'primary' | 'accent' | 'dark' | 'gradient';
+  /** Vertical padding size */
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Optional section ID for anchor links */
   id?: string;
+  /** Full-width background (extends to edges) */
+  fullBleed?: boolean;
+  /** Additional classes */
   class?: string;
-  container?: boolean;
+  /** Data attributes for analytics or JS hooks */
+  [key: `data-${string}`]: string | undefined;
 }
 
 const {
   variant = 'default',
+  padding = 'md',
   id,
+  fullBleed = true,
   class: className = '',
-  container = true,
+  ...dataAttrs
 } = Astro.props;
 
-// Variant background styles
-const variantStyles = {
-  default: 'bg-background',
-  muted: 'bg-gradient-to-br from-muted/30 to-muted/10',
-  brand: 'bg-gradient-to-br from-primary/5 to-primary/10',
-  accent: 'bg-gradient-to-r from-orange-500 to-orange-400',
-  compact: 'bg-muted/30 border-y border-border/50',
+// Filter to only data attributes
+const dataAttributes = Object.fromEntries(
+  Object.entries(dataAttrs).filter(([key]) => key.startsWith('data-'))
+);
+
+// Variant configurations - background and text colors
+const variantConfig: Record<string, { background: string; text: string; extra?: string }> = {
+  default: {
+    background: 'section-bg-default',
+    text: 'section-text-default',
+  },
+  muted: {
+    background: 'section-bg-muted',
+    text: 'section-text-default',
+  },
+  warm: {
+    background: 'section-bg-warm',
+    text: 'section-text-default',
+  },
+  primary: {
+    background: 'section-bg-primary',
+    text: 'section-text-inverse',
+    extra: 'section-inverse',
+  },
+  accent: {
+    background: 'section-bg-accent',
+    text: 'section-text-inverse',
+    extra: 'section-inverse',
+  },
+  dark: {
+    background: 'section-bg-dark',
+    text: 'section-text-inverse',
+    extra: 'section-inverse',
+  },
+  gradient: {
+    background: 'section-bg-gradient',
+    text: 'section-text-inverse',
+    extra: 'section-inverse',
+  },
 };
 
-// Variant spacing (most use standard, compact is different)
-const spacingStyles = variant === 'compact'
-  ? 'py-6 sm:py-8 md:py-10'
-  : 'py-14 md:py-20 lg:py-24';
+// Padding classes
+const paddingClasses: Record<string, string> = {
+  none: '',
+  sm: 'section-padding-sm',
+  md: 'section-padding-md',
+  lg: 'section-padding-lg',
+};
 
-const bgStyle = variantStyles[variant];
+// Build class string
+const currentVariant = variantConfig[variant];
+const classes = [
+  'section-base',
+  currentVariant.background,
+  currentVariant.text,
+  currentVariant.extra || '',
+  paddingClasses[padding],
+  fullBleed ? 'section-full-bleed' : '',
+  className,
+].filter(Boolean).join(' ');
 ---
 
 <section
-  class={`${bgStyle} ${spacingStyles} ${className}`}
   id={id}
+  class={classes}
+  {...dataAttributes}
 >
-  {container ? (
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <slot />
-    </div>
-  ) : (
-    <slot />
-  )}
+  <slot />
 </section>
+
+<style is:global>
+  /**
+   * Section styling utilities
+   * Using CSS custom properties from tokens.css
+   */
+
+  /* Base section styling */
+  .section-base {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Full-bleed: extends background to viewport edges */
+  .section-full-bleed {
+    /* Uses negative margin + padding trick if needed */
+  }
+
+  /* ============================================
+     BACKGROUND VARIANTS
+     ============================================ */
+
+  .section-bg-default {
+    background-color: var(--color-surface-primary);
+  }
+
+  .section-bg-muted {
+    background-color: var(--color-surface-secondary);
+  }
+
+  .section-bg-warm {
+    background-color: var(--color-surface-warm);
+  }
+
+  .section-bg-primary {
+    background-color: var(--color-primary-600);
+  }
+
+  .section-bg-accent {
+    background-color: var(--color-accent-600);
+  }
+
+  .section-bg-dark {
+    background-color: var(--color-surface-inverse);
+  }
+
+  /* Hero gradient - diagonal sweep for visual interest */
+  .section-bg-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-900) 0%,
+      var(--color-primary-700) 40%,
+      var(--color-primary-600) 100%
+    );
+  }
+
+  /* ============================================
+     TEXT COLOR VARIANTS
+     ============================================ */
+
+  .section-text-default {
+    color: var(--color-text-primary);
+  }
+
+  .section-text-inverse {
+    color: var(--color-text-inverse);
+  }
+
+  /* Section-inverse marker class for child component color inheritance */
+  .section-inverse {
+    --section-text-color: var(--color-text-inverse);
+    --section-text-secondary: var(--color-primary-100);
+    --section-border-color: var(--color-primary-400);
+  }
+
+  /* ============================================
+     VERTICAL PADDING (Section Rhythm)
+     ============================================ */
+
+  .section-padding-sm {
+    padding-top: var(--section-padding-sm);
+    padding-bottom: var(--section-padding-sm);
+  }
+
+  .section-padding-md {
+    padding-top: var(--section-padding-md);
+    padding-bottom: var(--section-padding-md);
+  }
+
+  .section-padding-lg {
+    padding-top: var(--section-padding-lg);
+    padding-bottom: var(--section-padding-lg);
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial Modern aesthetic accents
+     ============================================ */
+
+  /* Optional: diagonal stripe accent for CTA sections */
+  .section-bg-primary::before,
+  .section-bg-accent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Subtle top border on muted sections for definition */
+  .section-bg-muted::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--container-padding);
+    right: var(--container-padding);
+    height: 1px;
+    background-color: var(--color-border-secondary);
+    pointer-events: none;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     Padding scales down on mobile (handled in tokens.css)
+     ============================================ */
+
+  /* The --section-padding-* values are updated in tokens.css
+   * via a media query, so these classes automatically respond */
+
+  /* ============================================
+     GRADIENT VARIATIONS
+     Alternative gradient styles for different contexts
+     ============================================ */
+
+  /* Emergency/urgent gradient - warmer, more urgent */
+  .section-bg-gradient-emergency {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-800) 0%,
+      var(--color-emergency-600) 50%,
+      var(--color-emergency-500) 100%
+    );
+  }
+
+  /* Subtle gradient for non-hero emphasis */
+  .section-bg-gradient-subtle {
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-secondary) 0%,
+      var(--color-surface-primary) 100%
+    );
+  }
+
+  /* Overlay utility for sections with background images */
+  .section-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.85) 0%,
+      rgba(15, 23, 42, 0.4) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .section-overlay > * {
+    position: relative;
+    z-index: 1;
+  }
+</style>

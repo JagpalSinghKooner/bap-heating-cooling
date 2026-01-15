@@ -1,10 +1,11 @@
 ---
+/**
+ * About Us Page - Gutted for Redesign
+ *
+ * Preserves all data fetching logic.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Section from '../components/primitives/Section.astro';
-import Card from '../components/primitives/Card.astro';
-import CardMedia from '../components/primitives/CardMedia.astro';
-import CardBody from '../components/primitives/CardBody.astro';
-import Badge from '../components/primitives/Badge.astro';
 import { getBusinessProfile } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
 
@@ -50,134 +51,8 @@ const certifications = [
   description="Learn about our company, our mission, and our commitment to excellence in HVAC services"
   schema={schema}
 >
-  <div class="container mx-auto px-4 py-16">
-    <div class="mb-4 flex items-center justify-center gap-3">
-      <Badge variant="primary" size="md">Est. {profile.business.established_year}</Badge>
-      <Badge variant="default" size="md">{new Date().getFullYear() - profile.business.established_year}+ Years of Service</Badge>
-    </div>
-
-    <h1 class="mx-auto mb-8 max-w-4xl text-center text-4xl font-bold lg:text-5xl">About B.A.P Heating & Cooling</h1>
-
-    <div class="prose prose-lg max-w-none">
-      <p class="mx-auto max-w-3xl text-center text-xl text-muted-foreground">
-        Since {profile.business.established_year}, we've been a family-owned business dedicated to providing exceptional heating and
-        cooling services to our community. Professional service, honest pricing, and genuine care for your comfort.
-      </p>
-
-      <div class="mt-12 grid gap-8 md:grid-cols-2">
-        <div class="rounded-lg bg-card p-8">
-          <h2 class="mb-4 text-2xl font-semibold">Our Mission</h2>
-          <p class="text-muted-foreground">
-            To provide reliable, efficient, and affordable HVAC solutions while
-            maintaining the highest standards of customer service.
-          </p>
-        </div>
-
-        <div class="rounded-lg bg-card p-8">
-          <h2 class="mb-4 text-2xl font-semibold">Our Values</h2>
-          <p class="text-muted-foreground">
-            Integrity, excellence, and customer satisfaction guide everything we do.
-            We treat every home and business as if it were our own.
-          </p>
-        </div>
-      </div>
-    </div>
+  <div class="redesign-placeholder">
+    <h1>About B.A.P Heating & Cooling</h1>
+    <p>About page redesign in progress. Family-owned since {profile.business.established_year}.</p>
   </div>
-
-  <!-- Team Section -->
-  <Section variant="default">
-    <!-- Section Header -->
-    <div class="mb-10 text-center sm:mb-12">
-      <p class="eyebrow mb-3">Our Expert Team</p>
-      <h2 class="section-title mx-auto max-w-3xl">The Professionals Behind Every Job</h2>
-      <p class="section-description mx-auto max-w-2xl">
-        Certified technicians who combine technical expertise with genuine care for your comfort. Every team member is fully licensed, insured, and committed to delivering exceptional service.
-      </p>
-    </div>
-
-    <!-- Featured: Owner & Lead Technician (Anchor Person) -->
-    <div class="mb-12 mx-auto max-w-4xl">
-      <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-        <div class="grid grid-cols-1 md:grid-cols-5">
-          <!-- Image: 2 columns on desktop -->
-          <div class="md:col-span-2">
-            <img
-              src="/images/about/technician-team.jpg"
-              alt="Paul Palmer - Owner & Lead Technician"
-              class="h-64 w-full object-cover md:h-full"
-            />
-          </div>
-
-          <!-- Content: 3 columns on desktop -->
-          <div class="p-6 md:col-span-3 md:p-8 flex flex-col justify-center">
-            <div class="mb-3 flex flex-wrap gap-2">
-              <Badge variant="default" size="sm">Owner</Badge>
-              <Badge variant="default" size="sm">Lead Technician</Badge>
-            </div>
-
-            <h3 class="mb-2 text-2xl font-bold text-foreground">
-              Paul Palmer
-            </h3>
-
-            <p class="mb-4 text-base text-muted-foreground italic">
-              "Professional HVAC service built on transparency, skill, and genuine care."
-            </p>
-
-            <p class="mb-3 text-sm text-muted-foreground leading-relaxed">
-              Paul founded B.A.P Heating & Cooling in {profile.business.established_year} with a simple philosophy: treat every customer's home the way you'd treat your own. What started as a one-person operation has grown into a trusted team serving homeowners and businesses across the region — but the core values haven't changed.
-            </p>
-
-            <p class="text-sm text-muted-foreground leading-relaxed">
-              With decades of hands-on experience and a commitment to doing every job right the first time, Paul and his team combine technical expertise with genuine respect for your home and your comfort.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Team Grid -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-      {teamMembers.map((member) => (
-        <Card interactive class="h-full">
-          <!-- Image Area: Edge-to-Edge -->
-          <CardMedia
-            src={member.imageUrl}
-            alt={member.role}
-          />
-
-          <!-- Text Area: Padded Content -->
-          <CardBody padding="md" class="flex flex-col text-center">
-            <h3 class="mb-2 text-lg font-bold text-foreground">
-              {member.role}
-            </h3>
-
-            <p class="mb-4 text-sm text-muted-foreground">
-              {member.description}
-            </p>
-
-            <div class="mt-auto flex flex-wrap justify-center gap-2">
-              {member.credentials.map((credential) => (
-                <Badge variant="default" size="sm">
-                  {credential}
-                </Badge>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-      ))}
-    </div>
-
-    <!-- Certifications Bar -->
-    <div class="mt-12 border-t border-border pt-8">
-      <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
-        <p class="text-sm font-semibold text-muted-foreground">Certified & Trusted:</p>
-        {certifications.map((cert) => (
-          <div class="flex items-center gap-2">
-            <span class="text-xl" aria-hidden="true">{cert.icon}</span>
-            <span class="text-sm font-medium text-foreground">{cert.name}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </Section>
 </BaseLayout>

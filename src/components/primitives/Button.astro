@@ -1,13 +1,33 @@
 ---
+/**
+ * Button Component
+ *
+ * The primary call-to-action element across the site.
+ * Follows the design system's "Trustworthy Industrial Modern" aesthetic.
+ *
+ * Hierarchy (highest to lowest):
+ * 1. emergency - 24/7 urgent calls (red)
+ * 2. primary - Main CTAs like "Call Now" (orange)
+ * 3. secondary - Supporting actions (blue)
+ * 4. outline - Alternative primary on dark backgrounds
+ * 5. ghost - Tertiary actions, "Learn more"
+ * 6. link - Inline text links
+ */
+
+import { getIconPath, type IconName } from '../../lib/icons';
+
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'emergency' | 'outline';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'emergency' | 'link';
   size?: 'sm' | 'md' | 'lg';
   href?: string;
-  type?: 'button' | 'submit' | 'reset';
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+  fullWidth?: boolean;
+  iconLeft?: string;
+  iconRight?: string;
   class?: string;
-  target?: '_blank' | '_self';
-  rel?: string;
   'data-cta-context'?: string;
+  [key: string]: any;
 }
 
 const {
@@ -15,49 +35,218 @@ const {
   size = 'md',
   href,
   type = 'button',
+  disabled = false,
+  fullWidth = false,
+  iconLeft,
+  iconRight,
   class: className = '',
-  target,
-  rel,
-  'data-cta-context': dataCtaContext,
+  'data-cta-context': ctaContext,
+  ...rest
 } = Astro.props;
 
-const variantClasses = {
-  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground',
-  secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground',
-  ghost: 'bg-transparent hover:bg-muted text-foreground',
-  emergency: 'bg-brand-orange hover:bg-brand-orange-dark text-white',
-  outline: 'border-2 border-current bg-transparent hover:bg-current/10',
+// Determine element type
+const Element = href && !disabled ? 'a' : 'button';
+
+// Size configurations
+const sizeConfig = {
+  sm: {
+    padding: 'px-4 py-2',
+    fontSize: 'text-sm',
+    minHeight: 'min-h-[36px]',
+    iconSize: 'w-4 h-4',
+    gap: 'gap-1.5',
+  },
+  md: {
+    padding: 'px-6 py-3',
+    fontSize: 'text-base',
+    minHeight: 'min-h-[44px]',
+    iconSize: 'w-5 h-5',
+    gap: 'gap-2',
+  },
+  lg: {
+    padding: 'px-8 py-4',
+    fontSize: 'text-lg',
+    minHeight: 'min-h-[52px]',
+    iconSize: 'w-5 h-5',
+    gap: 'gap-2.5',
+  },
 };
 
-const sizeClasses = {
-  sm: 'px-4 py-2.5 text-sm min-h-[44px]',
-  md: 'px-6 py-3.5 text-base min-h-[44px]',
-  lg: 'px-8 py-4 text-lg min-h-[48px]',
+// Variant configurations with the "Industrial Modern" aesthetic
+const variantConfig = {
+  primary: {
+    base: `
+      bg-accent-600 text-white
+      border-2 border-transparent
+      shadow-cta
+      hover:bg-accent-700 hover:shadow-cta-hover hover:-translate-y-0.5
+      active:translate-y-0 active:shadow-cta
+      focus-visible:ring-accent-400
+    `,
+    disabled: 'bg-accent-300 text-white/80 cursor-not-allowed shadow-none',
+  },
+  secondary: {
+    base: `
+      bg-primary-600 text-white
+      border-2 border-transparent
+      shadow-primary
+      hover:bg-primary-700 hover:shadow-primary-hover hover:-translate-y-0.5
+      active:translate-y-0 active:shadow-primary
+      focus-visible:ring-primary-400
+    `,
+    disabled: 'bg-primary-300 text-white/80 cursor-not-allowed shadow-none',
+  },
+  ghost: {
+    base: `
+      bg-transparent text-primary-600
+      border-2 border-transparent
+      hover:bg-primary-50 hover:text-primary-700
+      active:bg-primary-100
+      focus-visible:ring-primary-400
+    `,
+    disabled: 'text-primary-300 cursor-not-allowed',
+  },
+  outline: {
+    base: `
+      bg-transparent text-primary-600
+      border-2 border-primary-600
+      hover:bg-primary-600 hover:text-white hover:-translate-y-0.5
+      active:translate-y-0 active:bg-primary-700
+      focus-visible:ring-primary-400
+    `,
+    disabled: 'border-primary-200 text-primary-300 cursor-not-allowed',
+  },
+  emergency: {
+    base: `
+      bg-emergency-600 text-white
+      border-2 border-transparent
+      shadow-emergency
+      hover:bg-emergency-700 hover:shadow-emergency-hover hover:-translate-y-0.5
+      active:translate-y-0 active:shadow-emergency
+      focus-visible:ring-emergency-400
+      animate-pulse-subtle
+    `,
+    disabled: 'bg-emergency-300 text-white/80 cursor-not-allowed shadow-none animate-none',
+  },
+  link: {
+    base: `
+      bg-transparent text-text-link
+      border-none p-0
+      hover:text-text-link-hover hover:underline
+      focus-visible:ring-primary-400
+      inline
+    `,
+    disabled: 'text-text-tertiary cursor-not-allowed',
+  },
 };
 
-const baseClasses = 'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all shadow-sm hover:shadow-md';
+// Build class string
+const currentSize = sizeConfig[size];
+const currentVariant = variantConfig[variant];
+const isLink = variant === 'link';
 
-const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+const baseClasses = `
+  inline-flex items-center justify-center
+  font-heading font-semibold
+  rounded-md
+  transition-all duration-fast ease-out
+  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+  select-none
+  ${fullWidth ? 'w-full' : ''}
+  ${!isLink ? currentSize.padding : ''}
+  ${!isLink ? currentSize.minHeight : ''}
+  ${currentSize.fontSize}
+  ${currentSize.gap}
+  ${disabled ? currentVariant.disabled : currentVariant.base}
+`.trim().replace(/\s+/g, ' ');
 
-const Tag = href ? 'a' : 'button';
+const finalClasses = `${baseClasses} ${className}`.trim();
+
+// Build props object
+const elementProps = {
+  class: finalClasses,
+  ...(href && !disabled ? { href } : {}),
+  ...(Element === 'button' ? { type, disabled } : {}),
+  ...(ctaContext ? { 'data-cta-context': ctaContext } : {}),
+  ...rest,
+};
 ---
 
-{Tag === 'a' ? (
-  <a
-    href={href}
-    class={classes}
-    target={target}
-    rel={rel}
-    data-cta-context={dataCtaContext}
-  >
-    <slot />
-  </a>
-) : (
-  <button
-    type={type}
-    class={classes}
-    data-cta-context={dataCtaContext}
-  >
-    <slot />
-  </button>
-)}
+<Element {...elementProps}>
+  {iconLeft && (
+    <svg
+      class={`${currentSize.iconSize} flex-shrink-0`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+      set:html={getIconPath(iconLeft)}
+    />
+  )}
+  <slot />
+  {iconRight && (
+    <svg
+      class={`${currentSize.iconSize} flex-shrink-0`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+      set:html={getIconPath(iconRight)}
+    />
+  )}
+</Element>
+
+<style is:global>
+  /**
+   * Button-specific custom properties and animations
+   * These extend the design tokens for button-specific behavior
+   */
+
+  /* CTA shadow custom properties (referenced via Tailwind) */
+  .shadow-cta {
+    box-shadow: var(--shadow-cta);
+  }
+  .shadow-cta-hover {
+    box-shadow: var(--shadow-cta-hover);
+  }
+  .shadow-emergency {
+    box-shadow: var(--shadow-emergency);
+  }
+  .shadow-emergency-hover {
+    box-shadow: var(--shadow-emergency-hover);
+  }
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
+  }
+  .shadow-primary-hover {
+    box-shadow: var(--shadow-primary-hover);
+  }
+
+  /* Subtle pulse animation for emergency buttons */
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: var(--shadow-emergency);
+    }
+    50% {
+      opacity: 0.92;
+      box-shadow: var(--shadow-emergency-hover);
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2.5s ease-in-out infinite;
+  }
+
+  /* Remove animation when button is hovered (user is interacting) */
+  .animate-pulse-subtle:hover {
+    animation: none;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse-subtle {
+      animation: none;
+    }
+  }
+</style>

@@ -1,34 +1,459 @@
 ---
+/**
+ * IconBadge Component
+ *
+ * A circular or rounded container that showcases an icon with background emphasis.
+ * Perfect for feature highlights, value propositions, and visual list markers.
+ *
+ * Design Philosophy:
+ * Icon badges should feel like quality industrial markers - think certification
+ * stamps, equipment indicators, or professional service icons. Solid, purposeful,
+ * and instantly recognizable.
+ *
+ * Use Cases:
+ * - Feature grids ("24/7 Service" with phone icon)
+ * - Process steps (numbered or icon-based)
+ * - Trust indicators (shield icons, certification badges)
+ * - Service category cards
+ *
+ * Variants:
+ * - default:  Neutral muted background - general purpose
+ * - primary:  Trust blue - professional features
+ * - accent:   Action orange - highlights, key differentiators
+ * - inverse:  Dark background with light icon - on light sections
+ *
+ * Sizes:
+ * - sm: 32px - inline use, compact lists
+ * - md: 40px - standard feature cards
+ * - lg: 56px - prominent features, hero sections
+ * - xl: 72px - large feature blocks, hero badges
+ */
+
+import { getIconPath, type IconName } from '../../lib/icons';
+
 interface Props {
+  /** Icon name from icons.ts */
+  icon: string;
+  /** Visual style variant */
+  variant?: 'default' | 'primary' | 'accent' | 'inverse';
+  /** Size of the icon badge */
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'default' | 'primary' | 'white';
+  /** Renders as circle vs rounded square */
+  shape?: 'circle' | 'rounded';
+  /** Additional CSS classes */
   class?: string;
 }
 
 const {
-  size = 'md',
+  icon,
   variant = 'default',
+  size = 'md',
+  shape = 'circle',
   class: className = '',
 } = Astro.props;
 
-const sizeClasses = {
-  sm: 'h-8 w-8',
-  md: 'h-12 w-12',
-  lg: 'h-16 w-16',
-  xl: 'h-24 w-24',
+// Variant configurations
+const variantConfig: Record<string, { wrapper: string; icon: string }> = {
+  default: {
+    wrapper: 'icon-badge-default',
+    icon: 'icon-badge-icon-default',
+  },
+  primary: {
+    wrapper: 'icon-badge-primary',
+    icon: 'icon-badge-icon-primary',
+  },
+  accent: {
+    wrapper: 'icon-badge-accent',
+    icon: 'icon-badge-icon-accent',
+  },
+  inverse: {
+    wrapper: 'icon-badge-inverse',
+    icon: 'icon-badge-icon-inverse',
+  },
 };
 
-const variantClasses = {
-  default: 'bg-muted/30 text-foreground',
-  primary: 'bg-primary/10 text-primary',
-  white: 'bg-white text-foreground shadow-md',
+// Size configurations
+const sizeConfig: Record<string, { wrapper: string; icon: string }> = {
+  sm: { wrapper: 'icon-badge-size-sm', icon: 'icon-badge-icon-sm' },
+  md: { wrapper: 'icon-badge-size-md', icon: 'icon-badge-icon-md' },
+  lg: { wrapper: 'icon-badge-size-lg', icon: 'icon-badge-icon-lg' },
+  xl: { wrapper: 'icon-badge-size-xl', icon: 'icon-badge-icon-xl' },
 };
 
-const baseClasses = 'flex items-center justify-center rounded-full flex-shrink-0';
+// Shape configurations
+const shapeConfig: Record<string, string> = {
+  circle: 'icon-badge-circle',
+  rounded: 'icon-badge-rounded',
+};
 
-const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
+// Build class strings
+const currentVariant = variantConfig[variant];
+const currentSize = sizeConfig[size];
+
+const wrapperClasses = [
+  'icon-badge-base',
+  currentVariant.wrapper,
+  currentSize.wrapper,
+  shapeConfig[shape],
+  className,
+].filter(Boolean).join(' ');
+
+const iconClasses = [
+  'icon-badge-icon',
+  currentVariant.icon,
+  currentSize.icon,
+].join(' ');
 ---
 
-<div class={classes}>
-  <slot />
+<div class={wrapperClasses}>
+  <svg
+    class={iconClasses}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="2"
+    aria-hidden="true"
+    set:html={getIconPath(icon)}
+  />
 </div>
+
+<style is:global>
+  /**
+   * IconBadge Component Styles
+   * Professional, industrial-modern icon containers
+   */
+
+  /* ============================================
+     BASE ICON BADGE
+     ============================================ */
+
+  .icon-badge-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  /* ============================================
+     SIZE VARIANTS
+     ============================================ */
+
+  .icon-badge-size-sm {
+    width: 32px;
+    height: 32px;
+  }
+
+  .icon-badge-size-md {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-badge-size-lg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .icon-badge-size-xl {
+    width: 72px;
+    height: 72px;
+  }
+
+  /* Icon sizes within badges */
+  .icon-badge-icon-sm {
+    width: 16px;
+    height: 16px;
+  }
+
+  .icon-badge-icon-md {
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-badge-icon-lg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .icon-badge-icon-xl {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* ============================================
+     SHAPE VARIANTS
+     ============================================ */
+
+  .icon-badge-circle {
+    border-radius: var(--radius-full);
+  }
+
+  .icon-badge-rounded {
+    border-radius: var(--radius-lg);
+  }
+
+  /* Larger sizes get larger rounding */
+  .icon-badge-size-lg.icon-badge-rounded {
+    border-radius: var(--radius-xl);
+  }
+
+  .icon-badge-size-xl.icon-badge-rounded {
+    border-radius: var(--radius-2xl);
+  }
+
+  /* ============================================
+     COLOR VARIANTS
+     ============================================ */
+
+  /* Default: Neutral muted - professional gray */
+  .icon-badge-default {
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .icon-badge-icon-default {
+    color: var(--color-text-secondary);
+  }
+
+  /* Primary: Trust blue - the workhorse */
+  .icon-badge-primary {
+    background-color: var(--color-primary-50);
+  }
+
+  .icon-badge-icon-primary {
+    color: var(--color-primary-600);
+  }
+
+  /* Accent: Action orange - for key features */
+  .icon-badge-accent {
+    background-color: var(--color-accent-50);
+  }
+
+  .icon-badge-icon-accent {
+    color: var(--color-accent-600);
+  }
+
+  /* Inverse: Dark background - on light sections */
+  .icon-badge-inverse {
+    background-color: var(--color-surface-inverse);
+  }
+
+  .icon-badge-icon-inverse {
+    color: var(--color-text-inverse);
+  }
+
+  /* ============================================
+     SOLID VARIANTS (Alternative)
+     More prominent, filled backgrounds
+     Add class="icon-badge-solid" to use
+     ============================================ */
+
+  .icon-badge-solid.icon-badge-default {
+    background-color: var(--color-text-secondary);
+  }
+
+  .icon-badge-solid .icon-badge-icon-default {
+    color: white;
+  }
+
+  .icon-badge-solid.icon-badge-primary {
+    background-color: var(--color-primary-600);
+  }
+
+  .icon-badge-solid .icon-badge-icon-primary {
+    color: white;
+  }
+
+  .icon-badge-solid.icon-badge-accent {
+    background-color: var(--color-accent-600);
+  }
+
+  .icon-badge-solid .icon-badge-icon-accent {
+    color: white;
+  }
+
+  /* ============================================
+     GRADIENT VARIANTS (Alternative)
+     Premium feel for hero sections
+     Add class="icon-badge-gradient" to use
+     ============================================ */
+
+  .icon-badge-gradient.icon-badge-primary {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-700) 100%
+    );
+    box-shadow: var(--shadow-primary);
+  }
+
+  .icon-badge-gradient .icon-badge-icon-primary {
+    color: white;
+  }
+
+  .icon-badge-gradient.icon-badge-accent {
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-500) 0%,
+      var(--color-accent-700) 100%
+    );
+    box-shadow: var(--shadow-cta);
+  }
+
+  .icon-badge-gradient .icon-badge-icon-accent {
+    color: white;
+  }
+
+  /* ============================================
+     OUTLINED VARIANTS (Alternative)
+     Minimal style with border
+     Add class="icon-badge-outlined" to use
+     ============================================ */
+
+  .icon-badge-outlined {
+    background-color: transparent;
+    border: 2px solid;
+  }
+
+  .icon-badge-outlined.icon-badge-default {
+    border-color: var(--color-border-primary);
+  }
+
+  .icon-badge-outlined.icon-badge-primary {
+    border-color: var(--color-primary-300);
+  }
+
+  .icon-badge-outlined.icon-badge-accent {
+    border-color: var(--color-accent-300);
+  }
+
+  /* ============================================
+     INTERACTIVE STATES
+     For clickable icon badges (rare use case)
+     Add class="icon-badge-interactive" to enable
+     ============================================ */
+
+  .icon-badge-interactive {
+    cursor: pointer;
+  }
+
+  .icon-badge-interactive:hover {
+    transform: scale(1.05);
+  }
+
+  .icon-badge-interactive.icon-badge-primary:hover {
+    background-color: var(--color-primary-100);
+  }
+
+  .icon-badge-interactive.icon-badge-accent:hover {
+    background-color: var(--color-accent-100);
+  }
+
+  .icon-badge-interactive:active {
+    transform: scale(0.98);
+  }
+
+  /* ============================================
+     INVERSE MODE
+     For badges on dark backgrounds
+     ============================================ */
+
+  .section-inverse .icon-badge-default,
+  .bg-inverse .icon-badge-default {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .icon-badge-icon-default,
+  .bg-inverse .icon-badge-icon-default {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .icon-badge-primary,
+  .bg-inverse .icon-badge-primary {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .icon-badge-icon-primary,
+  .bg-inverse .icon-badge-icon-primary {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .icon-badge-accent,
+  .bg-inverse .icon-badge-accent {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .icon-badge-icon-accent,
+  .bg-inverse .icon-badge-icon-accent {
+    color: var(--color-accent-300);
+  }
+
+  /* ============================================
+     DECORATIVE ACCENTS
+     Industrial Modern aesthetic touches
+     ============================================ */
+
+  /* Top-accent bar - like equipment indicators */
+  .icon-badge-accent-bar {
+    position: relative;
+    overflow: visible;
+  }
+
+  .icon-badge-accent-bar::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-primary-500) 20%,
+      var(--color-primary-500) 80%,
+      transparent 100%
+    );
+    border-radius: var(--radius-full);
+  }
+
+  .icon-badge-accent.icon-badge-accent-bar::before {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-accent-500) 20%,
+      var(--color-accent-500) 80%,
+      transparent 100%
+    );
+  }
+
+  /* Ring effect - subtle glow */
+  .icon-badge-ring {
+    box-shadow:
+      0 0 0 4px rgba(59, 111, 217, 0.1),
+      var(--shadow-sm);
+  }
+
+  .icon-badge-accent.icon-badge-ring {
+    box-shadow:
+      0 0 0 4px rgba(249, 115, 22, 0.1),
+      var(--shadow-sm);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .icon-badge-base {
+      transition: none;
+    }
+
+    .icon-badge-interactive:hover,
+    .icon-badge-interactive:active {
+      transform: none;
+    }
+  }
+</style>
