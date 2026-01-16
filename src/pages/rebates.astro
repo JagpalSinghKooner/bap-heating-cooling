@@ -1,16 +1,119 @@
 ---
 /**
- * Rebates Page - Gutted for Redesign
+ * Rebates Page
  *
- * Preserves all data fetching logic.
+ * Helps customers save money on energy-efficient upgrades.
+ * Positions B.A.P as the expert to navigate rebate programs.
+ *
+ * Sections:
+ * 1. PageHero
+ * 2. Available rebates list
+ * 3. How to qualify (ProcessTimeline)
+ * 4. FAQSection (rebates-scoped)
+ * 5. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
+
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import FAQSection from '../components/shared/FAQSection.astro';
+import ProcessTimeline from '../components/shared/ProcessTimeline.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Card from '../components/primitives/Card.astro';
+import CardBody from '../components/primitives/CardBody.astro';
+import Icon from '../components/primitives/Icon.astro';
+import Badge from '../components/primitives/Badge.astro';
 
 const profile = await getBusinessProfile();
 const schema = getLocalBusinessSchema(profile);
+const phoneLink = getPhoneLink(profile);
+
+// Available rebate programs
+const rebates = [
+  {
+    title: 'Canada Greener Homes Grant',
+    amount: 'Up to $5,000',
+    description: 'Federal program for energy-efficient home upgrades including heat pumps and insulation.',
+    eligible: ['Heat Pumps', 'Insulation', 'Windows'],
+    highlight: true,
+  },
+  {
+    title: 'Enbridge Home Efficiency Rebate',
+    amount: 'Up to $5,000',
+    description: 'Rebates for natural gas customers upgrading to high-efficiency equipment.',
+    eligible: ['Furnaces', 'Boilers', 'Water Heaters'],
+    highlight: false,
+  },
+  {
+    title: 'Oil to Heat Pump Affordability Program',
+    amount: 'Up to $10,000',
+    description: 'Substantial rebates for switching from oil heating to electric heat pumps.',
+    eligible: ['Heat Pumps'],
+    highlight: true,
+  },
+  {
+    title: 'Manufacturer Rebates',
+    amount: 'Varies',
+    description: 'Seasonal promotions from Carrier, Lennox, and other premium brands.',
+    eligible: ['AC Units', 'Furnaces', 'Heat Pumps'],
+    highlight: false,
+  },
+];
+
+// How to qualify steps
+const qualifySteps = [
+  {
+    step: 1,
+    title: 'Schedule Assessment',
+    description: 'We evaluate your home and current system.',
+  },
+  {
+    step: 2,
+    title: 'Review Options',
+    description: 'We identify eligible rebates for your project.',
+  },
+  {
+    step: 3,
+    title: 'Handle Paperwork',
+    description: 'We help you complete all required applications.',
+  },
+  {
+    step: 4,
+    title: 'Get Your Rebate',
+    description: 'Receive your rebate after installation.',
+  },
+];
+
+// Rebates FAQs
+const faqs = [
+  {
+    question: 'Can I combine multiple rebates?',
+    answer: 'In many cases, yes! Several rebate programs can be stacked together. For example, you might qualify for both the Canada Greener Homes Grant and manufacturer rebates on the same installation. We\'ll help you identify all available options during your consultation.',
+  },
+  {
+    question: 'How long does it take to receive my rebate?',
+    answer: 'Processing times vary by program. Federal programs like the Greener Homes Grant typically take 4-8 weeks after submitting your post-retrofit documents. Manufacturer rebates are usually faster, often 4-6 weeks. We\'ll give you realistic timelines for your specific situation.',
+  },
+  {
+    question: 'Do I need an energy audit?',
+    answer: 'Some programs require a pre-retrofit energy audit before you begin work, and a post-retrofit verification after. The Canada Greener Homes Grant is one example. We can coordinate the audit process for you or recommend trusted energy advisors.',
+  },
+  {
+    question: 'What equipment qualifies for rebates?',
+    answer: 'Generally, equipment must meet specific efficiency ratings. For example, furnaces typically need to be 95%+ AFUE, and air conditioners need high SEER ratings. Heat pumps have their own efficiency requirements. We only recommend equipment that qualifies for available rebates.',
+  },
+  {
+    question: 'Will you help with the paperwork?',
+    answer: 'Absolutely! Navigating rebate applications can be confusing. We handle the documentation, help you fill out forms, and ensure you have everything needed to get your rebate approved. It\'s part of our service.',
+  },
+];
 ---
 
 <BaseLayout
@@ -18,8 +121,263 @@ const schema = getLocalBusinessSchema(profile);
   description="Take advantage of government rebates and incentives for energy-efficient HVAC systems. We'll help you navigate the paperwork and maximize your savings."
   schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>Rebates & Incentives</h1>
-    <p>Rebates page redesign in progress.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Save on Your New System"
+    description="Government rebates and manufacturer incentives can save you thousands. We'll help you find every dollar you're entitled to."
+    eyebrow="Rebates & Incentives"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Rebates', href: '/rebates/' },
+    ]}
+    ctaButtons={[
+      { label: 'Check Eligibility', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Available Rebates Section -->
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <div class="rebates-header">
+        <Text size="sm" color="primary" weight="semibold">Current Programs</Text>
+        <Heading level={2} size="2xl" align="center">
+          Available Rebates
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="rebates-description">
+          Programs change frequently - call us for the latest available incentives
+        </Text>
+      </div>
+      <div class="rebates-grid">
+        {rebates.map((rebate, index) => (
+          <div class={`rebate-card-wrapper ${rebate.highlight ? 'rebate-card-highlight' : ''}`} style={`--stagger-index: ${index}`}>
+            <Card
+              variant={rebate.highlight ? 'elevated' : 'default'}
+              padding="none"
+              class="rebate-card"
+            >
+              <CardBody padding="lg" gap="md">
+                {rebate.highlight && (
+                  <Badge variant="accent" size="sm" class="rebate-badge">Popular</Badge>
+                )}
+                <div class="rebate-amount">{rebate.amount}</div>
+                <Heading level={3} size="md" weight="semibold">
+                  {rebate.title}
+                </Heading>
+                <Text size="sm" color="secondary">
+                  {rebate.description}
+                </Text>
+                <div class="rebate-eligible">
+                  <Text size="xs" color="tertiary" weight="semibold">Eligible Equipment:</Text>
+                  <div class="rebate-eligible-list">
+                    {rebate.eligible.map((item) => (
+                      <span class="rebate-eligible-item">
+                        <Icon name="check" size="xs" color="primary" />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        ))}
+      </div>
+      <div class="rebates-disclaimer">
+        <Text size="sm" color="tertiary" align="center">
+          Rebate amounts and eligibility are subject to change. Contact us for the most current information and to verify your eligibility.
+        </Text>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- How to Qualify Section -->
+  <Section variant="muted" padding="lg">
+    <Container size="xl">
+      <div class="rebates-qualify-header">
+        <Text size="sm" color="primary" weight="semibold">The Process</Text>
+        <Heading level={2} size="2xl" align="center">
+          How to Get Your Rebate
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="rebates-qualify-description">
+          We handle the heavy lifting so you can focus on enjoying your new system
+        </Text>
+      </div>
+      <ProcessTimeline
+        steps={qualifySteps}
+        variant="auto"
+        showNumbers={true}
+      />
+    </Container>
+  </Section>
+
+  <!-- FAQ Section -->
+  <FAQSection
+    faqs={faqs}
+    title="Rebate Questions"
+    description="Common questions about rebates and incentives"
+    eyebrow="FAQ"
+    variant="default"
+    accordionVariant="bordered"
+    showCTA={true}
+    ctaHeadline="Need help finding rebates?"
+    ctaLabel="Call Us"
+    ctaHref={phoneLink}
+  />
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Don't Leave Money on the Table"
+    description="Call us today to find out which rebates you qualify for. We'll maximize your savings and handle all the paperwork."
+    primaryCTA={{
+      label: 'Check My Eligibility',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Services',
+      href: '/services/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     REBATES HEADER
+     ============================================ */
+
+  .rebates-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+  }
+
+  .rebates-description {
+    max-width: 50ch;
+  }
+
+  /* ============================================
+     REBATES GRID
+     ============================================ */
+
+  .rebates-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 640px) {
+    .rebates-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .rebates-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .rebate-card-wrapper {
+    animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 100ms);
+    opacity: 0;
+  }
+
+  .rebate-card {
+    position: relative;
+    height: 100%;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .rebate-card-highlight {
+    border: 2px solid var(--color-primary-200);
+  }
+
+  .rebate-badge {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .rebate-amount {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
+    line-height: 1;
+  }
+
+  .rebate-eligible {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-secondary);
+    margin-top: auto;
+  }
+
+  .rebate-eligible-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .rebate-eligible-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .rebates-disclaimer {
+    margin-top: var(--space-8);
+    padding: var(--space-4);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+  }
+
+  /* ============================================
+     QUALIFY SECTION
+     ============================================ */
+
+  .rebates-qualify-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+  }
+
+  .rebates-qualify-description {
+    max-width: 50ch;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .rebate-card-wrapper {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

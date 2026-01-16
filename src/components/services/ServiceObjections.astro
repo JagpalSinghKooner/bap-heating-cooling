@@ -1,0 +1,667 @@
+---
+/**
+ * ServiceObjections Component
+ *
+ * FAQ-style objection handling specific to service type. This component
+ * addresses common customer concerns and hesitations, framing answers
+ * in a way that builds confidence and trust.
+ *
+ * Design Philosophy:
+ * When someone is about to spend significant money on HVAC work, they have
+ * concerns. This section anticipates those concerns and addresses them head-on.
+ * The visual treatment feels supportive - like a knowledgeable friend clearing
+ * the air before you make a decision.
+ *
+ * Different from standard FAQSection:
+ * - Framed as "concerns" not just "questions"
+ * - Warmer, more reassuring visual treatment
+ * - Service-specific filtering built in
+ * - Includes trust reinforcement elements
+ * - Individual card-style accordion items
+ *
+ * "Trustworthy Industrial Modern" aesthetic:
+ * - Warm background creates emotional safety
+ * - Separated accordion items feel like individual assurances
+ * - Icon-emphasized questions draw the eye
+ * - Clear typography prioritizes readability
+ * - Subtle decorative elements reinforce reliability
+ *
+ * @example
+ * <ServiceObjections
+ *   faqs={resolvedFAQs}
+ *   serviceTitle="Furnace Installation"
+ *   serviceType="installation"
+ * />
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Button from '../primitives/Button.astro';
+import Icon from '../primitives/Icon.astro';
+import Accordion from '../shared/Accordion.astro';
+import AccordionItem from '../shared/AccordionItem.astro';
+
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  /** Array of FAQ objects - typically from faqResolver filtered by service */
+  faqs: FAQ[];
+  /** Service title for contextual headline */
+  serviceTitle?: string;
+  /** Service type influences styling and messaging */
+  serviceType?: 'installation' | 'repair' | 'maintenance';
+  /** Custom headline override */
+  headline?: string;
+  /** Custom description override */
+  description?: string;
+  /** Custom eyebrow text */
+  eyebrow?: string;
+  /** Whether to show the CTA at the bottom */
+  showCTA?: boolean;
+  /** CTA headline text */
+  ctaHeadline?: string;
+  /** CTA button label */
+  ctaLabel?: string;
+  /** CTA button link */
+  ctaHref?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm';
+  /** Number of columns for FAQ grid (1 or 2) */
+  columns?: 1 | 2;
+  /** Allow multiple FAQs open at once */
+  allowMultiple?: boolean;
+  /** Include Schema.org FAQPage structured data */
+  includeSchema?: boolean;
+  /** Section ID for anchor links */
+  id?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  faqs,
+  serviceTitle,
+  serviceType = 'installation',
+  headline,
+  description,
+  eyebrow,
+  showCTA = true,
+  ctaHeadline = "Still have questions?",
+  ctaLabel = "Talk to an Expert",
+  ctaHref = "tel:+15191234567",
+  variant = 'warm',
+  columns = 1,
+  allowMultiple = true,
+  includeSchema = true,
+  id = 'common-concerns',
+  class: className = '',
+} = Astro.props;
+
+// Filter out empty FAQs
+const validFaqs = faqs?.filter(faq => faq.question && faq.answer) || [];
+
+// Don't render if no FAQs
+if (validFaqs.length === 0) {
+  return null;
+}
+
+// Generate contextual content based on service type
+const contextualContent = {
+  installation: {
+    defaultEyebrow: 'Your Questions Answered',
+    defaultHeadline: `Common ${serviceTitle || 'Installation'} Questions`,
+    defaultDescription: "We know investing in new equipment is a big decision. Here are honest answers to the questions our customers ask most often.",
+    iconAccent: 'primary',
+  },
+  repair: {
+    defaultEyebrow: 'Before You Call',
+    defaultHeadline: `${serviceTitle || 'Repair'} Questions & Concerns`,
+    defaultDescription: "When something breaks, you want answers fast. Here's what you need to know before scheduling your repair.",
+    iconAccent: 'emergency',
+  },
+  maintenance: {
+    defaultEyebrow: 'Good to Know',
+    defaultHeadline: `${serviceTitle || 'Maintenance'} FAQ`,
+    defaultDescription: "Regular maintenance prevents costly breakdowns. Here's what homeowners commonly ask about keeping their systems running.",
+    iconAccent: 'accent',
+  },
+};
+
+const context = contextualContent[serviceType];
+
+const resolvedEyebrow = eyebrow || context.defaultEyebrow;
+const resolvedHeadline = headline || context.defaultHeadline;
+const resolvedDescription = description || context.defaultDescription;
+
+// Split FAQs into columns if 2-column layout
+const columnCount = columns === 2 && validFaqs.length > 3 ? 2 : 1;
+const midpoint = Math.ceil(validFaqs.length / 2);
+const leftColumn = columnCount === 2 ? validFaqs.slice(0, midpoint) : validFaqs;
+const rightColumn = columnCount === 2 ? validFaqs.slice(midpoint) : [];
+
+// Generate Schema.org FAQPage structured data
+const faqSchema = includeSchema && validFaqs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': validFaqs.map(faq => ({
+    '@type': 'Question',
+    'name': faq.question,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': faq.answer,
+    },
+  })),
+} : null;
+
+// Build section classes
+const sectionClasses = [
+  'service-objections',
+  `service-objections-${serviceType}`,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Section
+  variant={variant}
+  padding="lg"
+  id={id}
+  class={sectionClasses}
+>
+  <Container size="xl">
+    {/* Decorative Background Elements */}
+    <div class="objections-decoration" aria-hidden="true">
+      <div class="objections-decoration-circle"></div>
+      <div class="objections-decoration-dots"></div>
+    </div>
+
+    {/* Trust Badge Header Element */}
+    <div class="objections-trust-badge">
+      <div class="objections-trust-badge-inner">
+        <Icon name="shield-check" size="md" />
+        <span>Honest Answers</span>
+      </div>
+    </div>
+
+    {/* Section Header */}
+    <div class="objections-header">
+      <SectionHeader
+        eyebrow={resolvedEyebrow}
+        headline={resolvedHeadline}
+        description={resolvedDescription}
+        align="center"
+        headlineSize="lg"
+      />
+    </div>
+
+    {/* FAQ Content */}
+    <div class={`objections-content ${columnCount === 2 ? 'objections-columns' : ''}`}>
+      {columnCount === 2 ? (
+        <>
+          {/* Two Column Layout */}
+          <div class="objections-column">
+            <Accordion variant="separated" allowMultiple={allowMultiple}>
+              {leftColumn.map((faq, index) => (
+                <AccordionItem
+                  question={faq.question}
+                  answer={faq.answer}
+                  defaultOpen={index === 0}
+                />
+              ))}
+            </Accordion>
+          </div>
+          <div class="objections-column">
+            <Accordion variant="separated" allowMultiple={allowMultiple}>
+              {rightColumn.map((faq) => (
+                <AccordionItem
+                  question={faq.question}
+                  answer={faq.answer}
+                />
+              ))}
+            </Accordion>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Single Column Layout - Constrained Width */}
+          <div class="objections-single-column">
+            <Accordion variant="separated" allowMultiple={allowMultiple}>
+              {validFaqs.map((faq, index) => (
+                <AccordionItem
+                  question={faq.question}
+                  answer={faq.answer}
+                  defaultOpen={index === 0}
+                />
+              ))}
+            </Accordion>
+          </div>
+        </>
+      )}
+    </div>
+
+    {/* CTA Block */}
+    {showCTA && (
+      <div class="objections-cta">
+        <div class="objections-cta-card">
+          <div class="objections-cta-icon">
+            <Icon name="phone" size="lg" />
+          </div>
+          <div class="objections-cta-content">
+            <p class="objections-cta-headline">{ctaHeadline}</p>
+            <p class="objections-cta-subtext">
+              Our team is happy to answer any questions — no pressure, no obligation.
+            </p>
+          </div>
+          <div class="objections-cta-action">
+            <Button
+              variant={serviceType === 'repair' ? 'emergency' : 'primary'}
+              size="lg"
+              href={ctaHref}
+              iconLeft="phone"
+            >
+              {ctaLabel}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+  </Container>
+
+  {/* Schema.org Structured Data */}
+  {faqSchema && (
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  )}
+</Section>
+
+<style>
+  /**
+   * ServiceObjections Component Styles
+   *
+   * A trust-building FAQ section that addresses customer concerns.
+   * Uses warm backgrounds and reassuring visual elements.
+   */
+
+  /* ============================================
+     SECTION STRUCTURE
+     ============================================ */
+
+  .service-objections {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     DECORATIVE BACKGROUND ELEMENTS
+     Subtle shapes that add warmth and depth
+     ============================================ */
+
+  .objections-decoration {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* Large soft circle in background */
+  .objections-decoration-circle {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 60%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    background: radial-gradient(
+      circle,
+      var(--color-primary-100) 0%,
+      transparent 70%
+    );
+    opacity: 0.5;
+    border-radius: var(--radius-full);
+  }
+
+  /* Dot pattern for industrial texture */
+  .objections-decoration-dots {
+    position: absolute;
+    bottom: 10%;
+    left: 5%;
+    width: 120px;
+    height: 120px;
+    opacity: 0.08;
+    background-image: radial-gradient(
+      circle,
+      var(--color-primary-600) 2px,
+      transparent 2px
+    );
+    background-size: 16px 16px;
+  }
+
+  /* ============================================
+     TRUST BADGE - Floating confidence indicator
+     ============================================ */
+
+  .objections-trust-badge {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  .objections-trust-badge-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border: 1px solid var(--color-primary-200);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-700);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .objections-trust-badge-inner :global(.icon) {
+    color: var(--color-success-600);
+  }
+
+  /* ============================================
+     HEADER AREA
+     ============================================ */
+
+  .objections-header {
+    margin-bottom: var(--space-10);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 1024px) {
+    .objections-header {
+      margin-bottom: var(--space-12);
+    }
+  }
+
+  /* ============================================
+     CONTENT CONTAINER
+     ============================================ */
+
+  .objections-content {
+    position: relative;
+    z-index: 1;
+    max-width: var(--container-lg);
+    margin: 0 auto;
+  }
+
+  /* Single column - constrained for readability */
+  .objections-single-column {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* ============================================
+     TWO COLUMN LAYOUT
+     ============================================ */
+
+  .objections-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    max-width: none;
+  }
+
+  @media (min-width: 1024px) {
+    .objections-columns {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+    }
+  }
+
+  /* ============================================
+     ACCORDION ENHANCEMENTS
+     Style overrides for objection context
+     ============================================ */
+
+  /* Make accordion items feel like reassurance cards */
+  .objections-content :global(.accordion-separated > [data-accordion-item]) {
+    background: var(--color-surface-primary);
+    border-color: var(--color-primary-100);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 1px var(--color-primary-50);
+    transition:
+      box-shadow var(--duration-normal) var(--ease-default),
+      border-color var(--duration-normal) var(--ease-default),
+      transform var(--duration-normal) var(--ease-default);
+  }
+
+  .objections-content :global(.accordion-separated > [data-accordion-item]:hover) {
+    border-color: var(--color-primary-300);
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 2px var(--color-primary-100);
+    transform: translateY(-2px);
+  }
+
+  .objections-content :global(.accordion-separated > [data-accordion-item][open]) {
+    border-color: var(--color-primary-400);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 2px var(--color-primary-200);
+  }
+
+  /* Adjust accordion item padding */
+  .objections-content :global([data-accordion-item] summary) {
+    padding: var(--space-5) var(--space-5);
+  }
+
+  .objections-content :global([data-accordion-item] .accordion-item-content) {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
+
+  /* ============================================
+     CTA BLOCK - Call to action footer
+     ============================================ */
+
+  .objections-cta {
+    margin-top: var(--space-12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .objections-cta-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-4);
+    padding: var(--space-8);
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-primary) 0%,
+      var(--color-primary-50) 100%
+    );
+    border: 2px solid var(--color-primary-200);
+    border-radius: var(--radius-xl);
+    box-shadow:
+      var(--shadow-md),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  @media (min-width: 768px) {
+    .objections-cta-card {
+      flex-direction: row;
+      text-align: left;
+      padding: var(--space-6) var(--space-8);
+      gap: var(--space-6);
+    }
+  }
+
+  .objections-cta-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: var(--color-primary-100);
+    border-radius: var(--radius-full);
+    color: var(--color-primary-600);
+    flex-shrink: 0;
+  }
+
+  .objections-cta-content {
+    flex: 1;
+  }
+
+  .objections-cta-headline {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1);
+  }
+
+  .objections-cta-subtext {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .objections-cta-action {
+    flex-shrink: 0;
+  }
+
+  /* ============================================
+     SERVICE TYPE VARIANTS
+     ============================================ */
+
+  /* Repair - More urgent styling */
+  .service-objections-repair .objections-trust-badge-inner {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-50) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border-color: var(--color-emergency-200);
+    color: var(--color-emergency-700);
+  }
+
+  .service-objections-repair .objections-decoration-circle {
+    background: radial-gradient(
+      circle,
+      var(--color-emergency-100) 0%,
+      transparent 70%
+    );
+  }
+
+  .service-objections-repair .objections-cta-card {
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-primary) 0%,
+      var(--color-emergency-50) 100%
+    );
+    border-color: var(--color-emergency-200);
+  }
+
+  .service-objections-repair .objections-cta-icon {
+    background: var(--color-emergency-100);
+    color: var(--color-emergency-600);
+  }
+
+  /* Maintenance - Calmer, routine styling */
+  .service-objections-maintenance .objections-trust-badge-inner {
+    background: linear-gradient(
+      135deg,
+      var(--color-success-50) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border-color: var(--color-success-200);
+    color: var(--color-success-700);
+  }
+
+  .service-objections-maintenance .objections-decoration-circle {
+    background: radial-gradient(
+      circle,
+      var(--color-success-100) 0%,
+      transparent 70%
+    );
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .objections-trust-badge {
+      margin-bottom: var(--space-4);
+    }
+
+    .objections-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .objections-cta {
+      margin-top: var(--space-8);
+    }
+
+    .objections-cta-card {
+      padding: var(--space-6);
+    }
+
+    .objections-cta-icon {
+      width: 48px;
+      height: 48px;
+    }
+
+    .objections-cta-headline {
+      font-size: var(--font-size-lg);
+    }
+
+    .objections-decoration-circle {
+      top: -10%;
+      right: -20%;
+      width: 80%;
+    }
+
+    .objections-decoration-dots {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .objections-content :global(.accordion-separated > [data-accordion-item]) {
+      transition: none;
+    }
+
+    .objections-content :global(.accordion-separated > [data-accordion-item]:hover) {
+      transform: none;
+    }
+  }
+
+  /* ============================================
+     WARM SECTION VARIANT OVERRIDES
+     Additional styling when inside warm section
+     ============================================ */
+
+  :global(.section-bg-warm) .objections-cta-card {
+    border-color: var(--color-primary-300);
+  }
+
+  :global(.section-bg-warm) .objections-decoration-circle {
+    opacity: 0.3;
+  }
+</style>

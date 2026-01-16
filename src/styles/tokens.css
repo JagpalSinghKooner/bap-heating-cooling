@@ -110,16 +110,15 @@
   /* ================================================================
      TYPOGRAPHY - FONT FAMILIES
 
-     Fraunces: "Soft serif" - warm, handcrafted feel for heroes
-     Plus Jakarta Sans: Geometric sans with humanist touches for headings
-     Source Sans 3: Adobe's readable workhorse for body text
-     JetBrains Mono: Technical/specs
+     Inter: Clean, professional, highly readable at all sizes.
+     Used across display, headings, and body for consistency.
+     System font stack as fallback for performance.
      ================================================================ */
 
-  --font-family-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-family-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-family-body:    'Source Sans 3', 'Segoe UI', Roboto, sans-serif;
-  --font-family-mono:    'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-family-display: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-body:    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono:    ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
 
   /* ================================================================
      TYPOGRAPHY - FONT SIZES

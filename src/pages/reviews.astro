@@ -1,23 +1,40 @@
 ---
 /**
- * Reviews Index Page - Gutted for Redesign
+ * Reviews Index Page
  *
- * Preserves all data fetching logic.
+ * Showcases all customer reviews as social proof.
+ * Builds trust through authentic testimonials.
+ *
+ * Sections:
+ * 1. PageHero with aggregate rating
+ * 2. Overall rating display
+ * 3. ReviewsCarousel (all reviews)
+ * 4. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
 import { getAllReviewsForReviewsPage } from '../lib/reviewResolver';
 import { generateReviewSchemas } from '../lib/reviewSchema';
 import { getLocalBusinessSchema } from '../lib/schema';
 
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import ReviewsCarousel from '../components/shared/ReviewsCarousel.astro';
+import StarRating from '../components/shared/StarRating.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Icon from '../components/primitives/Icon.astro';
+
 const profile = await getBusinessProfile();
+const phoneLink = getPhoneLink(profile);
 
 // Load all reviews
 const allReviews = await getCollection('reviews');
-
-// Get reviews for reviews page (all sources, sorted properly)
 const pageReviews = getAllReviewsForReviewsPage(allReviews);
 
 // Generate review schemas (only for verified reviews)
@@ -25,22 +42,289 @@ const reviewSchemas = generateReviewSchemas(pageReviews);
 
 // Build schema array
 const schemas = [getLocalBusinessSchema(profile)];
-
-// Only add review schemas if there are verified reviews
 if (reviewSchemas.length > 0) {
   schemas.push(...reviewSchemas);
 }
 
-const schema = schemas;
+// Calculate aggregate stats
+const totalReviews = pageReviews.length;
+const avgRating = totalReviews > 0
+  ? pageReviews.reduce((sum, r) => sum + r.data.rating, 0) / totalReviews
+  : 0;
+const fiveStarCount = pageReviews.filter(r => r.data.rating === 5).length;
+const fiveStarPercent = totalReviews > 0 ? Math.round((fiveStarCount / totalReviews) * 100) : 0;
+
+// Group reviews by source
+const reviewsBySource = pageReviews.reduce((acc, review) => {
+  const source = review.data.source || 'Direct';
+  acc[source] = (acc[source] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
 ---
 
 <BaseLayout
   title="Customer Reviews - B.A.P Heating and Cooling"
   description="Read reviews from our satisfied customers across Southern Ontario. See what people are saying about our heating and cooling services."
-  schema={schema}
+  schema={schemas}
 >
-  <div class="redesign-placeholder">
-    <h1>Customer Reviews</h1>
-    <p>Reviews page redesign in progress. {pageReviews.length} reviews available.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="What Our Customers Say"
+    description="Real reviews from real customers. We're proud of our reputation and work hard to maintain it every single day."
+    eyebrow="Customer Reviews"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Reviews', href: '/reviews/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call Us Today', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Aggregate Rating Section -->
+  <Section variant="warm" padding="md">
+    <Container size="xl">
+      <div class="reviews-summary">
+        <div class="reviews-summary-main">
+          <div class="reviews-summary-rating">
+            <span class="reviews-summary-number">{avgRating.toFixed(1)}</span>
+            <div class="reviews-summary-stars">
+              <StarRating rating={avgRating} size="lg" showValue={false} />
+              <Text size="sm" color="secondary">
+                Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
+              </Text>
+            </div>
+          </div>
+          <div class="reviews-summary-highlight">
+            <div class="reviews-highlight-stat">
+              <span class="reviews-highlight-number">{fiveStarPercent}%</span>
+              <span class="reviews-highlight-label">5-Star Reviews</span>
+            </div>
+          </div>
+        </div>
+        <div class="reviews-summary-sources">
+          <Text size="sm" color="secondary" weight="semibold">Reviews From:</Text>
+          <div class="reviews-sources-list">
+            {Object.entries(reviewsBySource).map(([source, count]) => (
+              <div class="reviews-source-item">
+                <Icon name="check" size="sm" color="primary" />
+                <span>{source}</span>
+                <span class="reviews-source-count">({count})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- All Reviews Carousel -->
+  <ReviewsCarousel
+    title="Customer Testimonials"
+    eyebrow="Real Feedback"
+    description="Hear directly from homeowners across Southern Ontario"
+    limit={12}
+    showSummary={false}
+    showNavigation={true}
+    showDots={true}
+    variant="muted"
+  />
+
+  <!-- Trust Statement Section -->
+  <Section variant="default" padding="md">
+    <Container size="md">
+      <div class="reviews-trust">
+        <div class="reviews-trust-icon">
+          <Icon name="shield" size="2xl" color="primary" />
+        </div>
+        <Heading level={2} size="xl" align="center">
+          Our Commitment to You
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="reviews-trust-text">
+          Every review on this page is from a real customer. We don't pay for reviews
+          or incentivize ratings. What you see here is genuine feedback from homeowners
+          who trusted us with their comfort. We're grateful for every kind word and
+          take every criticism seriously - it's how we keep getting better.
+        </Text>
+        <div class="reviews-trust-badges">
+          <div class="reviews-trust-badge">
+            <Icon name="check" size="md" color="primary" />
+            <span>Verified Reviews</span>
+          </div>
+          <div class="reviews-trust-badge">
+            <Icon name="shield" size="md" color="primary" />
+            <span>No Fake Reviews</span>
+          </div>
+          <div class="reviews-trust-badge">
+            <Icon name="award" size="md" color="primary" />
+            <span>BBB Accredited</span>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Ready to Join Our Happy Customers?"
+    description="Experience the service that earned these reviews. Call today and see why Southern Ontario trusts B.A.P."
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Services',
+      href: '/services/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     REVIEWS SUMMARY
+     ============================================ */
+
+  .reviews-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .reviews-summary {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .reviews-summary-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .reviews-summary-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .reviews-summary-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
+    line-height: 1;
+  }
+
+  .reviews-summary-stars {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .reviews-summary-highlight {
+    padding-left: var(--space-8);
+    border-left: 2px solid var(--color-border-primary);
+  }
+
+  .reviews-highlight-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .reviews-highlight-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-success-600);
+    line-height: 1;
+  }
+
+  .reviews-highlight-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .reviews-summary-sources {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .reviews-sources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .reviews-source-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+  }
+
+  .reviews-source-count {
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     TRUST SECTION
+     ============================================ */
+
+  .reviews-trust {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-6);
+    padding: var(--space-8);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-primary);
+  }
+
+  .reviews-trust-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-20);
+    height: var(--space-20);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-full);
+  }
+
+  .reviews-trust-text {
+    max-width: 65ch;
+  }
+
+  .reviews-trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-primary);
+    margin-top: var(--space-2);
+  }
+
+  .reviews-trust-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+</style>

@@ -1,0 +1,654 @@
+---
+/**
+ * ServiceSolution Component
+ *
+ * The "answer" to the problem agitation—this section presents B.A.P's
+ * approach with confidence and warmth. After creating urgency, we now
+ * offer reassurance through expertise and honest, personal messaging.
+ *
+ * Design Philosophy:
+ * This is where trust is built. The two-column layout pairs clear
+ * explanation of our approach with an authentic quote from the owner.
+ * The quote card uses warm tones that feel personal and genuine—
+ * like getting advice from a knowledgeable neighbor rather than a
+ * corporate sales pitch.
+ *
+ * Visual Treatment:
+ * - Light, warm background (contrast with dark problem section)
+ * - Asymmetric two-column grid (60/40 split)
+ * - Quote card with warm surface color and accent border
+ * - Serif headline in display font for approachability
+ * - Subtle geometric accent inspired by industrial design
+ * - Staggered entrance animation
+ *
+ * @example
+ * <ServiceSolution approach={{
+ *   headline: "Diagnose First, Repair Right",
+ *   description: "Our technicians arrive...",
+ *   quote: "Most problems have a straightforward fix...",
+ *   quotePerson: "Paul Palmer, Owner"
+ * }} />
+ */
+
+import Container from '../primitives/Container.astro';
+import Section from '../primitives/Section.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Approach {
+  /** Main headline for the solution */
+  headline: string;
+  /** Description of B.A.P's approach */
+  description: string;
+  /** Optional quote (typically from owner) */
+  quote?: string;
+  /** Person attribution for the quote */
+  quotePerson?: string;
+}
+
+interface Props {
+  /** The approach data from service content */
+  approach: Approach;
+  /** Section eyebrow text */
+  eyebrow?: string;
+  /** Visual variant */
+  variant?: 'default' | 'warm' | 'minimal';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  approach,
+  eyebrow = 'Our Approach',
+  variant = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Don't render if no approach data
+if (!approach || (!approach.headline && !approach.description)) {
+  return null;
+}
+
+// Build component classes
+const classes = [
+  'service-solution',
+  `service-solution--${variant}`,
+  className,
+].filter(Boolean).join(' ');
+
+// Check if we have a quote to display
+const hasQuote = approach.quote && approach.quote.length > 0;
+---
+
+<Section variant="muted" padding="lg" class={classes}>
+  {/* Decorative geometric accent */}
+  <div class="service-solution__accent" aria-hidden="true"></div>
+
+  <Container size="xl">
+    <div class:list={['service-solution__grid', { 'service-solution__grid--with-quote': hasQuote }]}>
+      {/* Left Column: Content */}
+      <div class="service-solution__content">
+        {/* Eyebrow */}
+        <span class="service-solution__eyebrow">
+          <span class="service-solution__eyebrow-icon">
+            <Icon name="shield-check" size="sm" />
+          </span>
+          <span>{eyebrow}</span>
+        </span>
+
+        {/* Headline */}
+        <h2 class="service-solution__headline">{approach.headline}</h2>
+
+        {/* Description */}
+        <div class="service-solution__description">
+          <p>{approach.description}</p>
+        </div>
+
+        {/* Trust indicators row */}
+        <div class="service-solution__trust-row">
+          <div class="service-solution__trust-item">
+            <Icon name="check-circle" size="md" />
+            <span>Licensed & Insured</span>
+          </div>
+          <div class="service-solution__trust-item">
+            <Icon name="check-circle" size="md" />
+            <span>Upfront Pricing</span>
+          </div>
+          <div class="service-solution__trust-item">
+            <Icon name="check-circle" size="md" />
+            <span>Satisfaction Guaranteed</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Quote Card (if available) */}
+      {hasQuote && (
+        <div class="service-solution__quote-wrapper">
+          <article class="service-solution__quote-card">
+            {/* Quote mark decoration */}
+            <div class="service-solution__quote-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
+              </svg>
+            </div>
+
+            {/* Quote content */}
+            <blockquote class="service-solution__quote-text">
+              {approach.quote}
+            </blockquote>
+
+            {/* Attribution */}
+            {approach.quotePerson && (
+              <footer class="service-solution__quote-footer">
+                <div class="service-solution__quote-avatar" aria-hidden="true">
+                  {/* First letter of name as fallback avatar */}
+                  <span>{approach.quotePerson.charAt(0)}</span>
+                </div>
+                <cite class="service-solution__quote-cite">
+                  <span class="service-solution__quote-name">{approach.quotePerson}</span>
+                  <span class="service-solution__quote-role">B.A.P Heating & Cooling</span>
+                </cite>
+              </footer>
+            )}
+
+            {/* Decorative corner accent */}
+            <div class="service-solution__quote-corner" aria-hidden="true"></div>
+          </article>
+        </div>
+      )}
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* ================================================================
+     SERVICE SOLUTION - Main Container
+     Warm, reassuring section that builds trust after problem agitation
+     ================================================================ */
+
+  .service-solution {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-surface-warm, #fffbf7);
+  }
+
+  .service-solution--warm {
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-warm, #fffbf7) 0%,
+      #fff9f2 100%
+    );
+  }
+
+  .service-solution--minimal {
+    background: var(--color-surface-primary);
+  }
+
+  /* ================================================================
+     DECORATIVE ACCENT
+     Subtle geometric element inspired by industrial design
+     ================================================================ */
+
+  .service-solution__accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 111, 217, 0.04) 0%,
+      transparent 60%
+    );
+    border-radius: 0 0 0 100%;
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    .service-solution__accent {
+      width: 200px;
+      height: 200px;
+    }
+  }
+
+  /* ================================================================
+     GRID LAYOUT
+     Asymmetric two-column: 60% content, 40% quote
+     ================================================================ */
+
+  .service-solution__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .service-solution__grid--with-quote {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--space-16);
+  }
+
+  @media (max-width: 1024px) {
+    .service-solution__grid--with-quote {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-10);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .service-solution__grid,
+    .service-solution__grid--with-quote {
+      grid-template-columns: 1fr;
+      gap: var(--space-10);
+    }
+  }
+
+  /* ================================================================
+     CONTENT COLUMN
+     Main explanation of our approach
+     ================================================================ */
+
+  .service-solution__content {
+    /* Staggered animation */
+    opacity: 0;
+    animation: solution-fade-up var(--duration-slower) var(--ease-out) forwards;
+    animation-delay: 100ms;
+  }
+
+  @keyframes solution-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ================================================================
+     EYEBROW
+     Category indicator with icon
+     ================================================================ */
+
+  .service-solution__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1-5) var(--space-3);
+    background: rgba(59, 111, 217, 0.08);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-primary-600);
+    margin-bottom: var(--space-5);
+  }
+
+  .service-solution__eyebrow-icon {
+    display: flex;
+    color: var(--color-primary-500);
+  }
+
+  /* ================================================================
+     HEADLINE
+     Display font for warmth and approachability
+     ================================================================ */
+
+  .service-solution__headline {
+    font-family: var(--font-family-display, 'Fraunces', serif);
+    font-size: clamp(var(--font-size-3xl), 4vw, var(--font-size-5xl));
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tighter);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-6);
+    max-width: 600px;
+  }
+
+  /* ================================================================
+     DESCRIPTION
+     Body text with comfortable reading width
+     ================================================================ */
+
+  .service-solution__description {
+    max-width: 560px;
+  }
+
+  .service-solution__description p {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-8);
+  }
+
+  /* ================================================================
+     TRUST ROW
+     Compact trust indicators beneath content
+     ================================================================ */
+
+  .service-solution__trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .service-solution__trust-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  .service-solution__trust-item :global(svg) {
+    color: var(--color-success-600);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 480px) {
+    .service-solution__trust-row {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  }
+
+  /* ================================================================
+     QUOTE WRAPPER
+     Container for the quote card with animation
+     ================================================================ */
+
+  .service-solution__quote-wrapper {
+    /* Staggered animation - appears after content */
+    opacity: 0;
+    animation: solution-fade-up var(--duration-slower) var(--ease-out) forwards;
+    animation-delay: 300ms;
+  }
+
+  /* ================================================================
+     QUOTE CARD
+     Warm, personal quote from the owner
+     ================================================================ */
+
+  .service-solution__quote-card {
+    position: relative;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-lg);
+
+    /* Subtle warm glow */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(
+        135deg,
+        var(--color-primary-200) 0%,
+        transparent 30%,
+        transparent 70%,
+        var(--color-accent-200) 100%
+      );
+      z-index: -1;
+      opacity: 0.4;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .service-solution__quote-card {
+      padding: var(--space-6);
+    }
+  }
+
+  /* ================================================================
+     QUOTE MARK
+     Large decorative quotation mark
+     ================================================================ */
+
+  .service-solution__quote-mark {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    color: var(--color-primary-100);
+    opacity: 0.8;
+  }
+
+  .service-solution__quote-mark svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  @media (max-width: 768px) {
+    .service-solution__quote-mark svg {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  /* ================================================================
+     QUOTE TEXT
+     The actual quote content
+     ================================================================ */
+
+  .service-solution__quote-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+    font-style: italic;
+    margin: 0 0 var(--space-6);
+    padding-right: var(--space-8);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+    .service-solution__quote-text {
+      font-size: var(--font-size-base);
+      padding-right: var(--space-4);
+    }
+  }
+
+  /* ================================================================
+     QUOTE FOOTER
+     Attribution with avatar
+     ================================================================ */
+
+  .service-solution__quote-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .service-solution__quote-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    flex-shrink: 0;
+  }
+
+  .service-solution__quote-cite {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-0-5);
+    font-style: normal;
+  }
+
+  .service-solution__quote-name {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .service-solution__quote-role {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ================================================================
+     QUOTE CORNER ACCENT
+     Decorative diagonal stripe in corner
+     ================================================================ */
+
+  .service-solution__quote-corner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border-radius: 0 0 0 var(--radius-2xl);
+    pointer-events: none;
+  }
+
+  .service-solution__quote-corner::before {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: -40px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(
+      45deg,
+      var(--color-primary-100) 0%,
+      var(--color-primary-50) 100%
+    );
+    transform: rotate(45deg);
+    transform-origin: center;
+  }
+
+  /* ================================================================
+     VARIANT: WARM
+     Enhanced warmth for testimonial-heavy pages
+     ================================================================ */
+
+  .service-solution--warm .service-solution__quote-card {
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-primary) 0%,
+      var(--color-surface-warm) 100%
+    );
+  }
+
+  .service-solution--warm .service-solution__quote-mark {
+    color: var(--color-accent-100);
+  }
+
+  .service-solution--warm .service-solution__quote-corner::before {
+    background: linear-gradient(
+      45deg,
+      var(--color-accent-100) 0%,
+      var(--color-accent-50) 100%
+    );
+  }
+
+  /* ================================================================
+     VARIANT: MINIMAL
+     Clean, simple styling with less decoration
+     ================================================================ */
+
+  .service-solution--minimal .service-solution__accent {
+    display: none;
+  }
+
+  .service-solution--minimal .service-solution__quote-card {
+    border-color: var(--color-border-secondary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .service-solution--minimal .service-solution__quote-card::before {
+    display: none;
+  }
+
+  .service-solution--minimal .service-solution__quote-corner {
+    display: none;
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .service-solution__headline {
+      font-size: var(--font-size-3xl);
+      margin-bottom: var(--space-4);
+    }
+
+    .service-solution__description p {
+      font-size: var(--font-size-base);
+      margin-bottom: var(--space-6);
+    }
+
+    .service-solution__trust-row {
+      padding-top: var(--space-4);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .service-solution__eyebrow {
+      font-size: 10px;
+      padding: var(--space-1) var(--space-2);
+    }
+
+    .service-solution__headline {
+      font-size: var(--font-size-2xl);
+    }
+
+    .service-solution__quote-card {
+      padding: var(--space-5);
+    }
+
+    .service-solution__quote-avatar {
+      width: 40px;
+      height: 40px;
+      font-size: var(--font-size-base);
+    }
+
+    .service-solution__quote-name {
+      font-size: var(--font-size-sm);
+    }
+
+    .service-solution__quote-role {
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-solution__content,
+    .service-solution__quote-wrapper {
+      opacity: 1;
+      animation: none;
+      transform: none;
+    }
+  }
+</style>

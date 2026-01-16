@@ -1,0 +1,726 @@
+---
+/**
+ * ServiceHero Component
+ *
+ * The commanding opening section for service pages.
+ * Adapts its urgency, color, and CTAs based on service type.
+ *
+ * Design Philosophy:
+ * - Repair: Emergency red gradient - "We're here NOW"
+ * - Installation: Primary blue gradient - "Let's plan this together"
+ * - Maintenance: Accent teal gradient - "Keep it running smooth"
+ *
+ * The hero must immediately signal:
+ * 1. What service this is
+ * 2. Whether it's urgent (repair) or planned (install/maintain)
+ * 3. How to get help RIGHT NOW (phone number)
+ *
+ * @example
+ * <ServiceHero
+ *   service={{ title: "Furnace Repair", description: "...", serviceType: "repair", category: "Heating" }}
+ *   location={{ title: "Guelph", slug: "guelph" }}
+ * />
+ */
+
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+import { getServiceBreadcrumbs, getServiceCityBreadcrumbs } from '../../lib/breadcrumbs';
+import Container from '../primitives/Container.astro';
+import Button from '../primitives/Button.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  service: {
+    title: string;
+    description: string;
+    serviceType: 'installation' | 'repair' | 'maintenance';
+    category: string;
+    slug?: string;
+  };
+  location?: {
+    title: string;
+    slug: string;
+  };
+  /** Custom background image URL */
+  backgroundImage?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  service,
+  location,
+  backgroundImage,
+  class: className = '',
+} = Astro.props;
+
+// Fetch business profile for phone, warranty, etc.
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const bookingUrl = profile.contact.booking?.url || '/contact-us/';
+const warrantyYears = profile.warranty?.parts_and_labour_years || 10;
+
+// Generate breadcrumbs based on whether this is a location page
+const serviceSlug = service.slug || service.title.toLowerCase().replace(/\s+/g, '-');
+const breadcrumbs = location
+  ? getServiceCityBreadcrumbs(
+      service.title,
+      serviceSlug,
+      location.title,
+      location.slug,
+      `${serviceSlug}-${location.slug}-on`
+    )
+  : getServiceBreadcrumbs(service.title, serviceSlug);
+
+// Build the headline - include location if service-city page
+const headline = location
+  ? `${service.title} in ${location.title}`
+  : service.title;
+
+// Service type configurations
+type ServiceTypeConfig = {
+  gradientClass: string;
+  eyebrowColor: 'primary' | 'accent' | 'emergency';
+  eyebrowVariant: 'default' | 'badge' | 'tag';
+  primaryCtaVariant: 'primary' | 'emergency';
+  primaryCtaLabel: string;
+  primaryCtaIcon: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  showAvailability: boolean;
+  availabilityText: string;
+  urgencyBadge?: string;
+  accentColor: string;
+};
+
+const serviceTypeConfigs: Record<string, ServiceTypeConfig> = {
+  repair: {
+    gradientClass: 'service-hero--repair',
+    eyebrowColor: 'emergency',
+    eyebrowVariant: 'badge',
+    primaryCtaVariant: 'emergency',
+    primaryCtaLabel: `24/7 Emergency: ${phoneDisplay}`,
+    primaryCtaIcon: 'phone',
+    showAvailability: true,
+    availabilityText: 'Available 24/7 - Technicians on standby',
+    urgencyBadge: '24/7 Emergency Service',
+    accentColor: 'emergency',
+  },
+  installation: {
+    gradientClass: 'service-hero--installation',
+    eyebrowColor: 'primary',
+    eyebrowVariant: 'badge',
+    primaryCtaVariant: 'primary',
+    primaryCtaLabel: `Call for Estimate: ${phoneDisplay}`,
+    primaryCtaIcon: 'phone',
+    secondaryCtaLabel: 'Book Consultation',
+    secondaryCtaHref: bookingUrl,
+    showAvailability: false,
+    availabilityText: 'Free estimates available',
+    accentColor: 'primary',
+  },
+  maintenance: {
+    gradientClass: 'service-hero--maintenance',
+    eyebrowColor: 'accent',
+    eyebrowVariant: 'badge',
+    primaryCtaVariant: 'primary',
+    primaryCtaLabel: 'Book Service',
+    primaryCtaIcon: 'calendar',
+    secondaryCtaLabel: `Call: ${phoneDisplay}`,
+    secondaryCtaHref: phoneLink,
+    showAvailability: false,
+    availabilityText: 'Flexible scheduling',
+    accentColor: 'accent',
+  },
+};
+
+const config = serviceTypeConfigs[service.serviceType] || serviceTypeConfigs.installation;
+
+// Trust indicators specific to service pages
+const trustItems = [
+  { icon: 'certificate', label: 'TSSA Licensed' },
+  { icon: 'shield', label: `${warrantyYears}-Year Warranty` },
+  { icon: 'dollar', label: 'Upfront Pricing' },
+];
+
+if (service.serviceType === 'repair') {
+  trustItems.push({ icon: 'clock', label: 'Same-Day Service' });
+}
+
+// Build classes
+const classes = [
+  'service-hero',
+  config.gradientClass,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<section class={classes} data-service-type={service.serviceType}>
+  {/* Background pattern overlay for texture */}
+  <div class="service-hero__pattern" aria-hidden="true"></div>
+
+  {/* Optional background image with overlay */}
+  {backgroundImage && (
+    <div class="service-hero__image" aria-hidden="true">
+      <img src={backgroundImage} alt="" loading="eager" />
+    </div>
+  )}
+
+  <Container size="xl" class="service-hero__container">
+    {/* Breadcrumbs */}
+    <nav class="service-hero__breadcrumbs" aria-label="Breadcrumb">
+      <ol class="breadcrumb-list">
+        {breadcrumbs.map((item, index) => (
+          <li class="breadcrumb-item">
+            {index < breadcrumbs.length - 1 ? (
+              <>
+                <a href={item.href} class="breadcrumb-link">{item.label}</a>
+                <Icon name="chevronRight" size="xs" class="breadcrumb-separator" />
+              </>
+            ) : (
+              <span class="breadcrumb-current" aria-current="page">{item.label}</span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    {/* Main content */}
+    <div class="service-hero__content">
+      {/* Eyebrow with category and service type */}
+      <div class="service-hero__eyebrow-group">
+        <Eyebrow
+          color={config.eyebrowColor}
+          variant={config.eyebrowVariant}
+          icon={service.serviceType === 'repair' ? 'warning' : undefined}
+        >
+          {service.category} {service.serviceType === 'repair' ? '- Emergency' : `- ${service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)}`}
+        </Eyebrow>
+
+        {/* Urgency badge for repair services */}
+        {config.urgencyBadge && (
+          <span class="service-hero__urgency-badge">
+            <span class="urgency-pulse" aria-hidden="true"></span>
+            {config.urgencyBadge}
+          </span>
+        )}
+      </div>
+
+      {/* Headline */}
+      <h1 class="service-hero__headline">{headline}</h1>
+
+      {/* Description */}
+      <p class="service-hero__description">{service.description}</p>
+
+      {/* CTAs */}
+      <div class="service-hero__ctas">
+        <Button
+          variant={config.primaryCtaVariant}
+          size="lg"
+          href={service.serviceType === 'maintenance' ? bookingUrl : phoneLink}
+          iconLeft={config.primaryCtaIcon}
+          data-cta-context={`service-hero-${service.serviceType}`}
+        >
+          {config.primaryCtaLabel}
+        </Button>
+
+        {config.secondaryCtaLabel && config.secondaryCtaHref && (
+          <Button
+            variant="outline"
+            size="lg"
+            href={config.secondaryCtaHref}
+            class="service-hero__secondary-cta"
+          >
+            {config.secondaryCtaLabel}
+          </Button>
+        )}
+      </div>
+
+      {/* Availability indicator */}
+      {config.showAvailability && (
+        <div class="service-hero__availability">
+          <span class="availability-dot" aria-hidden="true"></span>
+          <span class="availability-text">{config.availabilityText}</span>
+        </div>
+      )}
+    </div>
+
+    {/* Trust indicators */}
+    <div class="service-hero__trust">
+      {trustItems.map((item, index) => (
+        <div class="trust-item" style={`--trust-index: ${index}`}>
+          <div class="trust-item__icon">
+            <Icon name={item.icon} size="md" />
+          </div>
+          <span class="trust-item__label">{item.label}</span>
+        </div>
+      ))}
+    </div>
+  </Container>
+
+  {/* Decorative bottom edge - industrial aesthetic */}
+  <div class="service-hero__edge" aria-hidden="true">
+    <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0 60L1440 60L1440 0L720 30L0 0L0 60Z" fill="var(--color-surface-primary)"/>
+    </svg>
+  </div>
+</section>
+
+<style>
+  /* ================================================================
+     SERVICE HERO BASE STYLES
+     Industrial-modern hero with variant color schemes
+     ================================================================ */
+
+  .service-hero {
+    position: relative;
+    padding-top: calc(var(--header-height-mobile) + var(--space-8));
+    padding-bottom: var(--space-20);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  @media (min-width: 1024px) {
+    .service-hero {
+      padding-top: calc(var(--header-height-desktop) + var(--space-12));
+      padding-bottom: var(--space-28);
+    }
+  }
+
+  /* ================================================================
+     GRADIENT VARIANTS BY SERVICE TYPE
+     ================================================================ */
+
+  /* Repair: Emergency Red Gradient */
+  .service-hero--repair {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-800) 0%,
+      var(--color-emergency-700) 40%,
+      var(--color-emergency-600) 100%
+    );
+    color: var(--color-text-inverse);
+  }
+
+  /* Installation: Primary Blue Gradient */
+  .service-hero--installation {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-900) 0%,
+      var(--color-primary-700) 40%,
+      var(--color-primary-600) 100%
+    );
+    color: var(--color-text-inverse);
+  }
+
+  /* Maintenance: Accent Gradient (warm orange-tinted) */
+  .service-hero--maintenance {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-800) 0%,
+      var(--color-primary-700) 30%,
+      var(--color-accent-700) 100%
+    );
+    color: var(--color-text-inverse);
+  }
+
+  /* ================================================================
+     BACKGROUND PATTERN
+     Subtle industrial texture
+     ================================================================ */
+
+  .service-hero__pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background-image:
+      linear-gradient(45deg, currentColor 25%, transparent 25%),
+      linear-gradient(-45deg, currentColor 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, currentColor 75%),
+      linear-gradient(-45deg, transparent 75%, currentColor 75%);
+    background-size: 60px 60px;
+    background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ================================================================
+     BACKGROUND IMAGE (optional)
+     ================================================================ */
+
+  .service-hero__image {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .service-hero__image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    opacity: 0.85;
+  }
+
+  .service-hero__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.3;
+  }
+
+  /* ================================================================
+     CONTAINER
+     ================================================================ */
+
+  .service-hero__container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  /* ================================================================
+     BREADCRUMBS
+     ================================================================ */
+
+  .service-hero__breadcrumbs {
+    margin-bottom: var(--space-2);
+  }
+
+  .breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+  }
+
+  .breadcrumb-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .breadcrumb-link:hover {
+    color: rgba(255, 255, 255, 1);
+    text-decoration: underline;
+  }
+
+  .breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 var(--space-0-5);
+  }
+
+  .breadcrumb-current {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* ================================================================
+     MAIN CONTENT AREA
+     ================================================================ */
+
+  .service-hero__content {
+    max-width: 720px;
+  }
+
+  /* Eyebrow group */
+  .service-hero__eyebrow-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  /* Urgency badge for repairs */
+  .service-hero__urgency-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+    backdrop-filter: blur(8px);
+  }
+
+  .urgency-pulse {
+    width: 8px;
+    height: 8px;
+    background-color: #4ade80;
+    border-radius: var(--radius-full);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
+    }
+  }
+
+  /* Headline */
+  .service-hero__headline {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-display-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-inverse);
+    margin: 0 0 var(--space-4);
+    text-wrap: balance;
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: hero-slide-up var(--duration-slow) var(--ease-out) 100ms forwards;
+  }
+
+  @keyframes hero-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Description */
+  .service-hero__description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-relaxed);
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 var(--space-8);
+    max-width: 60ch;
+
+    opacity: 0;
+    animation: hero-slide-up var(--duration-slow) var(--ease-out) 200ms forwards;
+  }
+
+  /* CTAs */
+  .service-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+
+    opacity: 0;
+    animation: hero-slide-up var(--duration-slow) var(--ease-out) 300ms forwards;
+  }
+
+  /* Secondary CTA styling for dark background */
+  .service-hero__secondary-cta {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: var(--color-text-inverse) !important;
+  }
+
+  .service-hero__secondary-cta:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  /* Availability indicator */
+  .service-hero__availability {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    border-left: 3px solid #4ade80;
+
+    opacity: 0;
+    animation: hero-slide-up var(--duration-slow) var(--ease-out) 400ms forwards;
+  }
+
+  .availability-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #4ade80;
+    border-radius: var(--radius-full);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .availability-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  /* ================================================================
+     TRUST INDICATORS
+     ================================================================ */
+
+  .service-hero__trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Staggered entrance */
+    opacity: 0;
+    animation: trust-fade-in var(--duration-normal) var(--ease-out) forwards;
+    animation-delay: calc(500ms + (var(--trust-index, 0) * 80ms));
+  }
+
+  @keyframes trust-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .trust-item__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .trust-item__label {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+  }
+
+  /* ================================================================
+     DECORATIVE EDGE
+     ================================================================ */
+
+  .service-hero__edge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .service-hero__edge svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .service-hero {
+      padding-bottom: var(--space-16);
+    }
+
+    .service-hero__content {
+      text-align: left;
+    }
+
+    .service-hero__headline {
+      font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .service-hero__description {
+      font-size: var(--font-size-lg);
+    }
+
+    .service-hero__ctas {
+      flex-direction: column;
+    }
+
+    .service-hero__ctas > * {
+      width: 100%;
+    }
+
+    .service-hero__trust {
+      gap: var(--space-3);
+    }
+
+    .trust-item {
+      flex: 1 1 calc(50% - var(--space-3));
+      min-width: 140px;
+    }
+
+    .service-hero__edge {
+      height: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .service-hero__eyebrow-group {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .trust-item {
+      flex: 1 1 100%;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-hero__headline,
+    .service-hero__description,
+    .service-hero__ctas,
+    .service-hero__availability,
+    .trust-item {
+      opacity: 1;
+      animation: none;
+    }
+
+    .urgency-pulse,
+    .availability-dot {
+      animation: none;
+    }
+  }
+</style>

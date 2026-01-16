@@ -1,0 +1,866 @@
+---
+/**
+ * MobileMenu Component
+ *
+ * Slide-out mobile navigation drawer with accordion support for nested items.
+ * Part of the "Trustworthy Industrial Modern" design system.
+ *
+ * Features:
+ * - Slides in from the right with backdrop overlay
+ * - Phone CTA prominent at top - THE primary action
+ * - Accordion for nested navigation items
+ * - Body scroll lock when open
+ * - Focus trap for accessibility
+ * - Smooth, confident animations
+ *
+ * Visible only on mobile/tablet (< 1024px) - desktop uses Navigation component.
+ */
+
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+import Button from '../primitives/Button.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface NavItem {
+  label: string;
+  href: string;
+  children?: Array<{
+    label: string;
+    href: string;
+    description?: string;
+    icon?: string;
+  }>;
+}
+
+interface Props {
+  /** Navigation items with optional nested children */
+  items: NavItem[];
+  /** Booking URL for secondary CTA */
+  bookingUrl?: string;
+  /** Whether booking is enabled */
+  bookingEnabled?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  items,
+  bookingUrl,
+  bookingEnabled = true,
+  class: className = '',
+} = Astro.props as Props;
+
+// Type for child nav items
+type NavChild = NonNullable<NavItem['children']>[number];
+
+// Fetch business data for phone CTA
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+
+// Get current path for active state
+const currentPath = Astro.url.pathname;
+
+/**
+ * Check if a nav item is active
+ */
+function isActive(href: string): boolean {
+  if (href === '/') {
+    return currentPath === '/';
+  }
+  return currentPath.startsWith(href);
+}
+---
+
+<!-- Backdrop Overlay -->
+<div
+  class="mobile-menu-backdrop"
+  data-mobile-menu-backdrop
+  aria-hidden="true"
+></div>
+
+<!-- Mobile Menu Drawer -->
+<div
+  id="mobile-menu"
+  class:list={['mobile-menu', className]}
+  data-mobile-menu
+  role="dialog"
+  aria-modal="true"
+  aria-label="Mobile navigation menu"
+  aria-hidden="true"
+>
+  <div class="mobile-menu__inner">
+    <!-- Header with Close Button -->
+    <div class="mobile-menu__header">
+      <span class="mobile-menu__title">Menu</span>
+      <button
+        type="button"
+        class="mobile-menu__close"
+        aria-label="Close menu"
+        data-mobile-menu-close
+      >
+        <Icon name="x" size="lg" class="mobile-menu__close-icon" />
+      </button>
+    </div>
+
+    <!-- Phone CTA - THE Primary Action -->
+    <div class="mobile-menu__cta">
+      <a href={phoneLink} class="mobile-menu__phone" data-cta-context="mobile-menu">
+        <span class="mobile-menu__phone-icon">
+          <Icon name="phone" size="lg" />
+        </span>
+        <span class="mobile-menu__phone-content">
+          <span class="mobile-menu__phone-label">Call Now - 24/7</span>
+          <span class="mobile-menu__phone-number">{phoneDisplay}</span>
+        </span>
+      </a>
+
+      {bookingEnabled && bookingUrl && (
+        <Button
+          variant="primary"
+          size="md"
+          href={bookingUrl}
+          fullWidth
+          class="mobile-menu__book-btn"
+          data-cta-context="mobile-menu"
+        >
+          Book Online
+        </Button>
+      )}
+    </div>
+
+    <!-- Navigation List -->
+    <nav class="mobile-menu__nav" aria-label="Mobile navigation">
+      <ul class="mobile-menu__list">
+        {items.map((item: NavItem, index: number) => (
+          <li
+            class:list={[
+              'mobile-menu__item',
+              { 'mobile-menu__item--has-children': item.children && item.children.length > 0 }
+            ]}
+            data-mobile-nav-item
+          >
+            {item.children && item.children.length > 0 ? (
+              /* Accordion Item with Children */
+              <div class="mobile-menu__accordion" data-accordion-item>
+                <button
+                  type="button"
+                  class:list={[
+                    'mobile-menu__accordion-trigger',
+                    { 'mobile-menu__accordion-trigger--active': isActive(item.href) }
+                  ]}
+                  aria-expanded="false"
+                  aria-controls={`mobile-menu-submenu-${index}`}
+                  data-accordion-trigger
+                >
+                  <span class="mobile-menu__accordion-label">{item.label}</span>
+                  <span class="mobile-menu__accordion-icon" aria-hidden="true">
+                    <Icon name="chevronDown" size="sm" />
+                  </span>
+                </button>
+
+                <div
+                  id={`mobile-menu-submenu-${index}`}
+                  class="mobile-menu__submenu"
+                  data-accordion-panel
+                  hidden
+                >
+                  <ul class="mobile-menu__submenu-list">
+                    {/* View All Link */}
+                    <li class="mobile-menu__submenu-item">
+                      <a
+                        href={item.href}
+                        class:list={[
+                          'mobile-menu__submenu-link',
+                          'mobile-menu__submenu-link--all',
+                          { 'mobile-menu__submenu-link--active': currentPath === item.href }
+                        ]}
+                      >
+                        <span>View All {item.label}</span>
+                        <Icon name="arrowRight" size="sm" />
+                      </a>
+                    </li>
+
+                    {item.children.map((child: NavChild) => (
+                      <li class="mobile-menu__submenu-item">
+                        <a
+                          href={child.href}
+                          class:list={[
+                            'mobile-menu__submenu-link',
+                            { 'mobile-menu__submenu-link--active': isActive(child.href) }
+                          ]}
+                        >
+                          {child.icon && (
+                            <span class="mobile-menu__submenu-icon">
+                              <Icon name={child.icon} size="sm" />
+                            </span>
+                          )}
+                          <span>{child.label}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              /* Simple Link without Children */
+              <a
+                href={item.href}
+                class:list={[
+                  'mobile-menu__link',
+                  { 'mobile-menu__link--active': isActive(item.href) }
+                ]}
+              >
+                {item.label}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <!-- Footer with Secondary Info -->
+    <div class="mobile-menu__footer">
+      <p class="mobile-menu__footer-text">
+        Family-owned since 1992
+      </p>
+      <div class="mobile-menu__footer-badges">
+        <span class="mobile-menu__badge">
+          <Icon name="shield" size="sm" />
+          <span>TSSA Licensed</span>
+        </span>
+        <span class="mobile-menu__badge">
+          <Icon name="clock" size="sm" />
+          <span>24/7 Emergency</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ================================================================
+     MOBILE MENU - TRUSTWORTHY INDUSTRIAL MODERN
+     Confident slide-out drawer with phone CTA prominence
+     ================================================================ */
+
+  /* ================================================================
+     BACKDROP
+     ================================================================ */
+
+  .mobile-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-normal) var(--ease-out),
+      visibility var(--duration-normal) var(--ease-out);
+    z-index: var(--z-modal-backdrop);
+  }
+
+  .mobile-menu-backdrop[data-open="true"] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-menu-backdrop {
+      display: none;
+    }
+  }
+
+  /* ================================================================
+     MENU DRAWER
+     ================================================================ */
+
+  .mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 380px;
+    background-color: var(--color-surface-primary);
+    transform: translateX(100%);
+    transition: transform var(--duration-slow) var(--ease-out);
+    z-index: var(--z-modal);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-menu[aria-hidden="false"] {
+    transform: translateX(0);
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+
+  .mobile-menu__inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* ================================================================
+     HEADER
+     ================================================================ */
+
+  .mobile-menu__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border-secondary);
+    flex-shrink: 0;
+  }
+
+  .mobile-menu__title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+  }
+
+  .mobile-menu__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__close:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .mobile-menu__close:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .mobile-menu__close-icon {
+    /* x icon is already proper shape, no rotation needed */
+  }
+
+  /* ================================================================
+     PHONE CTA - THE PRIMARY ACTION
+     This is the most important element in the mobile menu
+     ================================================================ */
+
+  .mobile-menu__cta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border-bottom: 1px solid var(--color-border-secondary);
+    flex-shrink: 0;
+  }
+
+  .mobile-menu__phone {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background-color: var(--color-primary-700);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-inverse);
+    text-decoration: none;
+    box-shadow: var(--shadow-primary);
+    transition:
+      background-color var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__phone:hover {
+    background-color: var(--color-primary-800);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-primary-hover);
+  }
+
+  .mobile-menu__phone:focus-visible {
+    outline: 2px solid var(--color-text-inverse);
+    outline-offset: 2px;
+  }
+
+  .mobile-menu__phone:active {
+    transform: translateY(0);
+  }
+
+  .mobile-menu__phone-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  .mobile-menu__phone-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-0-5);
+  }
+
+  .mobile-menu__phone-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    opacity: 0.9;
+  }
+
+  .mobile-menu__phone-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .mobile-menu__book-btn {
+    /* Inherits from Button component */
+  }
+
+  /* ================================================================
+     NAVIGATION LIST
+     ================================================================ */
+
+  .mobile-menu__nav {
+    flex: 1;
+    padding: var(--space-4) 0;
+    overflow-y: auto;
+  }
+
+  .mobile-menu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-menu__item {
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .mobile-menu__item:last-child {
+    border-bottom: none;
+  }
+
+  /* ================================================================
+     SIMPLE NAV LINK (no children)
+     ================================================================ */
+
+  .mobile-menu__link {
+    display: block;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__link:hover,
+  .mobile-menu__link:focus-visible {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .mobile-menu__link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  .mobile-menu__link--active {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  /* ================================================================
+     ACCORDION (nav items with children)
+     ================================================================ */
+
+  .mobile-menu__accordion {
+    /* Container for accordion */
+  }
+
+  .mobile-menu__accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__accordion-trigger:hover,
+  .mobile-menu__accordion-trigger:focus-visible {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .mobile-menu__accordion-trigger:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  .mobile-menu__accordion-trigger--active {
+    color: var(--color-primary-700);
+  }
+
+  .mobile-menu__accordion-label {
+    /* Label styling handled by parent */
+  }
+
+  .mobile-menu__accordion-icon {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-tertiary);
+    transition: transform var(--duration-normal) var(--ease-default);
+  }
+
+  .mobile-menu__accordion-trigger[aria-expanded="true"] .mobile-menu__accordion-icon {
+    transform: rotate(180deg);
+    color: var(--color-primary-600);
+  }
+
+  /* ================================================================
+     SUBMENU (accordion panel)
+     ================================================================ */
+
+  .mobile-menu__submenu {
+    overflow: hidden;
+    background-color: var(--color-surface-secondary);
+  }
+
+  .mobile-menu__submenu[hidden] {
+    display: none;
+  }
+
+  .mobile-menu__submenu-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2) 0;
+  }
+
+  .mobile-menu__submenu-item {
+    /* Item container */
+  }
+
+  .mobile-menu__submenu-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5) var(--space-3) var(--space-8);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__submenu-link:hover,
+  .mobile-menu__submenu-link:focus-visible {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .mobile-menu__submenu-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  .mobile-menu__submenu-link--active {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .mobile-menu__submenu-link--all {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    justify-content: space-between;
+    border-bottom: 1px solid var(--color-border-secondary);
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-3);
+  }
+
+  .mobile-menu__submenu-icon {
+    display: flex;
+    align-items: center;
+    color: var(--color-primary-500);
+  }
+
+  /* ================================================================
+     FOOTER
+     ================================================================ */
+
+  .mobile-menu__footer {
+    padding: var(--space-5);
+    background-color: var(--color-surface-secondary);
+    border-top: 1px solid var(--color-border-secondary);
+    flex-shrink: 0;
+  }
+
+  .mobile-menu__footer-text {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+
+  .mobile-menu__footer-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .mobile-menu__badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: var(--space-1-5) var(--space-3);
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu-backdrop,
+    .mobile-menu,
+    .mobile-menu__close,
+    .mobile-menu__phone,
+    .mobile-menu__link,
+    .mobile-menu__accordion-trigger,
+    .mobile-menu__accordion-icon,
+    .mobile-menu__submenu-link {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * MobileMenu Behavior
+   *
+   * Handles:
+   * - Open/close with proper ARIA states
+   * - Body scroll lock
+   * - Focus trap
+   * - Accordion functionality
+   * - Escape key to close
+   */
+
+  function initMobileMenu() {
+    const menu = document.querySelector('[data-mobile-menu]') as HTMLElement | null;
+    const backdrop = document.querySelector('[data-mobile-menu-backdrop]') as HTMLElement | null;
+    const closeBtn = document.querySelector('[data-mobile-menu-close]') as HTMLButtonElement | null;
+    const accordionItems = document.querySelectorAll('[data-accordion-item]');
+
+    if (!menu || !backdrop) return;
+
+    let isOpen = false;
+    let previousActiveElement: Element | null = null;
+
+    // Get all focusable elements in the menu
+    function getFocusableElements(): HTMLElement[] {
+      return Array.from(
+        menu!.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ) as HTMLElement[];
+    }
+
+    // Open menu
+    function openMenu() {
+      if (isOpen) return;
+      isOpen = true;
+      previousActiveElement = document.activeElement;
+
+      menu!.setAttribute('aria-hidden', 'false');
+      backdrop!.setAttribute('data-open', 'true');
+      document.body.style.overflow = 'hidden';
+
+      // Focus first focusable element after animation
+      setTimeout(() => {
+        const focusables = getFocusableElements();
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        }
+      }, 100);
+    }
+
+    // Close menu
+    function closeMenu() {
+      if (!isOpen) return;
+      isOpen = false;
+
+      menu!.setAttribute('aria-hidden', 'true');
+      backdrop!.setAttribute('data-open', 'false');
+      document.body.style.overflow = '';
+
+      // Return focus to trigger element
+      if (previousActiveElement && previousActiveElement instanceof HTMLElement) {
+        previousActiveElement.focus();
+      }
+    }
+
+    // Listen for header menu toggle event
+    document.addEventListener('header:menu-toggle', ((e: CustomEvent) => {
+      if (e.detail.isOpen) {
+        openMenu();
+      } else {
+        closeMenu();
+      }
+    }) as EventListener);
+
+    // Close button
+    closeBtn?.addEventListener('click', () => {
+      closeMenu();
+      // Also update the header toggle button state
+      const headerToggle = document.querySelector('[data-menu-toggle]');
+      headerToggle?.setAttribute('aria-expanded', 'false');
+    });
+
+    // Backdrop click to close
+    backdrop?.addEventListener('click', () => {
+      closeMenu();
+      const headerToggle = document.querySelector('[data-menu-toggle]');
+      headerToggle?.setAttribute('aria-expanded', 'false');
+    });
+
+    // Escape key to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeMenu();
+        const headerToggle = document.querySelector('[data-menu-toggle]');
+        headerToggle?.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Focus trap
+    menu?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab' || !isOpen) return;
+
+      const focusables = getFocusableElements();
+      if (focusables.length === 0) return;
+
+      const firstFocusable = focusables[0];
+      const lastFocusable = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    });
+
+    // Accordion functionality
+    accordionItems.forEach((item) => {
+      const trigger = item.querySelector('[data-accordion-trigger]') as HTMLButtonElement | null;
+      const panel = item.querySelector('[data-accordion-panel]') as HTMLElement | null;
+
+      if (!trigger || !panel) return;
+
+      trigger.addEventListener('click', () => {
+        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+        // Close all other accordions (single-open mode)
+        accordionItems.forEach((otherItem) => {
+          const otherTrigger = otherItem.querySelector('[data-accordion-trigger]') as HTMLButtonElement | null;
+          const otherPanel = otherItem.querySelector('[data-accordion-panel]') as HTMLElement | null;
+
+          if (otherTrigger && otherPanel && otherTrigger !== trigger) {
+            otherTrigger.setAttribute('aria-expanded', 'false');
+            otherPanel.hidden = true;
+          }
+        });
+
+        // Toggle current accordion
+        trigger.setAttribute('aria-expanded', String(!isExpanded));
+        panel.hidden = isExpanded;
+
+        // Scroll panel into view if opening
+        if (!isExpanded) {
+          setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
+      });
+
+      // Keyboard support for accordion
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger.click();
+        }
+      });
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu);
+  } else {
+    initMobileMenu();
+  }
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', initMobileMenu);
+</script>

@@ -1,0 +1,912 @@
+---
+/**
+ * Footer Component
+ *
+ * The anchor of every page. A dark, warm foundation that grounds the entire site.
+ * Four-column grid with brand presence, navigation, contact info, and trust signals.
+ *
+ * Design: Deep slate backdrop with warm undertones. The diagonal texture
+ * continues from the TopBar, creating bookends. Industrial confidence
+ * meets approachable warmth. Phone number appears multiple times -
+ * users should never have to look far.
+ *
+ * Structure:
+ * 1. Main grid (Brand | Services | Company | Location)
+ * 2. Trust bar (certifications, ratings, badges)
+ * 3. Social + copyright bar
+ */
+import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../../lib/getBusinessProfile';
+import Container from '../primitives/Container.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Get business data
+const profile = await getBusinessProfile();
+const companyName = getCompanyName(profile);
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const email = getEmail(profile);
+const emailLink = getEmailLink(profile);
+const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
+const googleRating = profile.reputation.google_rating;
+const reviewCount = profile.reputation.google_review_count;
+const instagramUrl = profile.social.instagram;
+const facebookUrl = profile.social.facebook;
+
+// Navigation links
+const serviceLinks = [
+  { label: 'Heating Services', href: '/services/heating/' },
+  { label: 'Cooling Services', href: '/services/cooling/' },
+  { label: 'Indoor Air Quality', href: '/services/indoor-air-quality/' },
+  { label: 'Water Heaters', href: '/services/water-heating/' },
+  { label: 'Commercial HVAC', href: '/services/commercial/' },
+  { label: 'Maintenance Plans', href: '/services/maintenance-plans/' },
+];
+
+const companyLinks = [
+  { label: 'About Us', href: '/about-us/' },
+  { label: 'Contact', href: '/contact-us/' },
+  { label: 'Service Areas', href: '/locations/' },
+  { label: 'Reviews', href: '/reviews/' },
+  { label: 'Financing', href: '/financing/' },
+  { label: 'Rebates', href: '/rebates/' },
+  { label: 'Blog', href: '/blog/' },
+];
+
+// Trust badges
+const trustBadges = [
+  { icon: 'certificate', label: 'TSSA Licensed' },
+  { icon: 'shield', label: 'Fully Insured' },
+  { icon: 'clock', label: '24/7 Emergency' },
+  { icon: 'checkmark', label: `${profile.warranty.parts_and_labour_years}+ Year Warranty` },
+];
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class:list={['footer', className]}>
+  {/* Subtle industrial texture overlay */}
+  <div class="footer-texture" aria-hidden="true"></div>
+
+  {/* Main Footer Content */}
+  <div class="footer-main">
+    <Container size="xl">
+      <div class="footer-grid">
+
+        {/* Brand Column */}
+        <div class="footer-brand">
+          {/* Logo */}
+          <a href="/" class="footer-logo-link" aria-label={`${companyName} - Home`}>
+            <img
+              src="/logo.svg"
+              alt={`${companyName} logo`}
+              class="footer-logo"
+              width="180"
+              height="48"
+              loading="lazy"
+            />
+          </a>
+
+          {/* Tagline / Description */}
+          <p class="footer-tagline">
+            {profile.copy_blocks?.short_description || `Your trusted local HVAC experts. Family-owned and operated since ${profile.business.established_year}.`}
+          </p>
+
+          {/* Quick Contact */}
+          <div class="footer-contact-quick">
+            <a href={phoneLink} class="footer-phone">
+              <span class="footer-phone-icon">
+                <Icon name="phone" size="md" color="inverse" />
+              </span>
+              <span class="footer-phone-text">
+                <span class="footer-phone-label">Call Us 24/7</span>
+                <span class="footer-phone-number">{phoneDisplay}</span>
+              </span>
+            </a>
+
+            <a href={emailLink} class="footer-email">
+              <Icon name="mail" size="sm" color="muted" />
+              <span>{email}</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Services Column */}
+        <nav class="footer-nav footer-services" aria-labelledby="footer-services-heading">
+          <h3 id="footer-services-heading" class="footer-nav-heading">Services</h3>
+          <ul class="footer-nav-list">
+            {serviceLinks.map((link) => (
+              <li>
+                <a href={link.href} class="footer-nav-link">
+                  <span class="footer-nav-link-arrow" aria-hidden="true">›</span>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Company Column */}
+        <nav class="footer-nav footer-company" aria-labelledby="footer-company-heading">
+          <h3 id="footer-company-heading" class="footer-nav-heading">Company</h3>
+          <ul class="footer-nav-list">
+            {companyLinks.map((link) => (
+              <li>
+                <a href={link.href} class="footer-nav-link">
+                  <span class="footer-nav-link-arrow" aria-hidden="true">›</span>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Location Column */}
+        <div class="footer-location">
+          <h3 class="footer-nav-heading">Visit Us</h3>
+
+          {/* Primary Location */}
+          <address class="footer-address">
+            <p class="footer-address-name">{profile.locations.primary.name}</p>
+            <p class="footer-address-street">{profile.locations.primary.address_full}</p>
+            <p class="footer-address-city">
+              {profile.locations.primary.city}, {profile.locations.primary.province} {profile.locations.primary.postal_code}
+            </p>
+          </address>
+
+          {/* Secondary Location */}
+          {profile.locations.secondary && (
+            <address class="footer-address footer-address-secondary">
+              <p class="footer-address-name">{profile.locations.secondary.name}</p>
+              <p class="footer-address-street">{profile.locations.secondary.address_full}</p>
+              <p class="footer-address-city">
+                {profile.locations.secondary.city}, {profile.locations.secondary.province} {profile.locations.secondary.postal_code}
+              </p>
+            </address>
+          )}
+
+          {/* Hours Badge */}
+          <div class="footer-hours">
+            <Icon name="clock" size="sm" color="accent" />
+            <span class="footer-hours-text">
+              <strong>Phone:</strong> Answered 24/7
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </Container>
+  </div>
+
+  {/* Trust Bar */}
+  <div class="footer-trust">
+    <Container size="xl">
+      <div class="footer-trust-inner">
+        {/* Google Rating */}
+        <div class="footer-trust-rating">
+          <div class="footer-trust-stars">
+            {[1, 2, 3, 4, 5].map((_, i) => (
+              <svg class="footer-star" viewBox="0 0 20 20" fill="currentColor">
+                <path d={i < Math.floor(googleRating) ? "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" : "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"} />
+              </svg>
+            ))}
+          </div>
+          <span class="footer-trust-rating-text">
+            <strong>{googleRating}</strong> from {reviewCount}+ reviews on Google
+          </span>
+        </div>
+
+        {/* Divider */}
+        <div class="footer-trust-divider" aria-hidden="true"></div>
+
+        {/* Trust Badges */}
+        <div class="footer-trust-badges">
+          {trustBadges.map((badge) => (
+            <div class="footer-trust-badge">
+              <Icon name={badge.icon} size="sm" color="primary" />
+              <span>{badge.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Years Badge */}
+        <div class="footer-trust-years">
+          <span class="footer-trust-years-number">{yearsInBusiness}+</span>
+          <span class="footer-trust-years-label">Years of<br/>Excellence</span>
+        </div>
+      </div>
+    </Container>
+  </div>
+
+  {/* Bottom Bar - Social + Copyright */}
+  <div class="footer-bottom">
+    <Container size="xl">
+      <div class="footer-bottom-inner">
+        {/* Social Links */}
+        <div class="footer-social">
+          <span class="footer-social-label">Follow Us</span>
+          <div class="footer-social-links">
+            <a
+              href={facebookUrl}
+              class="footer-social-link"
+              aria-label="Follow us on Facebook"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="footer-social-icon">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+            <a
+              href={instagramUrl}
+              class="footer-social-link"
+              aria-label="Follow us on Instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="footer-social-icon">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+            <a
+              href={`https://google.com/maps/search/${encodeURIComponent(profile.locations.primary.address_full + ', ' + profile.locations.primary.city)}`}
+              class="footer-social-link"
+              aria-label="Find us on Google Maps"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="footer-social-icon">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        {/* Phone CTA - Final opportunity */}
+        <a href={phoneLink} class="footer-bottom-phone">
+          <Icon name="phone" size="sm" />
+          <span>{phoneDisplay}</span>
+        </a>
+
+        {/* Copyright */}
+        <div class="footer-copyright">
+          <p>
+            &copy; {currentYear} {companyName}. All rights reserved.
+          </p>
+          {/* Legal links - pages to be created
+          <p class="footer-legal-links">
+            <a href="/privacy-policy/">Privacy Policy</a>
+            <span class="footer-legal-sep" aria-hidden="true">|</span>
+            <a href="/terms-of-service/">Terms of Service</a>
+          </p>
+          */}
+        </div>
+      </div>
+    </Container>
+  </div>
+</footer>
+
+<style>
+  /* ================================================================
+     FOOTER - The Confident Foundation
+     Dark, warm, grounded. A trustworthy anchor.
+     ================================================================ */
+
+  .footer {
+    position: relative;
+    background-color: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-body);
+    overflow: hidden;
+  }
+
+  /* Industrial diagonal texture - bookends with TopBar */
+  .footer-texture {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 20px,
+        rgba(59, 111, 217, 0.02) 20px,
+        rgba(59, 111, 217, 0.02) 40px
+      );
+    pointer-events: none;
+  }
+
+  /* ================================================================
+     MAIN FOOTER GRID
+     ================================================================ */
+
+  .footer-main {
+    position: relative;
+    padding: var(--space-16) 0 var(--space-12);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  @media (min-width: 640px) {
+    .footer-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-8);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .footer-grid {
+      grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
+      gap: var(--space-12);
+    }
+
+    .footer-main {
+      padding: var(--space-20) 0 var(--space-14);
+    }
+  }
+
+  /* ================================================================
+     BRAND COLUMN
+     ================================================================ */
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .footer-logo-link {
+    display: inline-block;
+    transition: opacity var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-logo-link:hover {
+    opacity: 0.85;
+  }
+
+  .footer-logo {
+    height: 44px;
+    width: auto;
+    max-width: 180px;
+  }
+
+  .footer-tagline {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-primary-200);
+    max-width: 300px;
+  }
+
+  /* Quick Contact Block */
+  .footer-contact-quick {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+  }
+
+  .footer-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-700) 100%
+    );
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-default);
+    box-shadow:
+      0 4px 12px rgba(36, 81, 179, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-phone:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 20px rgba(36, 81, 179, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+  }
+
+  .footer-phone-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+  }
+
+  .footer-phone-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .footer-phone-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    color: var(--color-primary-200);
+  }
+
+  .footer-phone-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .footer-email {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-primary-300);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-email:hover {
+    color: var(--color-text-inverse);
+  }
+
+  /* ================================================================
+     NAVIGATION COLUMNS
+     ================================================================ */
+
+  .footer-nav-heading {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    margin-bottom: var(--space-5);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    position: relative;
+    padding-bottom: var(--space-3);
+  }
+
+  .footer-nav-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-500) 0%,
+      var(--color-accent-600) 100%
+    );
+    border-radius: var(--radius-full);
+  }
+
+  .footer-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2-5);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-primary-200);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-default);
+    padding: var(--space-1) 0;
+  }
+
+  .footer-nav-link:hover {
+    color: var(--color-text-inverse);
+    transform: translateX(4px);
+  }
+
+  .footer-nav-link-arrow {
+    color: var(--color-accent-500);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-nav-link:hover .footer-nav-link-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ================================================================
+     LOCATION COLUMN
+     ================================================================ */
+
+  .footer-location {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .footer-address {
+    font-style: normal;
+    color: var(--color-primary-200);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .footer-address-secondary {
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .footer-address-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+    margin-bottom: var(--space-1);
+  }
+
+  .footer-address-street,
+  .footer-address-city {
+    margin: 0;
+  }
+
+  .footer-hours {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .footer-hours-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-200);
+  }
+
+  .footer-hours-text strong {
+    color: var(--color-text-inverse);
+  }
+
+  /* ================================================================
+     TRUST BAR
+     ================================================================ */
+
+  .footer-trust {
+    position: relative;
+    padding: var(--space-6) 0;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .footer-trust-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 1024px) {
+    .footer-trust-inner {
+      justify-content: space-between;
+      flex-wrap: nowrap;
+    }
+  }
+
+  /* Rating */
+  .footer-trust-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .footer-trust-stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .footer-star {
+    width: 18px;
+    height: 18px;
+    color: var(--color-accent-400);
+  }
+
+  .footer-trust-rating-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-200);
+  }
+
+  .footer-trust-rating-text strong {
+    color: var(--color-text-inverse);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* Divider */
+  .footer-trust-divider {
+    display: none;
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+  }
+
+  @media (min-width: 1024px) {
+    .footer-trust-divider {
+      display: block;
+    }
+  }
+
+  /* Trust Badges */
+  .footer-trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .footer-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-200);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* Years Badge */
+  .footer-trust-years {
+    display: none;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-600) 0%,
+      var(--color-accent-700) 100%
+    );
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  }
+
+  @media (min-width: 1024px) {
+    .footer-trust-years {
+      display: flex;
+    }
+  }
+
+  .footer-trust-years-number {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    line-height: 1;
+  }
+
+  .footer-trust-years-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* ================================================================
+     BOTTOM BAR - Social + Copyright
+     ================================================================ */
+
+  .footer-bottom {
+    position: relative;
+    padding: var(--space-5) 0;
+  }
+
+  .footer-bottom-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-5);
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .footer-bottom-inner {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+
+  /* Social */
+  .footer-social {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .footer-social-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .footer-social-label {
+      display: block;
+    }
+  }
+
+  .footer-social-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .footer-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-primary-300);
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-social-link:hover {
+    color: var(--color-text-inverse);
+    background-color: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+    transform: translateY(-2px);
+  }
+
+  .footer-social-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Phone CTA */
+  .footer-bottom-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-bottom-phone:hover {
+    background-color: var(--color-accent-600);
+    border-color: var(--color-accent-600);
+    transform: translateY(-1px);
+  }
+
+  /* Copyright */
+  .footer-copyright {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  .footer-copyright p {
+    margin: 0;
+  }
+
+  .footer-legal-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 768px) {
+    .footer-legal-links {
+      justify-content: flex-end;
+    }
+  }
+
+  .footer-legal-links a {
+    color: var(--color-text-tertiary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  .footer-legal-links a:hover {
+    color: var(--color-primary-300);
+  }
+
+  .footer-legal-sep {
+    color: var(--color-text-tertiary);
+    opacity: 0.5;
+  }
+
+  /* ================================================================
+     PRINT STYLES
+     ================================================================ */
+
+  @media print {
+    .footer {
+      background: white;
+      color: black;
+      border-top: 2px solid black;
+    }
+
+    .footer-texture,
+    .footer-social,
+    .footer-trust-years,
+    .footer-trust-divider {
+      display: none;
+    }
+
+    .footer-phone,
+    .footer-email,
+    .footer-nav-link,
+    .footer-copyright a {
+      color: black;
+    }
+
+    .footer-phone {
+      background: none;
+      box-shadow: none;
+      border: 1px solid black;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-phone,
+    .footer-social-link,
+    .footer-nav-link,
+    .footer-bottom-phone {
+      transition: none;
+    }
+  }
+</style>

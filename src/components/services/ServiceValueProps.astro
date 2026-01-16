@@ -1,0 +1,557 @@
+---
+/**
+ * ServiceValueProps Component
+ *
+ * Displays a grid of value proposition cards for service pages.
+ * Each card highlights a key benefit with icon, title, and description.
+ *
+ * Design Philosophy:
+ * These are the "why choose us" cards that answer the homeowner's
+ * unspoken question: "What makes you different from the other guy?"
+ * The design uses an asymmetric grid with bold icon badges that
+ * command attention while the content remains scannable.
+ *
+ * Visual Treatment:
+ * - Industrial-modern cards with subtle diagonal accent
+ * - Icon badges with gradient backgrounds (primary palette)
+ * - Warm shadows that lift cards off the page
+ * - Staggered entrance animation for visual rhythm
+ *
+ * @example
+ * <ServiceValueProps valueProps={[
+ *   { title: "10-Year Warranty", description: "...", icon: "shield" },
+ *   { title: "Upfront Pricing", description: "...", icon: "dollar" },
+ * ]} />
+ */
+
+import Container from '../primitives/Container.astro';
+import Section from '../primitives/Section.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface ValueProp {
+  /** Card title */
+  title: string;
+  /** Card description text */
+  description: string;
+  /** Icon name from icons.ts */
+  icon: string;
+}
+
+interface Props {
+  /** Array of value propositions to display */
+  valueProps: ValueProp[];
+  /** Optional section eyebrow text */
+  eyebrow?: string;
+  /** Optional section headline */
+  headline?: string;
+  /** Visual variant */
+  variant?: 'default' | 'compact' | 'featured';
+  /** Background variant */
+  background?: 'default' | 'muted' | 'warm';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  valueProps,
+  eyebrow = 'Why Choose Us',
+  headline,
+  variant = 'default',
+  background = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Don't render if no value props provided
+if (!valueProps || valueProps.length === 0) {
+  return null;
+}
+
+// Determine section background variant
+const sectionVariant = background === 'muted' ? 'muted' : background === 'warm' ? 'default' : 'default';
+
+// Build component classes
+const classes = [
+  'service-value-props',
+  `service-value-props--${variant}`,
+  `service-value-props--bg-${background}`,
+  className,
+].filter(Boolean).join(' ');
+
+// Grid layout: 2x2 for 4 items, 3-column for more
+const gridClass = valueProps.length === 4 ? 'value-props-grid--2x2' : 'value-props-grid--auto';
+---
+
+<Section variant={sectionVariant} padding="md" class={classes}>
+  <Container size="xl">
+    {/* Section Header (optional) */}
+    {(eyebrow || headline) && (
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline || 'What You Get With Us'}
+        align="center"
+        headlineSize="lg"
+        class="service-value-props__header"
+      />
+    )}
+
+    {/* Value Props Grid */}
+    <div class={`value-props-grid ${gridClass}`}>
+      {valueProps.map((prop, index) => (
+        <article
+          class="value-prop-card"
+          style={`--card-index: ${index}`}
+        >
+          {/* Decorative corner accent */}
+          <div class="value-prop-card__accent" aria-hidden="true"></div>
+
+          {/* Icon badge with gradient */}
+          <div class="value-prop-card__icon-wrapper">
+            <div class="value-prop-card__icon">
+              <Icon name={prop.icon} size="lg" />
+            </div>
+            {/* Index number for visual hierarchy */}
+            <span class="value-prop-card__number" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+          </div>
+
+          {/* Content */}
+          <div class="value-prop-card__content">
+            <h3 class="value-prop-card__title">{prop.title}</h3>
+            <p class="value-prop-card__description">{prop.description}</p>
+          </div>
+
+          {/* Subtle bottom border accent */}
+          <div class="value-prop-card__bottom-accent" aria-hidden="true"></div>
+        </article>
+      ))}
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* ================================================================
+     SERVICE VALUE PROPS - Container
+     Section wrapper with optional warm background
+     ================================================================ */
+
+  .service-value-props {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Warm background variant adds subtle cream tint */
+  .service-value-props--bg-warm {
+    background-color: var(--color-surface-warm, #fffbf7);
+  }
+
+  .service-value-props--bg-muted {
+    background-color: var(--color-surface-secondary);
+  }
+
+  /* ================================================================
+     SECTION HEADER
+     ================================================================ */
+
+  .service-value-props__header {
+    margin-bottom: var(--space-12);
+  }
+
+  @media (max-width: 768px) {
+    .service-value-props__header {
+      margin-bottom: var(--space-8);
+    }
+  }
+
+  /* ================================================================
+     VALUE PROPS GRID
+     Responsive grid: 2x2 on desktop, 2-column on tablet, stacked mobile
+     ================================================================ */
+
+  .value-props-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* 2x2 layout for exactly 4 items */
+  .value-props-grid--2x2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Auto layout for other counts */
+  .value-props-grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  @media (min-width: 1024px) {
+    .value-props-grid {
+      gap: var(--space-8);
+    }
+
+    .value-props-grid--2x2 {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .value-props-grid--auto {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .value-props-grid,
+    .value-props-grid--2x2,
+    .value-props-grid--auto {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+  }
+
+  /* ================================================================
+     VALUE PROP CARD
+     Industrial-modern card with bold icon treatment
+     ================================================================ */
+
+  .value-prop-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: card-reveal var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(100ms + (var(--card-index, 0) * 100ms));
+  }
+
+  @keyframes card-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .value-prop-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary-200);
+  }
+
+  /* ================================================================
+     DECORATIVE CORNER ACCENT
+     Industrial diagonal stripe in top-right corner
+     ================================================================ */
+
+  .value-prop-card__accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-primary-50) 50%
+    );
+    opacity: 0.7;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .value-prop-card:hover .value-prop-card__accent {
+    opacity: 1;
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-primary-100) 50%
+    );
+  }
+
+  /* ================================================================
+     ICON WRAPPER
+     Contains the icon badge and index number
+     ================================================================ */
+
+  .value-prop-card__icon-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+  }
+
+  /* Icon badge with gradient background */
+  .value-prop-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+    border-radius: var(--radius-lg);
+    color: var(--color-text-inverse);
+    box-shadow:
+      0 4px 12px -2px rgba(36, 81, 179, 0.25),
+      0 2px 4px -1px rgba(36, 81, 179, 0.15);
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .value-prop-card:hover .value-prop-card__icon {
+    transform: scale(1.05);
+    box-shadow:
+      0 6px 16px -2px rgba(36, 81, 179, 0.3),
+      0 4px 8px -1px rgba(36, 81, 179, 0.2);
+  }
+
+  /* Index number - subtle hierarchy marker */
+  .value-prop-card__number {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .value-prop-card:hover .value-prop-card__number {
+    opacity: 1;
+    color: var(--color-primary-500);
+  }
+
+  /* ================================================================
+     CARD CONTENT
+     Title and description
+     ================================================================ */
+
+  .value-prop-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .value-prop-card__title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin: 0;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .value-prop-card:hover .value-prop-card__title {
+    color: var(--color-primary-700);
+  }
+
+  .value-prop-card__description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ================================================================
+     BOTTOM ACCENT
+     Subtle gradient bar at bottom of card
+     ================================================================ */
+
+  .value-prop-card__bottom-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-400) 0%,
+      var(--color-accent-400) 100%
+    );
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition:
+      opacity var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .value-prop-card:hover .value-prop-card__bottom-accent {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  /* ================================================================
+     VARIANT: COMPACT
+     Smaller cards with horizontal layout
+     ================================================================ */
+
+  .service-value-props--compact .value-prop-card {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .service-value-props--compact .value-prop-card__icon-wrapper {
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .service-value-props--compact .value-prop-card__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .service-value-props--compact .value-prop-card__number {
+    display: none;
+  }
+
+  .service-value-props--compact .value-prop-card__accent {
+    width: 60px;
+    height: 60px;
+  }
+
+  .service-value-props--compact .value-prop-card__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .service-value-props--compact .value-prop-card__description {
+    font-size: var(--font-size-sm);
+  }
+
+  /* ================================================================
+     VARIANT: FEATURED
+     Larger cards with more visual prominence
+     ================================================================ */
+
+  .service-value-props--featured .value-prop-card {
+    padding: var(--space-8);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-md);
+  }
+
+  .service-value-props--featured .value-prop-card__icon {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-xl);
+  }
+
+  .service-value-props--featured .value-prop-card__accent {
+    width: 120px;
+    height: 120px;
+  }
+
+  .service-value-props--featured .value-prop-card__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .service-value-props--featured .value-prop-card__description {
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+  }
+
+  @media (min-width: 1024px) {
+    .service-value-props--featured .value-props-grid--2x2 {
+      max-width: 1100px;
+    }
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .value-prop-card {
+      padding: var(--space-5);
+    }
+
+    .value-prop-card__icon {
+      width: 48px;
+      height: 48px;
+    }
+
+    .value-prop-card__title {
+      font-size: var(--font-size-lg);
+    }
+
+    .value-prop-card__accent {
+      width: 60px;
+      height: 60px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .value-prop-card {
+      padding: var(--space-4);
+    }
+
+    .value-prop-card__icon-wrapper {
+      margin-bottom: var(--space-4);
+    }
+
+    .value-prop-card__icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .value-prop-card__title {
+      font-size: var(--font-size-base);
+    }
+
+    .value-prop-card__description {
+      font-size: var(--font-size-sm);
+    }
+
+    .value-prop-card__accent {
+      width: 50px;
+      height: 50px;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .value-prop-card {
+      opacity: 1;
+      animation: none;
+    }
+
+    .value-prop-card:hover {
+      transform: none;
+    }
+
+    .value-prop-card:hover .value-prop-card__icon {
+      transform: none;
+    }
+
+    .value-prop-card__bottom-accent {
+      transition: opacity var(--duration-fast) var(--ease-out);
+      transform: scaleX(1);
+    }
+  }
+</style>

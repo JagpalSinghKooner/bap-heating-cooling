@@ -1,14 +1,21 @@
 ---
 /**
- * Blog Index Page - Gutted for Redesign
+ * Blog Index Page
  *
- * Preserves all data fetching logic.
+ * Displays all blog posts with featured article, category navigation,
+ * and a responsive grid of post cards.
  */
 
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../../lib/schema';
+
+// Components
+import Container from '../../components/primitives/Container.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import BlogCategoryNav from '../../components/blog/BlogCategoryNav.astro';
+import BlogPostCard from '../../components/blog/BlogPostCard.astro';
 
 const profile = await getBusinessProfile();
 const schema = getLocalBusinessSchema(profile);
@@ -23,7 +30,7 @@ const sortedPosts = allPosts.sort((a, b) =>
 const featuredPost = sortedPosts.find(post => post.data.featured) || sortedPosts[0];
 const otherPosts = sortedPosts.filter(post => post.slug !== featuredPost?.slug);
 
-// Category display names
+// Category display names and counts
 const categoryNames: Record<string, string> = {
   heating: 'Heating',
   cooling: 'Cooling',
@@ -32,6 +39,30 @@ const categoryNames: Record<string, string> = {
   guides: 'Guides',
   news: 'News',
 };
+
+// Calculate category counts
+const categoryCounts = sortedPosts.reduce((acc, post) => {
+  const category = post.data.category;
+  if (category) {
+    acc[category] = (acc[category] || 0) + 1;
+  }
+  return acc;
+}, {} as Record<string, number>);
+
+// Build categories array for navigation
+const categories = Object.entries(categoryNames)
+  .filter(([slug]) => categoryCounts[slug] > 0)
+  .map(([slug, name]) => ({
+    name,
+    slug,
+    count: categoryCounts[slug] || 0,
+  }));
+
+// Breadcrumbs
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Blog', href: '/blog/' },
+];
 ---
 
 <BaseLayout
@@ -39,8 +70,144 @@ const categoryNames: Record<string, string> = {
   description="Expert HVAC tips, maintenance guides, and industry insights from B.A.P Heating and Cooling. Learn how to keep your home comfortable year-round."
   schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>HVAC Tips & Guides</h1>
-    <p>Blog page redesign in progress. {sortedPosts.length} posts available.</p>
-  </div>
+  {/* Page Hero */}
+  <PageHero
+    title="HVAC Tips & Guides"
+    description="Expert advice and insights to help you maintain comfort, save energy, and get the most from your heating and cooling system."
+    variant="blog"
+    eyebrow="Our Blog"
+    breadcrumbs={breadcrumbs}
+    compact
+  />
+
+  {/* Main Content */}
+  <section class="blog-index-section">
+    <Container size="xl">
+      {/* Category Navigation */}
+      <div class="blog-category-nav-wrapper">
+        <BlogCategoryNav
+          categories={categories}
+          showCounts={true}
+          allLabel="All Articles"
+          variant="pills"
+        />
+      </div>
+
+      {/* Featured Post */}
+      {featuredPost && (
+        <div class="blog-featured-wrapper">
+          <BlogPostCard
+            post={{
+              title: featuredPost.data.title,
+              description: featuredPost.data.description,
+              slug: featuredPost.slug,
+              publishDate: featuredPost.data.publishDate,
+              category: featuredPost.data.category,
+              featuredImage: featuredPost.data.image,
+              author: featuredPost.data.author,
+            }}
+            variant="featured"
+            showDescription={true}
+            imageLoading="eager"
+          />
+        </div>
+      )}
+
+      {/* Posts Grid */}
+      {otherPosts.length > 0 && (
+        <div class="blog-grid-wrapper">
+          <h2 class="blog-grid-heading">More Articles</h2>
+          <div class="blog-posts-grid">
+            {otherPosts.map((post, index) => (
+              <BlogPostCard
+                post={{
+                  title: post.data.title,
+                  description: post.data.description,
+                  slug: post.slug,
+                  publishDate: post.data.publishDate,
+                  category: post.data.category,
+                  featuredImage: post.data.image,
+                  author: post.data.author,
+                }}
+                variant="default"
+                showDescription={true}
+                imageLoading={index < 6 ? 'eager' : 'lazy'}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {sortedPosts.length === 0 && (
+        <div class="blog-empty-state">
+          <p>No blog posts available yet. Check back soon for expert HVAC tips and guides!</p>
+        </div>
+      )}
+    </Container>
+  </section>
 </BaseLayout>
+
+<style>
+  .blog-index-section {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-16);
+  }
+
+  .blog-category-nav-wrapper {
+    margin-bottom: var(--space-10);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .blog-featured-wrapper {
+    margin-bottom: var(--space-12);
+  }
+
+  .blog-grid-wrapper {
+    padding-top: var(--space-8);
+  }
+
+  .blog-grid-heading {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-8) 0;
+  }
+
+  .blog-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+  }
+
+  @media (max-width: 1024px) {
+    .blog-posts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .blog-index-section {
+      padding-top: var(--space-6);
+      padding-bottom: var(--space-12);
+    }
+
+    .blog-posts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .blog-grid-heading {
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--space-6);
+    }
+  }
+
+  .blog-empty-state {
+    text-align: center;
+    padding: var(--space-16);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-lg);
+  }
+</style>

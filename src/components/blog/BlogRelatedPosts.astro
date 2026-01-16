@@ -1,0 +1,512 @@
+---
+/**
+ * BlogRelatedPosts Component
+ *
+ * A curated grid of related blog posts to encourage continued reading.
+ * Keeps visitors engaged with relevant content and improves time-on-site.
+ *
+ * Design Direction: Editorial Continuity
+ * Think of the "You might also like" section at the end of a magazine
+ * article - it's an invitation to explore more, not a hard sell. Clean
+ * cards, clear hierarchy, and enough breathing room to let each post
+ * stand on its own while forming a cohesive collection.
+ *
+ * Aesthetic Choices:
+ * - Uses compact BlogPostCard variant for efficient browsing
+ * - Grid layout with subtle stagger effect on hover
+ * - Section header with warm accent line
+ * - Industrial corner accent echoes brand elements
+ * - Responsive from 3-column (desktop) to single column (mobile)
+ *
+ * Content Strategy:
+ * - Shows 3 posts by default (digestible without overwhelming)
+ * - Excludes current post automatically
+ * - Falls back gracefully when fewer posts available
+ */
+
+import BlogPostCard from './BlogPostCard.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+import Heading from '../primitives/Heading.astro';
+
+interface Props {
+  /** Array of related posts */
+  posts: Array<{
+    title: string;
+    description?: string;
+    slug: string;
+    publishDate: Date;
+    category?: string;
+    featuredImage?: string;
+    author?: string;
+    readingTime?: string;
+  }>;
+  /** Current post slug to exclude */
+  currentSlug?: string;
+  /** Maximum number of posts to display */
+  limit?: number;
+  /** Section title */
+  title?: string;
+  /** Section eyebrow text */
+  eyebrow?: string;
+  /** Display variant */
+  variant?: 'default' | 'compact' | 'sidebar';
+  /** Show descriptions in cards */
+  showDescriptions?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  posts,
+  currentSlug,
+  limit = 3,
+  title = 'Continue Reading',
+  eyebrow = 'Related Articles',
+  variant = 'default',
+  showDescriptions = false,
+  class: className = '',
+} = Astro.props;
+
+// Filter out current post and limit results
+const filteredPosts = posts
+  .filter(post => post.slug !== currentSlug)
+  .slice(0, limit);
+
+// Don't render if no related posts
+if (filteredPosts.length === 0) {
+  return null;
+}
+
+// Variant configurations
+const variantClasses: Record<string, string> = {
+  default: 'related-posts-default',
+  compact: 'related-posts-compact',
+  sidebar: 'related-posts-sidebar',
+};
+
+// Grid columns based on variant and post count
+const getGridClass = () => {
+  if (variant === 'sidebar') return 'related-posts-grid-1';
+  if (filteredPosts.length === 1) return 'related-posts-grid-1';
+  if (filteredPosts.length === 2) return 'related-posts-grid-2';
+  return 'related-posts-grid-3';
+};
+
+// Build class string
+const sectionClasses = [
+  'related-posts',
+  variantClasses[variant],
+  className,
+].filter(Boolean).join(' ');
+
+const gridClasses = [
+  'related-posts-grid',
+  getGridClass(),
+].join(' ');
+
+// Card variant based on section variant
+const cardVariant = variant === 'sidebar' ? 'compact' : 'default';
+---
+
+<section class={sectionClasses} aria-labelledby="related-posts-heading">
+  {/* Section header */}
+  <header class="related-posts-header">
+    {/* Decorative accent line */}
+    <div class="related-posts-accent" aria-hidden="true">
+      <span class="related-posts-accent-line" />
+      <span class="related-posts-accent-dot" />
+    </div>
+
+    {eyebrow && (
+      <Eyebrow color="primary" class="related-posts-eyebrow">
+        {eyebrow}
+      </Eyebrow>
+    )}
+
+    <span id="related-posts-heading">
+      <Heading
+        level={2}
+        size={variant === 'sidebar' ? 'md' : 'lg'}
+        class="related-posts-title"
+      >
+        {title}
+      </Heading>
+    </span>
+  </header>
+
+  {/* Posts grid */}
+  <div class={gridClasses}>
+    {filteredPosts.map((post, index) => (
+      <article
+        class="related-posts-item"
+        style={`--stagger-index: ${index}`}
+      >
+        <BlogPostCard
+          post={post}
+          variant={cardVariant}
+          showDescription={showDescriptions && variant !== 'sidebar'}
+          showReadMore={variant !== 'sidebar'}
+          imageLoading="lazy"
+        />
+      </article>
+    ))}
+  </div>
+
+  {/* Decorative corner element */}
+  {variant === 'default' && (
+    <div class="related-posts-corner" aria-hidden="true" />
+  )}
+</section>
+
+<style is:global>
+  /**
+   * BlogRelatedPosts Styles
+   * Editorial grid for related content
+   */
+
+  /* ============================================
+     BASE STYLES
+     ============================================ */
+
+  .related-posts {
+    position: relative;
+  }
+
+  /* ============================================
+     SECTION HEADER
+     ============================================ */
+
+  .related-posts-header {
+    position: relative;
+    margin-bottom: var(--space-8);
+  }
+
+  /* Decorative accent line */
+  .related-posts-accent {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .related-posts-accent-line {
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+    border-radius: var(--radius-full);
+  }
+
+  .related-posts-accent-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-accent-500);
+    border-radius: var(--radius-full);
+  }
+
+  .related-posts-eyebrow {
+    margin-bottom: var(--space-2);
+  }
+
+  #related-posts-heading {
+    display: block;
+  }
+
+  .related-posts-title {
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+
+  /* ============================================
+     POSTS GRID
+     ============================================ */
+
+  .related-posts-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .related-posts-grid-1 {
+    grid-template-columns: 1fr;
+  }
+
+  .related-posts-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .related-posts-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Grid item with stagger animation support */
+  .related-posts-item {
+    opacity: 1;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  /* Subtle stagger hover effect - when hovering section, non-hovered items fade */
+  .related-posts:hover .related-posts-item:not(:hover) {
+    opacity: 0.85;
+  }
+
+  .related-posts-item:hover {
+    opacity: 1;
+  }
+
+  /* ============================================
+     VARIANT: DEFAULT
+     Full-width section with decorative elements
+     ============================================ */
+
+  .related-posts-default {
+    padding: var(--space-12) 0;
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-primary) 0%,
+      var(--color-surface-secondary) 100%
+    );
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  /* Decorative corner element */
+  .related-posts-corner {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    pointer-events: none;
+  }
+
+  .related-posts-corner::before,
+  .related-posts-corner::after {
+    content: '';
+    position: absolute;
+  }
+
+  .related-posts-corner::before {
+    bottom: var(--space-6);
+    right: var(--space-6);
+    width: 40px;
+    height: 40px;
+    border-right: 3px solid var(--color-primary-200);
+    border-bottom: 3px solid var(--color-primary-200);
+    border-bottom-right-radius: var(--radius-lg);
+    opacity: 0.6;
+  }
+
+  .related-posts-corner::after {
+    bottom: var(--space-10);
+    right: var(--space-10);
+    width: 24px;
+    height: 24px;
+    border-right: 2px solid var(--color-accent-300);
+    border-bottom: 2px solid var(--color-accent-300);
+    border-bottom-right-radius: var(--radius-md);
+    opacity: 0.4;
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Tighter spacing, smaller header
+     ============================================ */
+
+  .related-posts-compact {
+    padding: var(--space-8) 0;
+  }
+
+  .related-posts-compact .related-posts-header {
+    margin-bottom: var(--space-6);
+  }
+
+  .related-posts-compact .related-posts-grid {
+    gap: var(--space-4);
+  }
+
+  .related-posts-compact .related-posts-accent {
+    margin-bottom: var(--space-3);
+  }
+
+  .related-posts-compact .related-posts-accent-line {
+    width: 32px;
+    height: 2px;
+  }
+
+  .related-posts-compact .related-posts-accent-dot {
+    width: 4px;
+    height: 4px;
+  }
+
+  /* ============================================
+     VARIANT: SIDEBAR
+     Vertical stack for sidebar placement
+     ============================================ */
+
+  .related-posts-sidebar {
+    padding: var(--space-6);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .related-posts-sidebar .related-posts-header {
+    margin-bottom: var(--space-5);
+  }
+
+  .related-posts-sidebar .related-posts-grid {
+    gap: var(--space-4);
+  }
+
+  .related-posts-sidebar .related-posts-accent {
+    margin-bottom: var(--space-2);
+  }
+
+  .related-posts-sidebar .related-posts-accent-line {
+    width: 24px;
+    height: 2px;
+  }
+
+  .related-posts-sidebar .related-posts-accent-dot {
+    width: 4px;
+    height: 4px;
+  }
+
+  .related-posts-sidebar .related-posts-corner {
+    display: none;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 1024px) {
+    .related-posts-grid-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .related-posts-default {
+      padding: var(--space-8) 0;
+    }
+
+    .related-posts-grid-3,
+    .related-posts-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .related-posts-header {
+      margin-bottom: var(--space-6);
+    }
+
+    .related-posts-corner {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     DARK MODE / INVERSE SECTION
+     ============================================ */
+
+  .section-inverse .related-posts-default,
+  .bg-inverse .related-posts-default {
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-inverse) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .related-posts-title,
+  .bg-inverse .related-posts-title {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .related-posts-accent-line,
+  .bg-inverse .related-posts-accent-line {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-400) 0%,
+      var(--color-primary-300) 100%
+    );
+  }
+
+  .section-inverse .related-posts-corner::before,
+  .bg-inverse .related-posts-corner::before {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .section-inverse .related-posts-corner::after,
+  .bg-inverse .related-posts-corner::after {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .related-posts-sidebar,
+  .bg-inverse .related-posts-sidebar {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ============================================
+     LOADING STATE
+     ============================================ */
+
+  .related-posts-loading .related-posts-item {
+    opacity: 0.5;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ============================================
+     EMPTY STATE
+     ============================================ */
+
+  .related-posts-empty {
+    text-align: center;
+    padding: var(--space-12);
+    color: var(--color-text-secondary);
+  }
+
+  .related-posts-empty-text {
+    font-size: var(--font-size-lg);
+    font-family: var(--font-family-body);
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .related-posts {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .related-posts-item {
+      transition: none;
+    }
+
+    .related-posts:hover .related-posts-item:not(:hover) {
+      opacity: 1;
+    }
+
+    .related-posts-loading .related-posts-item {
+      animation: none;
+    }
+  }
+</style>

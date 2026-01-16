@@ -1,13 +1,22 @@
 ---
 /**
- * BaseLayout - Gutted for Redesign
+ * BaseLayout - Main Site Layout
  *
- * This preserves all head/meta logic for SEO.
- * Visual components will be rebuilt during Phase 3.
+ * The foundational layout wrapper for all pages. Includes:
+ * - SEO meta tags and structured data
+ * - Header with navigation
+ * - Footer with contact info and links
+ * - Floating CTA for mobile
  */
 
 import '../styles/global.css';
-import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getCompanyName } from '../lib/getBusinessProfile';
+
+// Layout Components
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import FloatingCTA from '../components/shared/FloatingCTA.astro';
+import SeasonalCalloutBar from '../components/layout/SeasonalCalloutBar.astro';
 import { getCanonicalUrl } from '../lib/urlGovernance';
 
 export interface Props {
@@ -63,6 +72,14 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts: Inter (preconnect for performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- SEO -->
     <title>{title}</title>
@@ -137,40 +154,27 @@ const enableGA4 = import.meta.env.PROD && ga4Id && isProduction;
   </head>
   <body>
     <!-- Skip to main content link for accessibility -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-primary focus:text-primary-foreground">
+    <a href="#main-content" class="skip-link">
       Skip to main content
     </a>
 
-    <div class="flex min-h-screen flex-col">
-      <!-- Header placeholder - will be rebuilt in Phase 3 -->
-      <header role="banner" class="bg-slate-900 text-white p-4">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-          <a href="/" class="text-xl font-bold">{companyName}</a>
-          <a href={getPhoneLink(profile)} class="text-sm hover:underline">
-            {getPhoneDisplay(profile)}
-          </a>
-        </div>
-      </header>
+    <div class="site-wrapper">
+      <!-- Header -->
+      <Header showTopBar={true} />
+
+      <!-- Seasonal Callout Bar (displays date-based promotional messages) -->
+      <SeasonalCalloutBar />
 
       <!-- Main Content -->
-      <main id="main-content" role="main" class="flex-1">
+      <main id="main-content" role="main" class="site-main">
         <slot />
       </main>
 
-      <!-- Footer placeholder - will be rebuilt in Phase 3 -->
-      <footer class="bg-slate-900 text-slate-300 p-8" role="contentinfo">
-        <div class="max-w-6xl mx-auto text-center">
-          <p class="mb-2">{companyName}</p>
-          <p class="text-sm">
-            <a href={getPhoneLink(profile)} class="hover:text-white">{getPhoneDisplay(profile)}</a>
-            {' | '}
-            <a href={getEmailLink(profile)} class="hover:text-white">{getEmail(profile)}</a>
-          </p>
-          <p class="text-xs text-slate-500 mt-4">
-            &copy; {new Date().getFullYear()} {profile.business.legal_name}. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <!-- Footer -->
+      <Footer />
     </div>
+
+    <!-- Mobile Floating CTA -->
+    <FloatingCTA variant="call" />
   </body>
 </html>

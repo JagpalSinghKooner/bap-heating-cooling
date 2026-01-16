@@ -1,0 +1,802 @@
+---
+/**
+ * ServiceSavings Component
+ *
+ * Displays cost savings, rebate information, and financing options for services.
+ * This is a VALUE component - helps customers feel smart about their investment.
+ *
+ * Design Philosophy:
+ * "Smart Money" - This section validates the customer's decision to invest.
+ * It should feel encouraging and transparent, not salesy. We're helping them
+ * see the long-term value and available financial assistance.
+ *
+ * Visual Direction:
+ * - Two-column asymmetric layout (content + callout stack)
+ * - Dollar/savings iconography reinforces financial benefit
+ * - Checkmark bullets = "you get this savings"
+ * - Rebate callout uses warm gold tones (bonus money feeling)
+ * - Financing card uses trustworthy blue (stable, reliable)
+ * - Subtle diagonal industrial accent ties to brand aesthetic
+ *
+ * Features:
+ * - Responsive two-column layout
+ * - Animated checkmark bullets on load
+ * - Special rebate callout with badge
+ * - Financing teaser with CTA
+ * - Optional variant backgrounds
+ *
+ * @example
+ * <ServiceSavings
+ *   savings={{
+ *     headline: "Save More with High-Efficiency",
+ *     description: "Upgrading to a high-efficiency system pays for itself.",
+ *     bullets: ["Lower monthly energy bills", "Reduced repair costs"],
+ *     rebateInfo: "Up to $7,100 in government rebates available.",
+ *     financingNote: "Flexible monthly payments with quick approval."
+ *   }}
+ * />
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Button from '../primitives/Button.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** The savings content object */
+  savings: {
+    /** Main headline for savings section */
+    headline: string;
+    /** Supporting description text */
+    description: string;
+    /** List of savings/benefit bullet points */
+    bullets: string[];
+    /** Optional rebate information callout */
+    rebateInfo?: string;
+    /** Optional financing note/teaser */
+    financingNote?: string;
+  };
+  /** Custom eyebrow text */
+  eyebrow?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm';
+  /** Section ID for anchor links */
+  id?: string;
+  /** Whether to show financing CTA button */
+  showFinancingCTA?: boolean;
+  /** Custom financing page URL */
+  financingUrl?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  savings,
+  eyebrow = 'Smart Investment',
+  variant = 'muted',
+  id = 'savings',
+  showFinancingCTA = true,
+  financingUrl = '/financing/',
+  class: className = '',
+} = Astro.props;
+
+// Determine if we have callout content
+const hasCallouts = savings.rebateInfo || savings.financingNote;
+
+// Build section classes
+const sectionClasses = [
+  'service-savings',
+  hasCallouts ? 'has-callouts' : 'no-callouts',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Section
+  variant={variant}
+  padding="lg"
+  id={id}
+  class={sectionClasses}
+>
+  <Container size="xl">
+    {/* Main content grid */}
+    <div class="savings-layout">
+      {/* Left column: Main content */}
+      <div class="savings-content">
+        {/* Section header */}
+        <header class="savings-header">
+          <span class="savings-eyebrow">
+            <span class="savings-eyebrow-icon" aria-hidden="true">
+              <Icon name="savings" size="sm" />
+            </span>
+            {eyebrow}
+          </span>
+          <h2 class="savings-headline">{savings.headline}</h2>
+          <p class="savings-description">{savings.description}</p>
+        </header>
+
+        {/* Benefits bullet list */}
+        {savings.bullets && savings.bullets.length > 0 && (
+          <ul class="savings-bullets" role="list">
+            {savings.bullets.map((bullet, index) => (
+              <li
+                class="savings-bullet"
+                style={`--bullet-index: ${index};`}
+              >
+                <span class="savings-bullet-check" aria-hidden="true">
+                  <Icon name="check-circle" size="md" />
+                </span>
+                <span class="savings-bullet-text">{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* CTA for mobile (shows below bullets on small screens) */}
+        {showFinancingCTA && (
+          <div class="savings-cta-mobile">
+            <Button
+              variant="secondary"
+              href={financingUrl}
+              iconRight="arrowRight"
+            >
+              Explore Financing Options
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Right column: Callout cards */}
+      {hasCallouts && (
+        <aside class="savings-callouts">
+          {/* Rebate Information Card */}
+          {savings.rebateInfo && (
+            <article class="savings-card savings-card--rebate">
+              <div class="savings-card-badge">
+                <Icon name="dollar" size="sm" />
+                <span>Rebates Available</span>
+              </div>
+              <div class="savings-card-icon" aria-hidden="true">
+                <div class="savings-card-icon-bg">
+                  <Icon name="savings" size="xl" />
+                </div>
+              </div>
+              <p class="savings-card-text">{savings.rebateInfo}</p>
+              <a href="/rebates/" class="savings-card-link">
+                <span>View Available Rebates</span>
+                <Icon name="arrowRight" size="sm" />
+              </a>
+              {/* Decorative corner */}
+              <div class="savings-card-corner" aria-hidden="true"></div>
+            </article>
+          )}
+
+          {/* Financing Note Card */}
+          {savings.financingNote && (
+            <article class="savings-card savings-card--financing">
+              <div class="savings-card-badge savings-card-badge--blue">
+                <Icon name="calendar" size="sm" />
+                <span>Flexible Payments</span>
+              </div>
+              <div class="savings-card-icon" aria-hidden="true">
+                <div class="savings-card-icon-bg savings-card-icon-bg--blue">
+                  <Icon name="dollar" size="xl" />
+                </div>
+              </div>
+              <p class="savings-card-text">{savings.financingNote}</p>
+              {showFinancingCTA && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  href={financingUrl}
+                  iconRight="arrowRight"
+                  class="savings-card-cta"
+                >
+                  Learn About Financing
+                </Button>
+              )}
+              {/* Decorative corner */}
+              <div class="savings-card-corner savings-card-corner--blue" aria-hidden="true"></div>
+            </article>
+          )}
+
+          {/* Trust reinforcement */}
+          <div class="savings-trust">
+            <Icon name="shield-check" size="md" />
+            <span>No hidden fees. Transparent pricing always.</span>
+          </div>
+        </aside>
+      )}
+
+      {/* Full-width CTA when no callouts */}
+      {!hasCallouts && showFinancingCTA && (
+        <div class="savings-cta-full">
+          <Button
+            variant="secondary"
+            size="lg"
+            href={financingUrl}
+            iconRight="arrowRight"
+          >
+            Explore Financing Options
+          </Button>
+        </div>
+      )}
+    </div>
+  </Container>
+
+  {/* Subtle background texture */}
+  <div class="savings-texture" aria-hidden="true"></div>
+</Section>
+
+<style>
+  /**
+   * ServiceSavings Component Styles
+   *
+   * Design: "Smart Money" - validates investment, shows value
+   * Aesthetic: Clean, trustworthy, encouraging (not salesy)
+   */
+
+  /* ============================================
+     SECTION STRUCTURE
+     ============================================ */
+
+  .service-savings {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     LAYOUT GRID
+     Two-column asymmetric: 60/40 split
+     ============================================ */
+
+  .savings-layout {
+    display: grid;
+    gap: var(--space-10);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Mobile: single column */
+  .savings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* Desktop: two columns */
+  @media (min-width: 1024px) {
+    .savings-layout {
+      grid-template-columns: 1.2fr 1fr;
+      gap: var(--space-12);
+      align-items: start;
+    }
+
+    /* When no callouts, content spans full width */
+    .no-callouts .savings-layout {
+      grid-template-columns: 1fr;
+      max-width: 800px;
+    }
+  }
+
+  /* ============================================
+     CONTENT COLUMN (Left)
+     ============================================ */
+
+  .savings-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* ============================================
+     HEADER AREA
+     Custom header with icon-enhanced eyebrow
+     ============================================ */
+
+  .savings-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Eyebrow with icon */
+  .savings-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary-600);
+  }
+
+  .savings-eyebrow-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-primary-100);
+    border-radius: var(--radius-full);
+    color: var(--color-primary-600);
+  }
+
+  /* Headline */
+  .savings-headline {
+    font-family: var(--font-family-heading);
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  /* Description */
+  .savings-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+    max-width: 55ch;
+  }
+
+  /* ============================================
+     BENEFITS BULLET LIST
+     Animated checkmark-style bullets
+     ============================================ */
+
+  .savings-bullets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .savings-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+
+    /* Staggered animation */
+    animation: bulletFadeIn 0.4s var(--ease-out) forwards;
+    animation-delay: calc(var(--bullet-index, 0) * 80ms + 200ms);
+    opacity: 0;
+  }
+
+  @keyframes bulletFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .savings-bullet-check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    color: var(--color-success-600);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .savings-bullet:hover .savings-bullet-check {
+    transform: scale(1.15);
+  }
+
+  .savings-bullet-text {
+    flex: 1;
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* ============================================
+     MOBILE CTA
+     Shows below bullets on small screens
+     ============================================ */
+
+  .savings-cta-mobile {
+    display: block;
+    margin-top: var(--space-4);
+  }
+
+  @media (min-width: 1024px) {
+    .savings-cta-mobile {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     CALLOUT CARDS COLUMN (Right)
+     ============================================ */
+
+  .savings-callouts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  /* ============================================
+     SAVINGS CARD
+     Special callout cards for rebate/financing
+     ============================================ */
+
+  .savings-card {
+    position: relative;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out);
+
+    /* Entrance animation */
+    animation: cardSlideUp 0.5s var(--ease-out) forwards;
+    animation-delay: 300ms;
+    opacity: 0;
+  }
+
+  .savings-card:nth-child(2) {
+    animation-delay: 450ms;
+  }
+
+  @keyframes cardSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .savings-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Rebate card - warm gold accent */
+  .savings-card--rebate {
+    border-left: 4px solid var(--color-accent-500);
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-primary) 0%,
+      var(--color-accent-50) 100%
+    );
+  }
+
+  /* Financing card - trustworthy blue */
+  .savings-card--financing {
+    border-left: 4px solid var(--color-primary-500);
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-primary) 0%,
+      var(--color-primary-50) 100%
+    );
+  }
+
+  /* Card badge */
+  .savings-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: 12px;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-accent-700);
+    background: var(--color-accent-100);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-4);
+  }
+
+  .savings-card-badge--blue {
+    color: var(--color-primary-700);
+    background: var(--color-primary-100);
+  }
+
+  /* Card icon (decorative background) */
+  .savings-card-icon {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  .savings-card-icon-bg {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent-600);
+  }
+
+  .savings-card-icon-bg--blue {
+    color: var(--color-primary-600);
+  }
+
+  /* Card text */
+  .savings-card-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-4) 0;
+    position: relative;
+    z-index: 1;
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Card link */
+  .savings-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-accent-700);
+    text-decoration: none;
+    transition: gap var(--duration-fast) var(--ease-out);
+  }
+
+  .savings-card-link:hover {
+    gap: var(--space-3);
+    color: var(--color-accent-800);
+  }
+
+  /* Card CTA button */
+  .savings-card-cta {
+    margin-top: var(--space-2);
+  }
+
+  /* Card decorative corner */
+  .savings-card-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .savings-card-corner::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(
+      135deg,
+      transparent 45%,
+      var(--color-accent-200) 45%,
+      var(--color-accent-200) 55%,
+      transparent 55%
+    );
+    opacity: 0.6;
+  }
+
+  .savings-card-corner--blue::before {
+    background: linear-gradient(
+      135deg,
+      transparent 45%,
+      var(--color-primary-200) 45%,
+      var(--color-primary-200) 55%,
+      transparent 55%
+    );
+  }
+
+  /* ============================================
+     TRUST REINFORCEMENT
+     ============================================ */
+
+  .savings-trust {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    padding: var(--space-4);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    animation: fadeIn 0.4s var(--ease-out) forwards;
+    animation-delay: 600ms;
+  }
+
+  .savings-trust :global(svg) {
+    flex-shrink: 0;
+    color: var(--color-primary-600);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ============================================
+     FULL-WIDTH CTA (when no callouts)
+     ============================================ */
+
+  .savings-cta-full {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8);
+  }
+
+  /* ============================================
+     BACKGROUND TEXTURE
+     Subtle diagonal industrial pattern
+     ============================================ */
+
+  .savings-texture {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.015;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0px,
+      currentColor 1px,
+      transparent 1px,
+      transparent 20px
+    );
+    z-index: 0;
+  }
+
+  /* ============================================
+     SECTION VARIANT OVERRIDES
+     ============================================ */
+
+  /* Warm variant */
+  :global(.section-warm) .savings-card {
+    background: var(--color-surface-primary);
+  }
+
+  :global(.section-warm) .savings-trust {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Muted variant */
+  :global(.section-muted) .savings-card {
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ============================================
+     DARK SECTION OVERRIDES
+     ============================================ */
+
+  :global(.section-dark) .savings-eyebrow,
+  :global(.section-primary) .savings-eyebrow {
+    color: var(--color-accent-300);
+  }
+
+  :global(.section-dark) .savings-eyebrow-icon,
+  :global(.section-primary) .savings-eyebrow-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--color-accent-300);
+  }
+
+  :global(.section-dark) .savings-headline,
+  :global(.section-primary) .savings-headline {
+    color: var(--color-text-inverse);
+  }
+
+  :global(.section-dark) .savings-description,
+  :global(.section-primary) .savings-description {
+    color: var(--color-primary-100);
+  }
+
+  :global(.section-dark) .savings-bullet,
+  :global(.section-primary) .savings-bullet {
+    color: var(--color-text-inverse);
+  }
+
+  :global(.section-dark) .savings-bullet-check,
+  :global(.section-primary) .savings-bullet-check {
+    color: var(--color-success-400);
+  }
+
+  :global(.section-dark) .savings-card,
+  :global(.section-primary) .savings-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: transparent;
+  }
+
+  :global(.section-dark) .savings-trust,
+  :global(.section-primary) .savings-trust {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-primary-100);
+  }
+
+  :global(.section-dark) .savings-trust :global(svg),
+  :global(.section-primary) .savings-trust :global(svg) {
+    color: var(--color-accent-300);
+  }
+
+  :global(.section-dark) .savings-texture,
+  :global(.section-primary) .savings-texture {
+    color: white;
+    opacity: 0.02;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .savings-layout {
+      gap: var(--space-8);
+    }
+
+    .savings-content {
+      gap: var(--space-6);
+    }
+
+    .savings-headline {
+      font-size: 1.5rem;
+    }
+
+    .savings-description {
+      font-size: var(--font-size-base);
+    }
+
+    .savings-bullets {
+      gap: var(--space-3);
+    }
+
+    .savings-card {
+      padding: var(--space-5);
+    }
+
+    .savings-callouts {
+      gap: var(--space-4);
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .savings-bullet,
+    .savings-card,
+    .savings-trust {
+      animation: none;
+      opacity: 1;
+    }
+
+    .savings-card:hover {
+      transform: none;
+    }
+
+    .savings-bullet:hover .savings-bullet-check {
+      transform: none;
+    }
+  }
+</style>

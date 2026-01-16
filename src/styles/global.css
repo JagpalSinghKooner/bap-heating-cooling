@@ -204,6 +204,19 @@
   }
 
   /* ----------------------------------------
+     SITE WRAPPER - Main page structure
+     ---------------------------------------- */
+  .site-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .site-main {
+    flex: 1;
+  }
+
+  /* ----------------------------------------
      CONTAINER - Page width constraints
      ---------------------------------------- */
   .container-default {

@@ -1,26 +1,445 @@
 ---
 /**
- * Contact Us Page - Gutted for Redesign
+ * Contact Us Page
  *
- * Preserves all data fetching logic.
+ * The direct line to B.A.P. Phone number is the hero.
+ * Every element optimized for getting visitors to call.
+ *
+ * Sections:
+ * 1. PageHero (variant="contact") - warm, inviting
+ * 2. Two-column: AddressCard with map, contact details
+ * 3. Service Areas (compact CitiesGrid)
+ * 4. CTASection (variant="emergency")
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getBusinessProfile, getCompanyName, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../lib/getBusinessProfile';
 
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import AddressCard from '../components/shared/AddressCard.astro';
+import CitiesGrid from '../components/shared/CitiesGrid.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Icon from '../components/primitives/Icon.astro';
+import Button from '../components/primitives/Button.astro';
+
 const profile = await getBusinessProfile();
 const companyName = getCompanyName(profile);
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const email = getEmail(profile);
+const emailLink = getEmailLink(profile);
+
+// Business hours
+const businessHours = profile?.hours?.business_hours || 'Mon-Fri: 8am-6pm';
+const emergencyService = profile?.hours?.emergency_service || true;
 ---
 
 <BaseLayout
   title={`Contact Us - ${companyName}`}
-  description="Get in touch with us for all your heating and cooling needs. Available 24/7 for emergency service."
+  description="Get in touch with B.A.P Heating & Cooling. Available 24/7 for emergency service. Call us or visit our office in Southern Ontario."
 >
-  <div class="redesign-placeholder">
-    <h1>Contact Us</h1>
-    <p>Contact page redesign in progress.</p>
-    <p style="margin-top: 1rem; font-size: 0.875rem; color: #64748b;">
-      Phone: {getPhoneDisplay(profile)} | Email: {getEmail(profile)}
-    </p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Get in Touch"
+    description="Whether it's an emergency or you're planning ahead, we're here to help. Call us directly for the fastest response."
+    eyebrow="Contact Us"
+    variant="contact"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Contact Us', href: '/contact-us/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call Now', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Contact Info Section -->
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <div class="contact-grid">
+        <!-- Left Column: Direct Contact -->
+        <div class="contact-main">
+          <div class="contact-header">
+            <Text size="sm" color="primary" weight="semibold" class="contact-eyebrow">
+              Reach Us Directly
+            </Text>
+            <Heading level={2} size="2xl">
+              We're Just a Call Away
+            </Heading>
+            <Text size="lg" color="secondary">
+              For the fastest service, give us a call. Our friendly team is ready to help.
+            </Text>
+          </div>
+
+          <!-- Phone (Hero Treatment) -->
+          <div class="contact-phone-hero">
+            <div class="contact-phone-icon">
+              <Icon name="phone" size="xl" />
+            </div>
+            <div class="contact-phone-content">
+              <span class="contact-phone-label">Call Us Now</span>
+              <a href={phoneLink} class="contact-phone-number">
+                {phoneDisplay}
+              </a>
+              {emergencyService && (
+                <span class="contact-phone-badge">
+                  <span class="contact-phone-dot"></span>
+                  24/7 Emergency Service
+                </span>
+              )}
+            </div>
+          </div>
+
+          <!-- Other Contact Methods -->
+          <div class="contact-methods">
+            <a href={emailLink} class="contact-method">
+              <div class="contact-method-icon">
+                <Icon name="mail" size="lg" color="primary" />
+              </div>
+              <div class="contact-method-content">
+                <span class="contact-method-label">Email Us</span>
+                <span class="contact-method-value">{email}</span>
+              </div>
+              <Icon name="arrowRight" size="sm" class="contact-method-arrow" />
+            </a>
+
+            <div class="contact-method">
+              <div class="contact-method-icon">
+                <Icon name="clock" size="lg" color="primary" />
+              </div>
+              <div class="contact-method-content">
+                <span class="contact-method-label">Business Hours</span>
+                <span class="contact-method-value">{businessHours}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="contact-actions">
+            <Button variant="primary" size="lg" href={phoneLink} iconLeft="phone">
+              Call Now
+            </Button>
+            <Button variant="outline" size="lg" href="/services/">
+              View Services
+            </Button>
+          </div>
+        </div>
+
+        <!-- Right Column: Address Card with Map -->
+        <div class="contact-location">
+          <AddressCard
+            variant="default"
+            showMap={true}
+            mapAspectRatio="16/9"
+            showHours={true}
+            showMapLink={true}
+          />
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Service Areas Section -->
+  <Section variant="muted" padding="md">
+    <Container size="xl">
+      <div class="contact-areas-header">
+        <Text size="sm" color="primary" weight="semibold">Service Areas</Text>
+        <Heading level={2} size="xl" align="center">
+          Proudly Serving Southern Ontario
+        </Heading>
+        <Text size="base" color="secondary" align="center" class="contact-areas-description">
+          From Guelph to Hamilton, we're your local HVAC experts
+        </Text>
+      </div>
+      <CitiesGrid
+        columns={4}
+        variant="pills"
+        showServiceCount={false}
+        limit={20}
+      />
+      <div class="contact-areas-link">
+        <Button variant="outline" size="md" href="/locations/">
+          View All Service Areas
+        </Button>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="emergency"
+    headline="Need Help Right Now?"
+    description="Furnace out? AC broken? We're available 24/7 for emergencies. Don't suffer - call now and we'll be on our way."
+    primaryCTA={{
+      label: 'Emergency Call',
+      href: phoneLink,
+    }}
+    showPhone={true}
+    showHours={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     CONTACT GRID
+     ============================================ */
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  @media (min-width: 1024px) {
+    .contact-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-16);
+    }
+  }
+
+  /* ============================================
+     MAIN CONTACT COLUMN
+     ============================================ */
+
+  .contact-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .contact-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .contact-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+
+  /* ============================================
+     PHONE HERO TREATMENT
+     ============================================ */
+
+  .contact-phone-hero {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border: 2px solid var(--color-primary-200);
+    border-radius: var(--radius-xl);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .contact-phone-hero:hover {
+    border-color: var(--color-primary-300);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .contact-phone-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-16);
+    height: var(--space-16);
+    background: var(--color-primary-600);
+    border-radius: var(--radius-xl);
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .contact-phone-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .contact-phone-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+
+  .contact-phone-number {
+    font-family: var(--font-family-heading);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-700);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .contact-phone-number:hover {
+    color: var(--color-primary-800);
+  }
+
+  .contact-phone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-success-700);
+  }
+
+  .contact-phone-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--color-success-500);
+    border-radius: var(--radius-full);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* ============================================
+     CONTACT METHODS
+     ============================================ */
+
+  .contact-methods {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .contact-method {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  a.contact-method:hover {
+    background: var(--color-primary-50);
+    border-color: var(--color-primary-200);
+  }
+
+  .contact-method-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-12);
+    height: var(--space-12);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+  }
+
+  .contact-method-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex-grow: 1;
+  }
+
+  .contact-method-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .contact-method-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .contact-method-arrow {
+    flex-shrink: 0;
+    color: var(--color-text-tertiary);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  a.contact-method:hover .contact-method-arrow {
+    transform: translateX(4px);
+    color: var(--color-primary-600);
+  }
+
+  /* ============================================
+     CONTACT ACTIONS
+     ============================================ */
+
+  .contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  /* ============================================
+     LOCATION COLUMN
+     ============================================ */
+
+  .contact-location {
+    position: sticky;
+    top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-6));
+  }
+
+  /* ============================================
+     SERVICE AREAS SECTION
+     ============================================ */
+
+  .contact-areas-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+
+  .contact-areas-description {
+    max-width: 50ch;
+  }
+
+  .contact-areas-link {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact-phone-dot {
+      animation: none;
+    }
+
+    .contact-method-arrow,
+    .contact-phone-hero {
+      transition: none;
+    }
+  }
+</style>

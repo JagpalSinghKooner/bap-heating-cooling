@@ -1,0 +1,409 @@
+---
+/**
+ * TopBar Component
+ *
+ * The utilitarian strip at the very top of every page. Dark, compact, and functional.
+ * Contains critical contact information - email, phone (prominent), social links, and 24/7 indicator.
+ *
+ * Design: Industrial utility bar - like the instrument panel of a reliable work truck.
+ * The diagonal accent stripe echoes industrial safety markings while staying subtle.
+ */
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink, getEmail, getEmailLink } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Get business data
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const email = getEmail(profile);
+const emailLink = getEmailLink(profile);
+const is24_7 = profile.hours.phone_answered_24_7;
+const instagramUrl = profile.social.instagram;
+const facebookUrl = profile.social.facebook;
+---
+
+<div class:list={['topbar', className]}>
+  {/* Subtle industrial diagonal accent */}
+  <div class="topbar-accent" aria-hidden="true"></div>
+
+  <div class="topbar-container">
+    {/* Left: Email */}
+    <div class="topbar-section topbar-left">
+      <a href={emailLink} class="topbar-link topbar-email">
+        <Icon name="mail" size="sm" />
+        <span class="topbar-link-text">{email}</span>
+      </a>
+    </div>
+
+    {/* Center: Phone (most prominent) */}
+    <div class="topbar-section topbar-center">
+      <a href={phoneLink} class="topbar-phone">
+        <span class="topbar-phone-icon-wrap">
+          <Icon name="phone" size="sm" />
+        </span>
+        <span class="topbar-phone-number">{phoneDisplay}</span>
+        {is24_7 && (
+          <span class="topbar-badge">
+            <span class="topbar-badge-pulse" aria-hidden="true"></span>
+            24/7
+          </span>
+        )}
+      </a>
+    </div>
+
+    {/* Right: Social + Hours */}
+    <div class="topbar-section topbar-right">
+      {/* Hours indicator - mobile only shows this */}
+      <span class="topbar-hours">
+        <Icon name="clock" size="sm" />
+        <span class="topbar-hours-text">Open 24/7</span>
+      </span>
+
+      {/* Social links */}
+      <div class="topbar-social">
+        <a
+          href={facebookUrl}
+          class="topbar-social-link"
+          aria-label="Follow us on Facebook"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="topbar-social-icon">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+        </a>
+        <a
+          href={instagramUrl}
+          class="topbar-social-link"
+          aria-label="Follow us on Instagram"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="topbar-social-icon">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ================================================================
+     TOPBAR - Industrial Utility Strip
+     Dark, compact, functional. The instrument panel at the top.
+     ================================================================ */
+
+  .topbar {
+    position: relative;
+    height: var(--topbar-height);
+    background-color: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    overflow: hidden;
+  }
+
+  /* Subtle diagonal accent - industrial safety marking inspiration */
+  .topbar-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 10px,
+        rgba(59, 111, 217, 0.03) 10px,
+        rgba(59, 111, 217, 0.03) 20px
+      );
+    pointer-events: none;
+  }
+
+  .topbar-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--container-xl);
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+  }
+
+  .topbar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* ================================================================
+     LEFT SECTION - Email
+     ================================================================ */
+
+  .topbar-left {
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .topbar-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: var(--space-1) var(--space-2);
+    color: var(--color-primary-200);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  .topbar-link:hover {
+    color: var(--color-text-inverse);
+  }
+
+  .topbar-link-text {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .topbar-link-text {
+      display: inline;
+    }
+  }
+
+  /* ================================================================
+     CENTER SECTION - Phone (Prominent)
+     ================================================================ */
+
+  .topbar-center {
+    flex: 2;
+    justify-content: center;
+  }
+
+  .topbar-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: var(--space-1) var(--space-2);
+    color: var(--color-text-inverse);
+    text-decoration: none;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .topbar-phone:hover {
+    color: var(--color-accent-300);
+  }
+
+  .topbar-phone:hover .topbar-phone-icon-wrap {
+    background-color: var(--color-accent-600);
+    transform: scale(1.05);
+  }
+
+  .topbar-phone-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background-color: var(--color-primary-600);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .topbar-phone-number {
+    font-size: var(--font-size-base);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 768px) {
+    .topbar-phone-number {
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  /* 24/7 Badge with pulse animation */
+  .topbar-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-0-5) var(--space-2);
+    background-color: var(--color-emergency-600);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-1);
+  }
+
+  .topbar-badge-pulse {
+    position: absolute;
+    top: 50%;
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-success-500);
+    border-radius: var(--radius-full);
+    transform: translateY(-50%);
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: translateY(-50%) scale(1.2);
+    }
+  }
+
+  /* ================================================================
+     RIGHT SECTION - Hours & Social
+     ================================================================ */
+
+  .topbar-right {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .topbar-hours {
+    display: none;
+    align-items: center;
+    gap: var(--space-1-5);
+    color: var(--color-primary-300);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+
+  @media (min-width: 768px) {
+    .topbar-hours {
+      display: flex;
+    }
+  }
+
+  .topbar-hours-text {
+    color: var(--color-success-400);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  /* Social Links */
+  .topbar-social {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: var(--space-4);
+    padding-left: var(--space-4);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .topbar-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--color-primary-300);
+    border-radius: var(--radius-sm);
+    transition: all var(--duration-fast) var(--ease-default);
+  }
+
+  .topbar-social-link:hover {
+    color: var(--color-text-inverse);
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .topbar-social-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ================================================================
+     MOBILE OPTIMIZATIONS
+     Phone is always visible and prominent
+     ================================================================ */
+
+  @media (max-width: 639px) {
+    .topbar-left {
+      flex: 0;
+    }
+
+    .topbar-center {
+      flex: 1;
+      justify-content: flex-start;
+    }
+
+    .topbar-right {
+      flex: 0;
+    }
+
+    .topbar-email {
+      display: none;
+    }
+
+    .topbar-social {
+      margin-left: var(--space-2);
+      padding-left: var(--space-2);
+    }
+
+    .topbar-badge {
+      padding: var(--space-0-5) var(--space-1-5);
+    }
+  }
+
+  /* ================================================================
+     PRINT STYLES
+     Show contact info clearly for print
+     ================================================================ */
+
+  @media print {
+    .topbar {
+      background-color: white;
+      color: black;
+      border-bottom: 1px solid black;
+    }
+
+    .topbar-accent,
+    .topbar-social,
+    .topbar-badge-pulse {
+      display: none;
+    }
+
+    .topbar-phone,
+    .topbar-link {
+      color: black;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .topbar-badge-pulse {
+      animation: none;
+      opacity: 1;
+    }
+
+    .topbar-phone-icon-wrap,
+    .topbar-social-link {
+      transition: none;
+    }
+  }
+</style>

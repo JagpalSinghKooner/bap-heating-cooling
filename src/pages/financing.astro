@@ -1,25 +1,311 @@
 ---
 /**
- * Financing Page - Gutted for Redesign
+ * Financing Page
  *
- * Preserves all data fetching logic.
+ * Makes HVAC investments accessible to all budgets.
+ * Positions financing as a solution, not a problem.
+ *
+ * Sections:
+ * 1. PageHero
+ * 2. Financing benefits
+ * 3. How it works (ProcessTimeline)
+ * 4. FAQSection (financing-scoped)
+ * 5. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
+
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import FAQSection from '../components/shared/FAQSection.astro';
+import ProcessTimeline from '../components/shared/ProcessTimeline.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Card from '../components/primitives/Card.astro';
+import CardBody from '../components/primitives/CardBody.astro';
+import Icon from '../components/primitives/Icon.astro';
 
 const profile = await getBusinessProfile();
 const schema = getLocalBusinessSchema(profile);
+const phoneLink = getPhoneLink(profile);
+
+// Financing benefits
+const benefits = [
+  {
+    icon: 'dollarSign',
+    title: 'Low Monthly Payments',
+    description: 'Break down your investment into manageable monthly payments that fit your budget.',
+  },
+  {
+    icon: 'zap',
+    title: 'Quick Approval',
+    description: 'Get approved in minutes with our streamlined application process.',
+  },
+  {
+    icon: 'shield',
+    title: 'No Hidden Fees',
+    description: 'Transparent terms with no surprises. What you see is what you pay.',
+  },
+  {
+    icon: 'check',
+    title: 'Flexible Terms',
+    description: 'Choose the repayment schedule that works best for your situation.',
+  },
+];
+
+// How it works steps
+const processSteps = [
+  {
+    step: 1,
+    title: 'Get a Quote',
+    description: 'Call us for a free estimate on your new system.',
+  },
+  {
+    step: 2,
+    title: 'Apply Online',
+    description: 'Complete a simple application in just minutes.',
+  },
+  {
+    step: 3,
+    title: 'Get Approved',
+    description: 'Receive a decision quickly - often same day.',
+  },
+  {
+    step: 4,
+    title: 'Enjoy Comfort',
+    description: 'Get your new system installed and start enjoying.',
+  },
+];
+
+// Financing FAQs
+const faqs = [
+  {
+    question: 'What credit score do I need to qualify?',
+    answer: 'We work with multiple financing partners to accommodate various credit situations. Even if you\'ve been turned down elsewhere, we may have options for you. The best way to find out is to apply - the application won\'t affect your credit score.',
+  },
+  {
+    question: 'How long does approval take?',
+    answer: 'Most applications are approved within minutes. In some cases, additional verification may be needed, but we typically have answers within 24 hours.',
+  },
+  {
+    question: 'Can I pay off my loan early?',
+    answer: 'Yes! There are no prepayment penalties. You can pay off your balance at any time without any additional fees.',
+  },
+  {
+    question: 'What are the interest rates?',
+    answer: 'Interest rates vary based on your credit profile and the terms you choose. We offer competitive rates and can provide specific numbers once you apply. Some promotions include 0% interest for qualified buyers.',
+  },
+  {
+    question: 'What if I\'m renting my home?',
+    answer: 'Homeownership is typically required for HVAC financing since the equipment is installed in the property. However, we may have other payment options available - give us a call to discuss your situation.',
+  },
+];
 ---
 
 <BaseLayout
   title="Financing Options - B.A.P Heating and Cooling"
-  description="Flexible financing options for your heating and cooling needs. Make your HVAC investment more affordable with our financing programs."
+  description="Flexible financing options for your heating and cooling needs. Make your HVAC investment more affordable with low monthly payments and quick approval."
   schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>Financing Options</h1>
-    <p>Financing page redesign in progress.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Make Comfort Affordable"
+    description="Don't let budget concerns keep you from the comfort you deserve. Our flexible financing options make it easy to get the system you need today."
+    eyebrow="Financing Options"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Financing', href: '/financing/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call for Details', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Benefits Section -->
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <div class="financing-benefits-header">
+        <Text size="sm" color="primary" weight="semibold">Why Finance?</Text>
+        <Heading level={2} size="2xl" align="center">
+          Smart Financing for Smart Homeowners
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="financing-benefits-description">
+          Investing in a new HVAC system shouldn't mean draining your savings
+        </Text>
+      </div>
+      <div class="financing-benefits-grid">
+        {benefits.map((benefit, index) => (
+          <div class="financing-benefit-card-wrapper" style={`--stagger-index: ${index}`}>
+            <Card variant="default" padding="none" class="financing-benefit-card">
+              <CardBody padding="lg" gap="md">
+                <div class="financing-benefit-icon">
+                  <Icon name={benefit.icon} size="xl" color="primary" />
+                </div>
+                <Heading level={3} size="md" weight="semibold">
+                  {benefit.title}
+                </Heading>
+                <Text size="base" color="secondary">
+                  {benefit.description}
+                </Text>
+              </CardBody>
+            </Card>
+          </div>
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <!-- How It Works Section -->
+  <Section variant="muted" padding="lg">
+    <Container size="xl">
+      <div class="financing-process-header">
+        <Text size="sm" color="primary" weight="semibold">How It Works</Text>
+        <Heading level={2} size="2xl" align="center">
+          Four Simple Steps to Comfort
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="financing-process-description">
+          Getting financed is easier than you think
+        </Text>
+      </div>
+      <ProcessTimeline
+        steps={processSteps}
+        variant="auto"
+        showNumbers={true}
+      />
+    </Container>
+  </Section>
+
+  <!-- FAQ Section -->
+  <FAQSection
+    faqs={faqs}
+    title="Financing Questions"
+    description="Common questions about our financing options"
+    eyebrow="FAQ"
+    variant="default"
+    accordionVariant="bordered"
+    showCTA={true}
+    ctaHeadline="Have more questions?"
+    ctaLabel="Call Us"
+    ctaHref={phoneLink}
+  />
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Ready to Get Started?"
+    description="Call us today for a free estimate and learn about your financing options. No pressure, just honest answers."
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Services',
+      href: '/services/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     BENEFITS SECTION
+     ============================================ */
+
+  .financing-benefits-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+  }
+
+  .financing-benefits-description {
+    max-width: 50ch;
+  }
+
+  .financing-benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 640px) {
+    .financing-benefits-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .financing-benefits-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .financing-benefit-card-wrapper {
+    animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 100ms);
+    opacity: 0;
+  }
+
+  .financing-benefit-card {
+    text-align: center;
+    height: 100%;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .financing-benefit-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-16);
+    height: var(--space-16);
+    margin: 0 auto;
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-xl);
+  }
+
+  /* ============================================
+     PROCESS SECTION
+     ============================================ */
+
+  .financing-process-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+  }
+
+  .financing-process-description {
+    max-width: 50ch;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .financing-benefit-card-wrapper {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

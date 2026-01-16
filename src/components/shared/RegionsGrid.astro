@@ -69,6 +69,9 @@ const {
 const regions = await getCollection('regions');
 const locations = await getCollection('locations');
 
+// Helper to clean .md extension from collection IDs
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
 // Create a lookup map for location titles
 const locationTitles: Record<string, string> = {};
 locations.forEach(loc => {
@@ -88,8 +91,8 @@ const regionItems = sortedRegions.map(region => {
   return {
     title: region.data.title,
     description: region.data.description,
-    slug: region.id,
-    href: `/regions/${region.id}/`,
+    slug: cleanSlug(region.id),
+    href: `/regions/${cleanSlug(region.id)}/`,
     primaryCity: region.data.primaryCity,
     primaryCityName: locationTitles[region.data.primaryCity] || region.data.primaryCity,
     cities: cityNames,

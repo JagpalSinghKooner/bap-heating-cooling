@@ -1,27 +1,142 @@
 ---
 /**
- * Regions Index Page - Gutted for Redesign
+ * Regions Index Page
  *
- * Preserves all data fetching logic.
+ * Shows all service regions.
+ * Higher-level geographic view of service areas.
+ *
+ * Sections:
+ * 1. PageHero
+ * 2. RegionsGrid (all regions)
+ * 3. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
+import { getLocalBusinessSchema } from '../lib/schema';
 
-const regions = await getCollection('regions');
-const sortedRegions = regions.sort((a, b) =>
-  a.data.title.localeCompare(b.data.title)
-);
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import RegionsGrid from '../components/shared/RegionsGrid.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Button from '../components/primitives/Button.astro';
 
-const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+const profile = await getBusinessProfile();
+const schema = getLocalBusinessSchema(profile);
+const phoneLink = getPhoneLink(profile);
 ---
 
 <BaseLayout
   title="Service Regions - B.A.P Heating and Cooling"
-  description="HVAC service areas across Southern Ontario including Wellington County, Waterloo Region, Halton Region, and more"
+  description="B.A.P Heating & Cooling serves multiple regions across Southern Ontario. Explore our service regions and find your local HVAC experts."
+  schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>Our Service Regions</h1>
-    <p>Regions page redesign in progress. {regions.length} regions covered.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Service Regions"
+    description="We've organized our service areas into regions to help you find local HVAC services quickly. Click on a region to see all cities we serve."
+    eyebrow="Coverage Areas"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Regions', href: '/regions/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call for Service', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Regions Grid -->
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <div class="regions-header">
+        <Text size="sm" color="primary" weight="semibold">Explore Our Regions</Text>
+        <Heading level={2} size="2xl" align="center">
+          Where We Serve
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="regions-description">
+          Each region includes multiple cities with dedicated local service
+        </Text>
+      </div>
+      <RegionsGrid
+        columns={2}
+        variant="cards"
+        showCityCount={true}
+        showCities={true}
+        maxCityPreview={6}
+      />
+    </Container>
+  </Section>
+
+  <!-- View All Cities Link -->
+  <Section variant="muted" padding="md">
+    <Container size="md">
+      <div class="regions-all-cities">
+        <Heading level={2} size="xl" align="center">
+          Looking for a Specific City?
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="regions-all-cities-text">
+          View our complete list of service locations
+        </Text>
+        <Button variant="primary" size="lg" href="/locations/">
+          View All Cities
+        </Button>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Need HVAC Service in Your Region?"
+    description="Our local technicians are ready to help with all your heating and cooling needs. Fast, reliable service across Southern Ontario."
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Services',
+      href: '/services/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     REGIONS HEADER
+     ============================================ */
+
+  .regions-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-12);
+  }
+
+  .regions-description {
+    max-width: 50ch;
+  }
+
+  /* ============================================
+     ALL CITIES SECTION
+     ============================================ */
+
+  .regions-all-cities {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-5);
+  }
+
+  .regions-all-cities-text {
+    max-width: 40ch;
+  }
+</style>

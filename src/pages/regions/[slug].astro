@@ -1,19 +1,30 @@
 ---
 /**
- * Region Page - Gutted for Redesign
+ * Region Page - Redesigned
  *
- * Preserves all data fetching, routing logic, and schemas.
+ * Regional landing page showing all cities served and available services.
+ * Provides geographic context and funnels to city-specific pages.
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink } from '../../lib/getBusinessProfile';
 import { getRegionSchema } from '../../lib/schema';
 import { getRegionBreadcrumbs, getBreadcrumbSchema } from '../../lib/breadcrumbs';
 import { resolveFAQs } from '../../lib/faqResolver';
 import { generateFAQSchema } from '../../lib/faqSchema';
 import { getReviewsForPage } from '../../lib/reviewResolver';
 import { generateReviewSchemas } from '../../lib/reviewSchema';
+
+// Components
+import PageHero from '../../components/shared/PageHero.astro';
+import CitiesGrid from '../../components/shared/CitiesGrid.astro';
+import ServicesGrid from '../../components/shared/ServicesGrid.astro';
+import ReviewsCarousel from '../../components/shared/ReviewsCarousel.astro';
+import FAQSection from '../../components/shared/FAQSection.astro';
+import CTASection from '../../components/shared/CTASection.astro';
+import Section from '../../components/primitives/Section.astro';
+import Container from '../../components/primitives/Container.astro';
 
 export async function getStaticPaths() {
   const regions = await getCollection('regions');
@@ -100,11 +111,120 @@ if (reviewSchemas.length > 0) {
 }
 
 const schema = schemas;
+
+// Get phone link for CTAs
+const phoneLink = getPhoneLink(profile);
+
+// Map FAQs for FAQSection component
+const faqItems = pageFAQs.map(faq => ({
+  question: faq.data.question,
+  answer: faq.data.answer,
+}));
 ---
 
 <BaseLayout title={title} description={description} robots={robots} schema={schema}>
-  <div class="redesign-placeholder">
-    <h1>{region.data.title}</h1>
-    <p>Region page redesign in progress. {regionCities.length} cities served in this region.</p>
-  </div>
+  {/* Hero Section */}
+  <PageHero
+    title={`HVAC Services in ${region.data.title}`}
+    description={region.data.description || `Professional heating, cooling, and indoor air quality services across ${region.data.title}. Serving ${regionCities.length} communities with local expertise.`}
+    eyebrow={`${region.data.title} Region`}
+    variant="location"
+    breadcrumbs={breadcrumbItems}
+    ctaButtons={[
+      {
+        label: 'Call Now',
+        href: phoneLink,
+        variant: 'primary',
+        icon: 'phone',
+      },
+      {
+        label: 'Find Your City',
+        href: '#cities',
+        variant: 'outline',
+      },
+    ]}
+  />
+
+  {/* Cities Grid - Show all cities in this region */}
+  <Section variant="default" padding="lg" id="cities">
+    <Container size="xl">
+      <CitiesGrid
+        regionSlug={regionSlug}
+        columns={4}
+        variant="cards"
+        showServiceCount={true}
+        showDescription={false}
+        title={`Cities We Serve in ${region.data.title}`}
+        eyebrow="Service Areas"
+        description={`Select your city to view local services and get area-specific information.`}
+        headerAlign="center"
+      />
+    </Container>
+  </Section>
+
+  {/* Services Grid - Show available services */}
+  <Section variant="muted" padding="lg" id="services">
+    <Container size="xl">
+      <ServicesGrid
+        columns={3}
+        variant="cards"
+        showDescription={true}
+        showCategory={true}
+        title={`Our Services Across ${region.data.title}`}
+        eyebrow="What We Offer"
+        description={`Complete HVAC solutions available throughout ${region.data.title}.`}
+        headerAlign="center"
+      />
+    </Container>
+  </Section>
+
+  {/* Reviews Carousel - Filtered by region */}
+  {pageReviews.length > 0 && (
+    <ReviewsCarousel
+      filterBy={{ regionSlug: regionSlug }}
+      limit={6}
+      title={`What ${region.data.title} Customers Say`}
+      eyebrow="Customer Reviews"
+      description={`Real reviews from homeowners across ${region.data.title}.`}
+      showNavigation={true}
+      showDots={true}
+      variant="default"
+      showSummary={true}
+    />
+  )}
+
+  {/* FAQ Section - Region-scoped */}
+  {faqItems.length > 0 && (
+    <FAQSection
+      faqs={faqItems}
+      title={`Common Questions in ${region.data.title}`}
+      eyebrow="FAQ"
+      description={`Answers to frequently asked questions from ${region.data.title} homeowners.`}
+      columns={1}
+      variant="muted"
+      accordionVariant="bordered"
+      showCTA={true}
+      ctaHeadline="Have a different question?"
+      ctaLabel="Call Us"
+      ctaHref={phoneLink}
+    />
+  )}
+
+  {/* CTA Section - Final conversion push */}
+  <CTASection
+    variant="primary"
+    headline={`Ready for Expert HVAC Service in ${region.data.title}?`}
+    description={`Serving all ${regionCities.length} communities in the region. Call now for fast, reliable service.`}
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'Book Online',
+      href: '/contact-us/',
+    }}
+    showPhone={true}
+    showHours={true}
+    align="center"
+  />
 </BaseLayout>

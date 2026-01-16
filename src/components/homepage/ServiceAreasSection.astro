@@ -1,0 +1,841 @@
+---
+/**
+ * ServiceAreasSection Component
+ *
+ * Homepage section showcasing B.A.P's service coverage across Ontario.
+ * Answers the critical question: "Do you serve my area?"
+ *
+ * Design Philosophy:
+ * This section transforms a simple list of cities into a compelling
+ * visual story of local expertise. When someone lands here, they should
+ * immediately feel that B.A.P is everywhere they need them - a true
+ * neighbor with deep roots in the community.
+ *
+ * Visual Approach:
+ * - Decorative topographic/map-inspired background pattern
+ * - Regions displayed as prominent cards with city previews
+ * - Cities as scannable pills for quick recognition
+ * - Coverage stats that reinforce comprehensive reach
+ * - Clear "Find Your City" CTA
+ *
+ * Data Sources:
+ * - Locations collection for cities
+ * - Regions collection for geographic groupings
+ */
+import { getCollection } from 'astro:content';
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import Button from '../primitives/Button.astro';
+import Icon from '../primitives/Icon.astro';
+import Badge from '../primitives/Badge.astro';
+
+interface Props {
+  /** Section eyebrow text */
+  eyebrow?: string;
+  /** Section headline */
+  headline?: string;
+  /** Section description */
+  description?: string;
+  /** Show all cities or limit */
+  showAllCities?: boolean;
+  /** Maximum cities to display in pill view */
+  maxCities?: number;
+  /** CTA button label */
+  ctaLabel?: string;
+  /** CTA button href */
+  ctaHref?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  eyebrow = 'Service Areas',
+  headline = 'Proudly Serving Southern Ontario',
+  description = 'From Guelph to Cambridge, Kitchener to Hamilton - we\'re your local HVAC experts. No matter where you call home, our technicians are just a call away.',
+  showAllCities = true,
+  maxCities = 20,
+  ctaLabel = 'Find Your City',
+  ctaHref = '/locations/',
+  class: className = '',
+} = Astro.props;
+
+// Fetch regions and locations
+const regions = await getCollection('regions');
+const locations = await getCollection('locations');
+
+// Helper to clean .md extension from collection IDs
+const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+
+// Sort regions by number of cities (largest first for visual impact)
+const sortedRegions = regions.sort((a, b) => {
+  const aCities = a.data.cities?.length || 0;
+  const bCities = b.data.cities?.length || 0;
+  return bCities - aCities;
+});
+
+// Create region display data
+const regionData = sortedRegions.map(region => ({
+  title: region.data.title,
+  slug: cleanSlug(region.id),
+  href: `/regions/${cleanSlug(region.id)}/`,
+  cityCount: region.data.cities?.length || 0,
+  description: region.data.description,
+}));
+
+// Get all cities sorted alphabetically
+const allCities = locations
+  .map(loc => ({
+    title: loc.data.title,
+    slug: cleanSlug(loc.id),
+    href: `/locations/${cleanSlug(loc.id)}/`,
+    region: loc.data.region,
+  }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+
+// Limit cities if needed
+const displayCities = showAllCities ? allCities : allCities.slice(0, maxCities);
+const hasMoreCities = !showAllCities && allCities.length > maxCities;
+
+// Calculate coverage stats
+const totalCities = locations.length;
+const totalRegions = regions.length;
+---
+
+<Section variant="muted" padding="lg" class={`service-areas-section ${className}`}>
+  {/* Decorative background pattern - topographic map inspired */}
+  <div class="service-areas-bg" aria-hidden="true">
+    <div class="service-areas-bg-pattern"></div>
+    <div class="service-areas-bg-gradient"></div>
+  </div>
+
+  <Container size="xl">
+    {/* Section Header with coverage stats */}
+    <div class="service-areas-header">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+        maxWidth="lg"
+      />
+
+      {/* Coverage Stats Strip */}
+      <div class="coverage-stats">
+        <div class="coverage-stat">
+          <div class="coverage-stat-icon">
+            <Icon name="mapPin" size="lg" />
+          </div>
+          <div class="coverage-stat-content">
+            <span class="coverage-stat-value">{totalCities}+</span>
+            <span class="coverage-stat-label">Cities Served</span>
+          </div>
+        </div>
+        <div class="coverage-stat-divider" aria-hidden="true"></div>
+        <div class="coverage-stat">
+          <div class="coverage-stat-icon">
+            <Icon name="map" size="lg" />
+          </div>
+          <div class="coverage-stat-content">
+            <span class="coverage-stat-value">{totalRegions}</span>
+            <span class="coverage-stat-label">Regions</span>
+          </div>
+        </div>
+        <div class="coverage-stat-divider" aria-hidden="true"></div>
+        <div class="coverage-stat">
+          <div class="coverage-stat-icon">
+            <Icon name="clock" size="lg" />
+          </div>
+          <div class="coverage-stat-content">
+            <span class="coverage-stat-value">24/7</span>
+            <span class="coverage-stat-label">Emergency Service</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Main Content Grid */}
+    <div class="service-areas-content">
+      {/* Regions Grid */}
+      <div class="regions-showcase">
+        <div class="regions-showcase-header">
+          <Heading level={3} size="lg" weight="bold">
+            Our Service Regions
+          </Heading>
+          <Text size="sm" color="secondary">
+            Click a region to see all services available in your area
+          </Text>
+        </div>
+
+        <div class="regions-showcase-grid">
+          {regionData.map((region, index) => (
+            <a
+              href={region.href}
+              class="region-showcase-card"
+              style={`--stagger-index: ${index}`}
+            >
+              <div class="region-showcase-card-inner">
+                {/* Region icon with decorative circle */}
+                <div class="region-showcase-icon">
+                  <Icon name="map" size="xl" />
+                  <div class="region-showcase-icon-ring" aria-hidden="true"></div>
+                </div>
+
+                {/* Region info */}
+                <div class="region-showcase-content">
+                  <span class="region-showcase-name">{region.title}</span>
+                  <span class="region-showcase-count">
+                    {region.cityCount} {region.cityCount === 1 ? 'city' : 'cities'}
+                  </span>
+                </div>
+
+                {/* Arrow indicator */}
+                <div class="region-showcase-arrow">
+                  <Icon name="chevronRight" size="md" />
+                </div>
+              </div>
+
+              {/* Hover accent bar */}
+              <div class="region-showcase-accent" aria-hidden="true"></div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Cities Cloud */}
+      <div class="cities-cloud">
+        <div class="cities-cloud-header">
+          <Heading level={3} size="md" weight="semibold">
+            All Cities We Serve
+          </Heading>
+        </div>
+
+        <div class="cities-cloud-list">
+          {displayCities.map((city, index) => (
+            <a
+              href={city.href}
+              class="city-cloud-item"
+              style={`--stagger-index: ${index}`}
+            >
+              <Icon name="mapPin" size="sm" class="city-cloud-icon" />
+              <span class="city-cloud-name">{city.title}</span>
+            </a>
+          ))}
+          {hasMoreCities && (
+            <a href={ctaHref} class="city-cloud-more">
+              +{allCities.length - maxCities} more cities
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Bottom CTA */}
+    <div class="service-areas-cta">
+      <div class="service-areas-cta-content">
+        <Text size="lg" weight="medium" class="service-areas-cta-text">
+          Don't see your city? We likely serve your area too.
+        </Text>
+        <div class="service-areas-cta-actions">
+          <Button
+            variant="primary"
+            size="lg"
+            href={ctaHref}
+            iconRight="arrowRight"
+          >
+            {ctaLabel}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            href="tel:+15551234567"
+            iconLeft="phone"
+          >
+            Call to Confirm
+          </Button>
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style is:global>
+  /**
+   * ServiceAreasSection Styles
+   *
+   * Visual Concept: Geographic Coverage Map
+   * - Topographic-inspired background pattern
+   * - Region cards as "territories"
+   * - City pills as "pins" on the map
+   * - Industrial Modern aesthetic with warm trust signals
+   */
+
+  /* ============================================
+     SECTION BASE
+     ============================================ */
+
+  .service-areas-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     DECORATIVE BACKGROUND
+     Topographic map-inspired pattern
+     ============================================ */
+
+  .service-areas-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .service-areas-bg-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image:
+      /* Concentric circles - map contour lines */
+      radial-gradient(circle at 20% 30%, transparent 0%, transparent 40%, var(--color-primary-600) 40%, var(--color-primary-600) 41%, transparent 41%),
+      radial-gradient(circle at 80% 70%, transparent 0%, transparent 30%, var(--color-primary-600) 30%, var(--color-primary-600) 31%, transparent 31%),
+      radial-gradient(circle at 50% 50%, transparent 0%, transparent 60%, var(--color-primary-600) 60%, var(--color-primary-600) 61%, transparent 61%),
+      radial-gradient(circle at 30% 80%, transparent 0%, transparent 25%, var(--color-primary-600) 25%, var(--color-primary-600) 26%, transparent 26%),
+      radial-gradient(circle at 70% 20%, transparent 0%, transparent 35%, var(--color-primary-600) 35%, var(--color-primary-600) 36%, transparent 36%);
+    background-size:
+      800px 800px,
+      600px 600px,
+      1000px 1000px,
+      400px 400px,
+      500px 500px;
+    background-position:
+      -200px -100px,
+      600px 400px,
+      200px 100px,
+      -100px 500px,
+      800px -100px;
+  }
+
+  .service-areas-bg-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--color-surface-secondary) 10%,
+      var(--color-surface-secondary) 90%,
+      transparent 100%
+    );
+  }
+
+  /* ============================================
+     HEADER & STATS
+     ============================================ */
+
+  .service-areas-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--space-12);
+  }
+
+  /* Coverage Stats Strip */
+  .coverage-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-8);
+    margin-top: var(--space-10);
+    flex-wrap: wrap;
+  }
+
+  .coverage-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
+  }
+
+  .coverage-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .coverage-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-12);
+    height: var(--space-12);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    color: var(--color-primary-600);
+  }
+
+  .coverage-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .coverage-stat-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-none);
+  }
+
+  .coverage-stat-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .coverage-stat-divider {
+    width: 1px;
+    height: var(--space-10);
+    background-color: var(--color-border-primary);
+  }
+
+  @media (max-width: 768px) {
+    .coverage-stats {
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .coverage-stat-divider {
+      display: none;
+    }
+
+    .coverage-stat {
+      width: 100%;
+      max-width: 280px;
+    }
+  }
+
+  /* ============================================
+     MAIN CONTENT GRID
+     ============================================ */
+
+  .service-areas-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  /* ============================================
+     REGIONS SHOWCASE
+     ============================================ */
+
+  .regions-showcase {
+    margin-bottom: var(--space-8);
+  }
+
+  .regions-showcase-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .regions-showcase-header h3 {
+    margin-bottom: var(--space-2);
+  }
+
+  .regions-showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+  }
+
+  /* Region Card */
+  .region-showcase-card {
+    position: relative;
+    display: block;
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out),
+                border-color var(--duration-normal) var(--ease-out);
+
+    /* Stagger animation */
+    animation: regionCardFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 75ms);
+    opacity: 0;
+  }
+
+  @keyframes regionCardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .region-showcase-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary-300);
+  }
+
+  .region-showcase-card:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .region-showcase-card-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+  }
+
+  /* Region icon */
+  .region-showcase-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-16);
+    height: var(--space-16);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    color: var(--color-primary-600);
+    flex-shrink: 0;
+    transition: background var(--duration-normal) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out);
+  }
+
+  .region-showcase-card:hover .region-showcase-icon {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100) 0%,
+      var(--color-primary-200) 100%
+    );
+    transform: scale(1.05);
+  }
+
+  .region-showcase-icon-ring {
+    position: absolute;
+    inset: -4px;
+    border: 2px dashed var(--color-primary-200);
+    border-radius: var(--radius-2xl);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .region-showcase-card:hover .region-showcase-icon-ring {
+    opacity: 1;
+  }
+
+  /* Region content */
+  .region-showcase-content {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .region-showcase-name {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .region-showcase-card:hover .region-showcase-name {
+    color: var(--color-primary-700);
+  }
+
+  .region-showcase-count {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* Arrow */
+  .region-showcase-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-10);
+    height: var(--space-10);
+    border-radius: var(--radius-full);
+    background-color: var(--color-surface-secondary);
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+  }
+
+  .region-showcase-card:hover .region-showcase-arrow {
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-600);
+    transform: translateX(4px);
+  }
+
+  /* Accent bar */
+  .region-showcase-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-400) 0%,
+      var(--color-primary-500) 50%,
+      var(--color-primary-600) 100%
+    );
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .region-showcase-card:hover .region-showcase-accent {
+    transform: scaleX(1);
+  }
+
+  /* ============================================
+     CITIES CLOUD
+     ============================================ */
+
+  .cities-cloud {
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .cities-cloud-header {
+    text-align: center;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .cities-cloud-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  /* City pill */
+  .city-cloud-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all var(--duration-fast) var(--ease-out);
+
+    /* Stagger animation */
+    animation: cityPillFadeIn var(--duration-normal) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 20ms);
+    opacity: 0;
+  }
+
+  @keyframes cityPillFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .city-cloud-item:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+    color: var(--color-primary-700);
+    transform: translateY(-2px);
+  }
+
+  .city-cloud-item:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .city-cloud-icon {
+    color: var(--color-primary-500);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .city-cloud-item:hover .city-cloud-icon {
+    color: var(--color-primary-600);
+  }
+
+  .city-cloud-name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  /* More cities link */
+  .city-cloud-more {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-primary-600);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: white;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+  }
+
+  .city-cloud-more:hover {
+    background-color: var(--color-primary-700);
+    transform: translateY(-2px);
+  }
+
+  /* ============================================
+     BOTTOM CTA
+     ============================================ */
+
+  .service-areas-cta {
+    position: relative;
+    z-index: 1;
+    margin-top: var(--space-12);
+    padding: var(--space-10);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--color-primary-200);
+  }
+
+  .service-areas-cta-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+    text-align: center;
+  }
+
+  .service-areas-cta-text {
+    color: var(--color-primary-800);
+    max-width: 500px;
+  }
+
+  .service-areas-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  @media (max-width: 640px) {
+    .service-areas-cta-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .service-areas-cta-actions :global(.btn) {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .service-areas-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .coverage-stats {
+      margin-top: var(--space-8);
+    }
+
+    .regions-showcase-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .cities-cloud {
+      padding: var(--space-6);
+    }
+
+    .service-areas-cta {
+      padding: var(--space-6);
+      margin-top: var(--space-8);
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .region-showcase-card,
+    .city-cloud-item {
+      animation: none;
+      opacity: 1;
+    }
+
+    .region-showcase-card,
+    .region-showcase-icon,
+    .region-showcase-icon-ring,
+    .region-showcase-arrow,
+    .region-showcase-accent,
+    .city-cloud-item,
+    .coverage-stat {
+      transition: none;
+    }
+
+    .region-showcase-card:hover,
+    .coverage-stat:hover {
+      transform: none;
+    }
+
+    .region-showcase-card:hover .region-showcase-icon,
+    .region-showcase-card:hover .region-showcase-arrow {
+      transform: none;
+    }
+
+    .city-cloud-item:hover {
+      transform: none;
+    }
+  }
+</style>

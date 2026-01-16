@@ -1,0 +1,688 @@
+---
+/**
+ * BlogPreviewSection Component
+ *
+ * Homepage section showcasing the latest blog posts to establish authority
+ * and provide value. Well-crafted content answers homeowner questions before
+ * they even ask - building trust through expertise.
+ *
+ * Design Philosophy:
+ * This section transforms blog posts into mini-trust signals. Each card says:
+ * "These people actually know their stuff and want to help you understand."
+ * Editorial clarity meets industrial confidence - not clickbait, not fluff.
+ *
+ * Visual Approach:
+ * - Magazine-style card grid with generous imagery
+ * - Category badges as organizational signals (like filing tabs)
+ * - Clean typography hierarchy for easy scanning
+ * - Subtle hover states that invite exploration
+ * - Featured post can get visual prominence (optional)
+ *
+ * Data Sources:
+ * - Blog collection (latest posts by publish date)
+ */
+import { getCollection } from 'astro:content';
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+import Button from '../primitives/Button.astro';
+import Badge from '../primitives/Badge.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Section eyebrow text */
+  eyebrow?: string;
+  /** Section headline */
+  headline?: string;
+  /** Section description */
+  description?: string;
+  /** Number of posts to display */
+  limit?: number;
+  /** Show featured post with larger layout */
+  showFeatured?: boolean;
+  /** CTA button label */
+  ctaLabel?: string;
+  /** CTA button href */
+  ctaHref?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  eyebrow = 'From the Blog',
+  headline = 'Expert Tips for Ontario Homeowners',
+  description = 'Practical advice to keep your home comfortable year-round. Learn how to save energy, recognize warning signs, and make smart decisions about your HVAC system.',
+  limit = 3,
+  showFeatured = false,
+  ctaLabel = 'View All Articles',
+  ctaHref = '/blog/',
+  variant = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Fetch blog posts
+const allPosts = await getCollection('blog', ({ data }) => {
+  // Only include published posts
+  return data.workflowStatus === 'published';
+});
+
+// Sort by publish date (most recent first)
+const sortedPosts = allPosts.sort((a, b) => {
+  return new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime();
+});
+
+// Limit posts
+const displayPosts = sortedPosts.slice(0, limit);
+
+// Category display labels and colors
+const categoryConfig: Record<string, { label: string; color: 'primary' | 'accent' | 'success' | 'warning' | 'default' }> = {
+  heating: { label: 'Heating', color: 'warning' },
+  cooling: { label: 'Cooling', color: 'primary' },
+  maintenance: { label: 'Maintenance', color: 'success' },
+  efficiency: { label: 'Energy Savings', color: 'accent' },
+  news: { label: 'News', color: 'default' },
+  guides: { label: 'Guide', color: 'primary' },
+};
+
+// Format date for display
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
+
+// Calculate read time estimate
+function getReadTime(body: string): number {
+  const wordsPerMinute = 200;
+  const wordCount = body.split(/\s+/).length;
+  return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+}
+---
+
+<Section variant={variant} padding="lg" class={`blog-preview-section ${className}`}>
+  {/* Decorative background elements */}
+  <div class="blog-preview-bg" aria-hidden="true">
+    <div class="blog-preview-bg-pattern"></div>
+  </div>
+
+  <Container size="xl">
+    {/* Section Header */}
+    <div class="blog-preview-header">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+        maxWidth="lg"
+        eyebrowIcon="newspaper"
+      />
+    </div>
+
+    {/* Posts Grid */}
+    {displayPosts.length > 0 ? (
+      <div class={`blog-preview-grid ${showFeatured ? 'blog-preview-grid-featured' : ''}`}>
+        {displayPosts.map((post, index) => {
+          const categoryInfo = categoryConfig[post.data.category] || { label: post.data.category, color: 'default' };
+          const isFeaturedCard = showFeatured && index === 0;
+          const readTime = getReadTime(post.body || '');
+
+          return (
+            <article
+              class={`blog-preview-card ${isFeaturedCard ? 'blog-preview-card-featured' : ''}`}
+              style={`--stagger-index: ${index}`}
+            >
+              <a href={`/blog/${post.slug}/`} class="blog-preview-card-link">
+                {/* Card Image */}
+                <div class="blog-preview-card-media">
+                  {post.data.image ? (
+                    <img
+                      src={post.data.image}
+                      alt={post.data.title}
+                      class="blog-preview-card-image"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="blog-preview-card-placeholder">
+                      <Icon name="newspaper" size="xl" />
+                    </div>
+                  )}
+
+                  {/* Category Badge - positioned on image */}
+                  <div class="blog-preview-card-category">
+                    <Badge variant={categoryInfo.color} size="sm">
+                      {categoryInfo.label}
+                    </Badge>
+                  </div>
+
+                  {/* Hover overlay */}
+                  <div class="blog-preview-card-overlay" aria-hidden="true">
+                    <span class="blog-preview-card-overlay-text">Read Article</span>
+                    <Icon name="arrowRight" size="md" />
+                  </div>
+                </div>
+
+                {/* Card Content */}
+                <div class="blog-preview-card-content">
+                  {/* Meta info */}
+                  <div class="blog-preview-card-meta">
+                    <time datetime={post.data.publishDate.toISOString()} class="blog-preview-card-date">
+                      {formatDate(post.data.publishDate)}
+                    </time>
+                    <span class="blog-preview-card-meta-separator" aria-hidden="true">·</span>
+                    <span class="blog-preview-card-read-time">
+                      {readTime} min read
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 class="blog-preview-card-title">
+                    {post.data.title}
+                  </h3>
+
+                  {/* Excerpt */}
+                  <p class="blog-preview-card-excerpt">
+                    {post.data.description}
+                  </p>
+
+                  {/* Read more link */}
+                  <span class="blog-preview-card-cta">
+                    <span class="blog-preview-card-cta-text">Read more</span>
+                    <Icon name="arrowRight" size="sm" class="blog-preview-card-cta-icon" />
+                  </span>
+                </div>
+              </a>
+            </article>
+          );
+        })}
+      </div>
+    ) : (
+      <div class="blog-preview-empty">
+        <Icon name="newspaper" size="xl" />
+        <Text size="lg" color="secondary">
+          New articles coming soon. Check back later for expert HVAC tips!
+        </Text>
+      </div>
+    )}
+
+    {/* Bottom CTA */}
+    <div class="blog-preview-cta">
+      <Button
+        variant="secondary"
+        size="lg"
+        href={ctaHref}
+        iconRight="arrowRight"
+      >
+        {ctaLabel}
+      </Button>
+    </div>
+  </Container>
+</Section>
+
+<style is:global>
+  /**
+   * BlogPreviewSection Styles
+   *
+   * Visual Concept: Editorial Expertise Cards
+   * - Magazine-style card layout
+   * - Clean typography hierarchy
+   * - Warm, inviting hover states
+   * - Industrial Modern aesthetic
+   */
+
+  /* ============================================
+     SECTION BASE
+     ============================================ */
+
+  .blog-preview-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     DECORATIVE BACKGROUND
+     Subtle diagonal pattern suggesting pages/documents
+     ============================================ */
+
+  .blog-preview-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .blog-preview-bg-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.015;
+    background-image:
+      /* Diagonal lines - subtle paper/document feel */
+      repeating-linear-gradient(
+        -45deg,
+        var(--color-primary-600) 0px,
+        var(--color-primary-600) 1px,
+        transparent 1px,
+        transparent 40px
+      );
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+
+  .blog-preview-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--space-12);
+  }
+
+  /* ============================================
+     POSTS GRID
+     ============================================ */
+
+  .blog-preview-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-8);
+  }
+
+  /* Featured layout - first card spans full width or larger */
+  .blog-preview-grid-featured {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .blog-preview-grid-featured .blog-preview-card-featured {
+    grid-column: span 2;
+  }
+
+  @media (max-width: 1024px) {
+    .blog-preview-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-6);
+    }
+
+    .blog-preview-grid-featured .blog-preview-card-featured {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .blog-preview-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .blog-preview-grid-featured .blog-preview-card-featured {
+      grid-column: span 1;
+    }
+  }
+
+  /* ============================================
+     BLOG CARD
+     ============================================ */
+
+  .blog-preview-card {
+    position: relative;
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-secondary);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Stagger animation */
+    animation: blogCardFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 100ms);
+    opacity: 0;
+  }
+
+  @keyframes blogCardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .blog-preview-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary-200);
+  }
+
+  .blog-preview-card-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  .blog-preview-card-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Featured card horizontal layout on large screens */
+  .blog-preview-card-featured .blog-preview-card-link {
+    flex-direction: row;
+  }
+
+  .blog-preview-card-featured .blog-preview-card-media {
+    flex: 0 0 50%;
+    aspect-ratio: 4/3;
+  }
+
+  .blog-preview-card-featured .blog-preview-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-8);
+  }
+
+  .blog-preview-card-featured .blog-preview-card-title {
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-snug);
+  }
+
+  @media (max-width: 768px) {
+    .blog-preview-card-featured .blog-preview-card-link {
+      flex-direction: column;
+    }
+
+    .blog-preview-card-featured .blog-preview-card-media {
+      flex: none;
+      aspect-ratio: 16/9;
+    }
+
+    .blog-preview-card-featured .blog-preview-card-content {
+      padding: var(--space-5);
+    }
+
+    .blog-preview-card-featured .blog-preview-card-title {
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  /* ============================================
+     CARD MEDIA (Image)
+     ============================================ */
+
+  .blog-preview-card-media {
+    position: relative;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      var(--color-surface-secondary) 0%,
+      var(--color-surface-tertiary) 100%
+    );
+  }
+
+  .blog-preview-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .blog-preview-card:hover .blog-preview-card-image {
+    transform: scale(1.05);
+  }
+
+  /* Placeholder for posts without images */
+  .blog-preview-card-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+  }
+
+  /* Category badge on image */
+  .blog-preview-card-category {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 2;
+  }
+
+  /* Hover overlay */
+  .blog-preview-card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    background: linear-gradient(
+      135deg,
+      rgba(36, 81, 179, 0.9) 0%,
+      rgba(29, 64, 143, 0.95) 100%
+    );
+    color: white;
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .blog-preview-card:hover .blog-preview-card-overlay {
+    opacity: 1;
+  }
+
+  .blog-preview-card-overlay-text {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.02em;
+  }
+
+  /* ============================================
+     CARD CONTENT
+     ============================================ */
+
+  .blog-preview-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    flex-grow: 1;
+  }
+
+  /* Meta row (date, read time) */
+  .blog-preview-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  .blog-preview-card-date {
+    color: var(--color-text-secondary);
+  }
+
+  .blog-preview-card-meta-separator {
+    font-weight: var(--font-weight-bold);
+    opacity: 0.5;
+  }
+
+  .blog-preview-card-read-time {
+    color: var(--color-text-tertiary);
+  }
+
+  /* Title */
+  .blog-preview-card-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin: 0;
+    transition: color var(--duration-fast) var(--ease-out);
+
+    /* Clamp to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .blog-preview-card:hover .blog-preview-card-title {
+    color: var(--color-primary-700);
+  }
+
+  /* Excerpt */
+  .blog-preview-card-excerpt {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+
+    /* Clamp to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Read more CTA */
+  .blog-preview-card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .blog-preview-card:hover .blog-preview-card-cta {
+    color: var(--color-primary-700);
+  }
+
+  .blog-preview-card-cta-icon {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .blog-preview-card:hover .blog-preview-card-cta-icon {
+    transform: translateX(4px);
+  }
+
+  /* ============================================
+     EMPTY STATE
+     ============================================ */
+
+  .blog-preview-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-16);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     BOTTOM CTA
+     ============================================ */
+
+  .blog-preview-cta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-12);
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .blog-preview-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .blog-preview-card-content {
+      padding: var(--space-4);
+      gap: var(--space-2);
+    }
+
+    .blog-preview-card-title {
+      font-size: var(--font-size-lg);
+    }
+
+    .blog-preview-card-excerpt {
+      font-size: var(--font-size-sm);
+      -webkit-line-clamp: 2;
+    }
+
+    .blog-preview-cta {
+      margin-top: var(--space-8);
+    }
+  }
+
+  /* ============================================
+     MUTED SECTION VARIANT
+     When placed on muted background
+     ============================================ */
+
+  .section-muted .blog-preview-card {
+    background-color: var(--color-surface-primary);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-preview-card {
+      animation: none;
+      opacity: 1;
+    }
+
+    .blog-preview-card,
+    .blog-preview-card-image,
+    .blog-preview-card-overlay,
+    .blog-preview-card-title,
+    .blog-preview-card-cta,
+    .blog-preview-card-cta-icon {
+      transition: none;
+    }
+
+    .blog-preview-card:hover {
+      transform: none;
+    }
+
+    .blog-preview-card:hover .blog-preview-card-image {
+      transform: none;
+    }
+
+    .blog-preview-card:hover .blog-preview-card-cta-icon {
+      transform: none;
+    }
+  }
+</style>

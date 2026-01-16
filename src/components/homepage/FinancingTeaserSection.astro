@@ -1,0 +1,915 @@
+---
+/**
+ * FinancingTeaserSection Component (Homepage)
+ *
+ * Teaser section promoting B.A.P's financing options. Creates urgency
+ * around affordability without being pushy—positioned as helpful,
+ * not salesy. The visual approach uses a decorative calculator/approval
+ * graphic to convey simplicity and accessibility.
+ *
+ * Design Philosophy:
+ * "Quality HVAC shouldn't break the bank."
+ *
+ * This section bridges the gap between "I need a new system" and
+ * "I can actually afford it." The two-column layout pairs compelling
+ * copy with an aspirational visual that suggests ease and approval.
+ *
+ * Visual Approach: Trustworthy Industrial Modern
+ * - Gradient background creates visual separation
+ * - Industrial grid pattern adds texture
+ * - Calculator mockup conveys simplicity
+ * - Checkmark icons reinforce easy approval process
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import Icon from '../primitives/Icon.astro';
+import Button from '../primitives/Button.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+
+interface Benefit {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  /** Override default eyebrow text */
+  eyebrow?: string;
+  /** Override default headline */
+  headline?: string;
+  /** Override default description */
+  description?: string;
+  /** CTA button label */
+  ctaLabel?: string;
+  /** CTA button href */
+  ctaHref?: string;
+  /** Show secondary CTA (call) */
+  showPhoneCTA?: boolean;
+  /** Phone number display */
+  phoneDisplay?: string;
+  /** Phone E164 format for tel link */
+  phoneE164?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  eyebrow = 'Flexible Financing',
+  headline = 'Quality Comfort Within Reach',
+  description = "Don't let budget concerns delay your comfort. We've partnered with trusted Canadian lenders to offer financing options that work for your situation.",
+  ctaLabel = 'Explore Financing Options',
+  ctaHref = '/financing/',
+  showPhoneCTA = true,
+  phoneDisplay = '+1 519-835-4858',
+  phoneE164 = '+15198354858',
+  class: className = '',
+} = Astro.props;
+
+// Benefits data
+const benefits: Benefit[] = [
+  {
+    icon: 'dollar',
+    title: 'Flexible Monthly Payments',
+    description: 'Spread your investment over time with affordable monthly installments.',
+  },
+  {
+    icon: 'lightning',
+    title: 'Quick Approval Process',
+    description: 'Get approved in minutes—no lengthy paperwork or waiting periods.',
+  },
+  {
+    icon: 'shield',
+    title: 'Competitive Rates',
+    description: 'Access rates from multiple lenders to find the best fit for you.',
+  },
+  {
+    icon: 'checkmark',
+    title: 'No Hidden Fees',
+    description: 'Transparent terms with no surprises—what you see is what you pay.',
+  },
+];
+
+// Calculator display values (decorative)
+const calculatorValues = {
+  systemCost: '$8,500',
+  monthlyPayment: '$142',
+  term: '60 months',
+  apr: '6.9%',
+};
+---
+
+<Section variant="default" padding="lg" class:list={['financing-section', className]}>
+  <!-- Background pattern -->
+  <div class="section-background" aria-hidden="true">
+    <div class="grid-pattern"></div>
+    <div class="gradient-overlay"></div>
+  </div>
+
+  <Container size="xl">
+    <div class="two-column-layout">
+      <!-- Left Column: Content -->
+      <div class="content-column">
+        <div class="content-wrapper">
+          <!-- Section header -->
+          <div class="section-header">
+            <Eyebrow class="eyebrow-text">{eyebrow}</Eyebrow>
+            <Heading level={2} size="xl" class="headline">
+              {headline}
+            </Heading>
+            <Text size="lg" color="secondary" class="description">
+              {description}
+            </Text>
+          </div>
+
+          <!-- Benefits list -->
+          <ul class="benefits-list" role="list">
+            {benefits.map((benefit, index) => (
+              <li
+                class="benefit-item"
+                style={`--benefit-index: ${index};`}
+              >
+                <div class="benefit-icon">
+                  <Icon name={benefit.icon} size="md" />
+                </div>
+                <div class="benefit-content">
+                  <h3 class="benefit-title">{benefit.title}</h3>
+                  <p class="benefit-description">{benefit.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <!-- CTA buttons -->
+          <div class="cta-group">
+            <Button
+              variant="primary"
+              size="lg"
+              href={ctaHref}
+              iconRight="arrowRight"
+            >
+              {ctaLabel}
+            </Button>
+            {showPhoneCTA && (
+              <Button
+                variant="ghost"
+                size="lg"
+                href={`tel:${phoneE164}`}
+                iconLeft="phone"
+              >
+                Call: {phoneDisplay}
+              </Button>
+            )}
+          </div>
+
+          <!-- Trust note -->
+          <p class="trust-note">
+            <Icon name="shield" size="sm" />
+            <span>Financing through trusted Canadian lenders. No impact on credit score to check rates.</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column: Decorative Calculator Visual -->
+      <div class="visual-column">
+        <div class="calculator-wrapper">
+          <!-- Calculator mockup -->
+          <div class="calculator-card">
+            <!-- Calculator header -->
+            <div class="calc-header">
+              <div class="calc-icon-wrapper">
+                <Icon name="savings" size="lg" />
+              </div>
+              <div class="calc-header-text">
+                <span class="calc-label">Monthly Payment</span>
+                <span class="calc-title">Payment Calculator</span>
+              </div>
+            </div>
+
+            <!-- Calculator body -->
+            <div class="calc-body">
+              <!-- System cost row -->
+              <div class="calc-row">
+                <span class="calc-row-label">New HVAC System</span>
+                <span class="calc-row-value">{calculatorValues.systemCost}</span>
+              </div>
+
+              <!-- Term row -->
+              <div class="calc-row">
+                <span class="calc-row-label">Payment Term</span>
+                <span class="calc-row-value">{calculatorValues.term}</span>
+              </div>
+
+              <!-- APR row -->
+              <div class="calc-row">
+                <span class="calc-row-label">Interest Rate</span>
+                <span class="calc-row-value">{calculatorValues.apr}</span>
+              </div>
+
+              <!-- Divider -->
+              <div class="calc-divider"></div>
+
+              <!-- Monthly payment result -->
+              <div class="calc-result">
+                <span class="calc-result-label">As low as</span>
+                <span class="calc-result-value">{calculatorValues.monthlyPayment}</span>
+                <span class="calc-result-suffix">/month</span>
+              </div>
+            </div>
+
+            <!-- Calculator footer -->
+            <div class="calc-footer">
+              <div class="approval-badge">
+                <div class="approval-icon">
+                  <Icon name="check" size="sm" />
+                </div>
+                <span class="approval-text">Pre-qualify in 2 minutes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decorative elements -->
+          <div class="deco-circle deco-circle--1" aria-hidden="true"></div>
+          <div class="deco-circle deco-circle--2" aria-hidden="true"></div>
+          <div class="deco-dots" aria-hidden="true"></div>
+
+          <!-- Floating badge -->
+          <div class="floating-badge" aria-hidden="true">
+            <Icon name="lightning" size="sm" />
+            <span>Quick Approval</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* =================================================================
+     SECTION WRAPPER
+     ================================================================= */
+
+  .financing-section {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      165deg,
+      var(--color-surface-warm, #fffbf7) 0%,
+      var(--color-surface-secondary) 100%
+    );
+  }
+
+  /* Background pattern layer */
+  .section-background {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Subtle grid pattern */
+  .grid-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--color-primary-100) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-primary-100) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    mask-image: radial-gradient(ellipse at 70% 50%, black 0%, transparent 70%);
+  }
+
+  /* Gradient overlay for depth */
+  .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(59, 111, 217, 0.04) 0%, transparent 50%);
+  }
+
+  /* =================================================================
+     TWO COLUMN LAYOUT
+     ================================================================= */
+
+  .two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+    position: relative;
+    z-index: 1;
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .two-column-layout {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-16);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .two-column-layout {
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-20);
+    }
+  }
+
+  /* =================================================================
+     CONTENT COLUMN
+     ================================================================= */
+
+  .content-column {
+    /* Entrance animation */
+    opacity: 0;
+    animation: contentEnter 0.7s var(--ease-out) forwards;
+    animation-delay: 100ms;
+  }
+
+  @keyframes contentEnter {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .section-header :global(.eyebrow-text) {
+    color: var(--color-primary-600);
+  }
+
+  .section-header :global(.headline) {
+    color: var(--color-text-primary);
+    max-width: 540px;
+  }
+
+  .section-header :global(.description) {
+    max-width: 520px;
+    line-height: var(--line-height-relaxed);
+  }
+
+  /* =================================================================
+     BENEFITS LIST
+     ================================================================= */
+
+  .benefits-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 640px) {
+    .benefits-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .benefit-item {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-lg);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance */
+    opacity: 0;
+    animation: benefitEnter 0.5s var(--ease-out) forwards;
+    animation-delay: calc(var(--benefit-index, 0) * 80ms + 300ms);
+  }
+
+  @keyframes benefitEnter {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .benefit-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-200);
+  }
+
+  .benefit-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-md);
+    color: var(--color-primary-600);
+    transition: transform var(--duration-normal) var(--ease-bounce);
+  }
+
+  .benefit-item:hover .benefit-icon {
+    transform: scale(1.1);
+  }
+
+  .benefit-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .benefit-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
+    line-height: var(--line-height-tight);
+  }
+
+  .benefit-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+  }
+
+  /* =================================================================
+     CTA GROUP
+     ================================================================= */
+
+  .cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+
+    opacity: 0;
+    animation: ctaEnter 0.5s var(--ease-out) forwards;
+    animation-delay: 600ms;
+  }
+
+  @keyframes ctaEnter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Trust note */
+  .trust-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    max-width: 420px;
+
+    opacity: 0;
+    animation: trustEnter 0.5s var(--ease-out) forwards;
+    animation-delay: 700ms;
+  }
+
+  @keyframes trustEnter {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .trust-note :global(svg) {
+    flex-shrink: 0;
+    color: var(--color-success-500);
+    margin-top: 2px;
+  }
+
+  /* =================================================================
+     VISUAL COLUMN - CALCULATOR
+     ================================================================= */
+
+  .visual-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* Entrance animation */
+    opacity: 0;
+    animation: visualEnter 0.8s var(--ease-out) forwards;
+    animation-delay: 200ms;
+  }
+
+  @keyframes visualEnter {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .calculator-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    padding: var(--space-6);
+  }
+
+  /* Calculator card */
+  .calculator-card {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-2xl);
+    box-shadow:
+      var(--shadow-xl),
+      0 8px 40px -8px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Calculator header */
+  .calc-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-700) 100%
+    );
+  }
+
+  .calc-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-inverse);
+  }
+
+  .calc-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .calc-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-200);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .calc-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+  }
+
+  /* Calculator body */
+  .calc-body {
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+  }
+
+  .calc-row-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .calc-row-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .calc-divider {
+    height: 1px;
+    background: var(--color-border-primary);
+    margin: var(--space-2) 0;
+  }
+
+  /* Result display */
+  .calc-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-4);
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-50) 0%,
+      var(--color-accent-100) 100%
+    );
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-accent-200);
+  }
+
+  .calc-result-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-accent-700);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .calc-result-value {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-accent-700);
+    line-height: 1;
+  }
+
+  .calc-result-suffix {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-accent-600);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Calculator footer */
+  .calc-footer {
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-surface-secondary);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .approval-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .approval-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-success-500);
+    border-radius: var(--radius-full);
+    color: white;
+  }
+
+  .approval-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+  }
+
+  /* =================================================================
+     DECORATIVE ELEMENTS
+     ================================================================= */
+
+  .deco-circle {
+    position: absolute;
+    border-radius: var(--radius-full);
+    pointer-events: none;
+  }
+
+  .deco-circle--1 {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100) 0%,
+      var(--color-primary-200) 100%
+    );
+    opacity: 0.4;
+    top: -40px;
+    right: -60px;
+    z-index: 1;
+  }
+
+  .deco-circle--2 {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-100) 0%,
+      var(--color-accent-200) 100%
+    );
+    opacity: 0.5;
+    bottom: -20px;
+    left: -30px;
+    z-index: 1;
+  }
+
+  .deco-dots {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: -20px;
+    z-index: 1;
+    background-image: radial-gradient(var(--color-primary-300) 2px, transparent 2px);
+    background-size: 12px 12px;
+    opacity: 0.4;
+  }
+
+  /* Floating badge */
+  .floating-badge {
+    position: absolute;
+    top: 10%;
+    right: -10px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-lg);
+    z-index: 3;
+
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-700);
+
+    /* Float animation */
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .floating-badge :global(svg) {
+    color: var(--color-accent-500);
+  }
+
+  /* =================================================================
+     MOBILE OPTIMIZATIONS
+     ================================================================= */
+
+  @media (max-width: 1023px) {
+    .visual-column {
+      order: -1; /* Show calculator first on mobile */
+    }
+
+    .calculator-wrapper {
+      max-width: 340px;
+      padding: var(--space-4);
+    }
+
+    .floating-badge {
+      top: 5%;
+      right: 0;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .benefits-list {
+      gap: var(--space-3);
+    }
+
+    .benefit-item {
+      padding: var(--space-3);
+    }
+
+    .benefit-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .cta-group {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .cta-group :global(.btn) {
+      justify-content: center;
+    }
+
+    .calculator-wrapper {
+      max-width: 300px;
+    }
+
+    .calc-header {
+      padding: var(--space-4);
+    }
+
+    .calc-icon-wrapper {
+      width: 40px;
+      height: 40px;
+    }
+
+    .calc-title {
+      font-size: var(--font-size-base);
+    }
+
+    .calc-body {
+      padding: var(--space-4);
+    }
+
+    .calc-result-value {
+      font-size: var(--font-size-3xl);
+    }
+
+    .deco-circle--1 {
+      width: 140px;
+      height: 140px;
+      top: -30px;
+      right: -40px;
+    }
+
+    .deco-circle--2 {
+      width: 80px;
+      height: 80px;
+      bottom: -10px;
+      left: -20px;
+    }
+
+    .floating-badge {
+      display: none;
+    }
+  }
+
+  /* =================================================================
+     REDUCED MOTION
+     ================================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .content-column,
+    .visual-column,
+    .benefit-item,
+    .cta-group,
+    .trust-note {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .floating-badge {
+      animation: none;
+    }
+
+    .benefit-item:hover,
+    .benefit-item:hover .benefit-icon {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,312 @@
+---
+/**
+ * BlogTableOfContents Component
+ *
+ * A sticky sidebar navigation for blog articles that helps readers
+ * navigate long-form content. Enhances the editorial reading experience
+ * by providing clear section landmarks.
+ *
+ * Design Direction: Editorial Reading Aid
+ * Like a well-designed magazine's table of contents - present but
+ * unobtrusive, helping readers find their place without competing
+ * for attention with the main content.
+ *
+ * Aesthetic Choices:
+ * - Subtle left border accent creates visual connection
+ * - Indentation hierarchy for nested headings (h2 > h3 > h4)
+ * - Muted text colors keep focus on main content
+ * - Active section uses primary color sparingly
+ * - Smooth scroll and scroll-spy enhance interactivity
+ */
+
+interface Heading {
+  depth: number;
+  text: string;
+  slug: string;
+}
+
+interface Props {
+  headings: Array<{ depth: number; text: string; slug: string }>;
+  title?: string;
+  minDepth?: number;
+  maxDepth?: number;
+  class?: string;
+}
+
+const {
+  headings,
+  title = 'In This Article',
+  minDepth = 2,
+  maxDepth = 4,
+  class: className = '',
+} = Astro.props;
+
+const filteredHeadings = headings.filter(
+  (h) => h.depth >= minDepth && h.depth <= maxDepth
+);
+
+const hasHeadings = filteredHeadings.length > 0;
+---
+
+{hasHeadings && (
+  <nav class:list={['blog-toc', className]} aria-labelledby="toc-title">
+    <div class="blog-toc-inner">
+      <h2 id="toc-title" class="blog-toc-title">{title}</h2>
+
+      <ol class="blog-toc-list">
+        {filteredHeadings.map((heading) => (
+          <li class={`blog-toc-item blog-toc-depth-${heading.depth}`} data-slug={heading.slug}>
+            <a href={`#${heading.slug}`} class="blog-toc-link">
+              <span class="blog-toc-indicator" aria-hidden="true" />
+              <span class="blog-toc-text">{heading.text}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+
+      <div class="blog-toc-progress" aria-hidden="true">
+        <div class="blog-toc-progress-fill" />
+      </div>
+    </div>
+  </nav>
+)}
+
+<style>
+  .blog-toc {
+    position: sticky;
+    top: calc(var(--header-height-desktop, 80px) + var(--space-6));
+    max-height: calc(100vh - var(--header-height-desktop, 80px) - var(--space-12));
+  }
+
+  .blog-toc-inner {
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .blog-toc-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-4) 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .blog-toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 55vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-primary) transparent;
+  }
+
+  .blog-toc-list::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .blog-toc-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-primary);
+    border-radius: var(--radius-full);
+  }
+
+  .blog-toc-item {
+    position: relative;
+  }
+
+  .blog-toc-item + .blog-toc-item {
+    margin-top: var(--space-0-5);
+  }
+
+  .blog-toc-depth-2 { padding-left: 0; }
+  .blog-toc-depth-3 { padding-left: var(--space-4); }
+  .blog-toc-depth-4 { padding-left: var(--space-8); }
+
+  .blog-toc-link {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    margin: 0 calc(-1 * var(--space-3));
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .blog-toc-link:hover {
+    background-color: var(--color-surface-secondary);
+  }
+
+  .blog-toc-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 1px;
+  }
+
+  .blog-toc-indicator {
+    flex-shrink: 0;
+    width: 3px;
+    min-height: 1.25rem;
+    background-color: transparent;
+    border-radius: var(--radius-full);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .blog-toc-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-secondary);
+    transition: color var(--duration-fast) var(--ease-out);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .blog-toc-link:hover .blog-toc-text {
+    color: var(--color-text-primary);
+  }
+
+  .blog-toc-depth-2 .blog-toc-text {
+    font-weight: var(--font-weight-medium);
+  }
+
+  .blog-toc-depth-3 .blog-toc-text,
+  .blog-toc-depth-4 .blog-toc-text {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* Active state */
+  .blog-toc-item.is-active .blog-toc-link {
+    background-color: var(--color-primary-50);
+  }
+
+  .blog-toc-item.is-active .blog-toc-indicator {
+    background-color: var(--color-primary-600);
+  }
+
+  .blog-toc-item.is-active .blog-toc-text {
+    color: var(--color-primary-700);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Progress bar */
+  .blog-toc-progress {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .blog-toc-progress-fill {
+    height: 3px;
+    background-color: var(--color-surface-tertiary);
+    border-radius: var(--radius-full);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .blog-toc-progress-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: var(--toc-progress, 0%);
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+    border-radius: var(--radius-full);
+    transition: width var(--duration-normal) var(--ease-out);
+  }
+
+  @media (max-width: 1024px) {
+    .blog-toc {
+      position: relative;
+      top: 0;
+      max-height: none;
+      margin-bottom: var(--space-6);
+    }
+
+    .blog-toc-inner {
+      background-color: var(--color-surface-secondary);
+    }
+
+    .blog-toc-list {
+      max-height: 200px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-toc-link,
+    .blog-toc-indicator,
+    .blog-toc-text,
+    .blog-toc-progress-fill::after {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toc = document.querySelector('.blog-toc');
+    if (!toc) return;
+
+    const items = toc.querySelectorAll('.blog-toc-item');
+    const progressFill = toc.querySelector('.blog-toc-progress-fill') as HTMLElement;
+
+    const slugs = Array.from(items).map(item => (item as HTMLElement).dataset.slug);
+    const headings = slugs.map(slug => document.getElementById(slug!)).filter(Boolean) as HTMLElement[];
+
+    if (headings.length === 0) return;
+
+    // Scroll spy
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = headings.indexOf(entry.target as HTMLElement);
+          if (idx !== -1) {
+            items.forEach((item, i) => item.classList.toggle('is-active', i === idx));
+          }
+        }
+      });
+    }, { rootMargin: '-100px 0px -70% 0px' });
+
+    headings.forEach(el => observer.observe(el));
+
+    // Smooth scroll
+    toc.querySelectorAll('.blog-toc-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = (link as HTMLAnchorElement).getAttribute('href');
+        if (!href) return;
+        const target = document.getElementById(href.slice(1));
+        if (target) {
+          const offset = 100;
+          window.scrollTo({
+            top: target.getBoundingClientRect().top + window.scrollY - offset,
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+          });
+        }
+      });
+    });
+
+    // Progress tracking
+    if (progressFill) {
+      const article = document.querySelector('article, main');
+      if (article) {
+        const updateProgress = () => {
+          const rect = article.getBoundingClientRect();
+          const scrolled = window.scrollY - (rect.top + window.scrollY) + window.innerHeight * 0.3;
+          const progress = Math.max(0, Math.min(100, (scrolled / rect.height) * 100));
+          progressFill.style.setProperty('--toc-progress', `${progress}%`);
+        };
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+      }
+    }
+  });
+</script>

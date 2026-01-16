@@ -1,21 +1,65 @@
 ---
 /**
- * Homepage - Gutted for Redesign
+ * Homepage - B.A.P Heating & Cooling
  *
- * Preserves all data fetching and schema logic.
- * Visual components will be rebuilt in Phase 4-6.
+ * The commanding first impression. Every section is a step in the conversion
+ * funnel, optimized for phone calls. The goal: Make visitors think "These
+ * guys look legit. I should call them."
+ *
+ * Section Flow (designed for maximum conversion):
+ * 1. HeroSection - Immediate trust + CTA
+ * 2. ServiceCategoriesSection - Show expertise breadth
+ * 3. CTASection (emergency) - Capture urgent visitors
+ * 4. ReviewsCarousel - Social proof (moved early for CRO)
+ * 5. WhyChooseBAPSection - Build trust/differentiation
+ * 6. BrandLogosSection - Equipment authority
+ * 7. ProcessSection - Reduce friction with clear steps
+ * 8. GallerySection - Visual proof of quality work
+ * 9. FinancingTeaserSection - Remove price objection
+ * 10. ServiceAreasSection - Local relevance
+ * 11. BlogPreviewSection - Establish expertise
+ * 12. FAQSection - Answer objections
+ * 13. CTASection (primary) - Final conversion push
+ *
+ * Data Sources:
+ * - Business profile for phone, hours, etc.
+ * - FAQs collection (homepage-scoped)
+ * - Reviews collection
+ * - Blog collection (latest posts)
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../lib/schema';
 import { resolveFAQs } from '../lib/faqResolver';
 import { generateFAQSchema } from '../lib/faqSchema';
 import { getSiteReviewBlock } from '../lib/reviewResolver';
 import { generateReviewSchemas } from '../lib/reviewSchema';
 
+// Homepage Components
+import HeroSection from '../components/homepage/HeroSection.astro';
+import ServiceCategoriesSection from '../components/homepage/ServiceCategoriesSection.astro';
+import WhyChooseBAPSection from '../components/homepage/WhyChooseBAPSection.astro';
+import BrandLogosSection from '../components/homepage/BrandLogosSection.astro';
+import ProcessSection from '../components/homepage/ProcessSection.astro';
+import GallerySection from '../components/homepage/GallerySection.astro';
+import FinancingTeaserSection from '../components/homepage/FinancingTeaserSection.astro';
+import ServiceAreasSection from '../components/homepage/ServiceAreasSection.astro';
+import BlogPreviewSection from '../components/homepage/BlogPreviewSection.astro';
+
+// Shared Components
+import CTASection from '../components/shared/CTASection.astro';
+import ReviewsCarousel from '../components/shared/ReviewsCarousel.astro';
+import FAQSection from '../components/shared/FAQSection.astro';
+
+// ============================================
+// DATA FETCHING
+// ============================================
+
 const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
 
 // Load all FAQs
 const allFAQs = await getCollection('faqs');
@@ -24,6 +68,12 @@ const allFAQs = await getCollection('faqs');
 const pageFAQs = resolveFAQs(allFAQs, {
   pageType: 'homepage',
 });
+
+// Transform FAQs to the format expected by FAQSection
+const faqsForSection = pageFAQs.map(faq => ({
+  question: faq.data.question,
+  answer: faq.data.answer,
+}));
 
 // Generate FAQ schema if FAQs exist
 const faqSchema = generateFAQSchema(pageFAQs);
@@ -45,16 +95,152 @@ if (reviewSchemas.length > 0) {
 }
 
 const schema = schemas;
+
+// ============================================
+// PAGE METADATA
+// ============================================
+
+const pageTitle = "Furnace & AC Installation Guelph ON | 24/7 HVAC | B.A.P Heating";
+const pageDescription = "24/7 emergency HVAC in Guelph & Ontario. Furnace installation, AC repair, heat pumps. Family-owned since 1994. 10-year warranty. Free estimates: 519-835-4858";
 ---
 
 <BaseLayout
-  title="Furnace & AC Installation Guelph ON | 24/7 HVAC | B.A.P Heating"
-  description="24/7 emergency HVAC in Guelph & Ontario. Furnace installation, AC repair, heat pumps. Family-owned since 1994. 10-year warranty. Free estimates: 519-835-4858"
+  title={pageTitle}
+  description={pageDescription}
   schema={schema}
 >
-  <!-- Homepage placeholder - will be rebuilt in Phase 4-6 -->
-  <div class="redesign-placeholder">
-    <h1>Homepage</h1>
-    <p>Website redesign in progress. Components will be built using the frontend-design skill.</p>
-  </div>
+  <!-- ============================================
+       HERO SECTION
+       First impression - trust + CTA immediately visible
+       ============================================ -->
+  <HeroSection
+    headline="Your Home Comfort Experts Since 1992"
+    subheadline="Family-owned HVAC service you can trust. Fast response, fair pricing, and work done right the first time."
+  />
+
+  <!-- ============================================
+       SERVICE CATEGORIES
+       Show breadth of expertise - 6 main categories
+       ============================================ -->
+  <ServiceCategoriesSection />
+
+  <!-- ============================================
+       EMERGENCY CTA
+       Capture visitors with urgent needs
+       ============================================ -->
+  <CTASection
+    variant="emergency"
+    headline="Furnace Not Working? We're Available 24/7"
+    description="Don't suffer through a cold night. Our technicians are on call around the clock for emergency heating and cooling repairs."
+    primaryCTA={{
+      label: `Call Now: ${phoneDisplay}`,
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: "Book Online",
+      href: profile.contact.booking.url,
+    }}
+    showPhone={true}
+    showHours={true}
+  />
+
+  <!-- ============================================
+       REVIEWS CAROUSEL (Moved earlier for CRO)
+       Social proof - real customers, real stories
+       ============================================ -->
+  <ReviewsCarousel
+    title="What Our Customers Say"
+    eyebrow="Customer Reviews"
+    description="Don't just take our word for it. Hear from homeowners across Ontario who trust B.A.P with their comfort."
+    limit={6}
+    showNavigation={true}
+    showDots={true}
+    cardVariant="default"
+    variant="muted"
+    showSummary={true}
+  />
+
+  <!-- ============================================
+       WHY CHOOSE B.A.P
+       Build trust through differentiation
+       ============================================ -->
+  <WhyChooseBAPSection />
+
+  <!-- ============================================
+       BRAND LOGOS
+       Equipment authority - "we work with the best"
+       ============================================ -->
+  <BrandLogosSection />
+
+  <!-- ============================================
+       PROCESS
+       Reduce friction by showing clear steps
+       ============================================ -->
+  <ProcessSection />
+
+  <!-- ============================================
+       GALLERY
+       Visual proof of quality work
+       ============================================ -->
+  <GallerySection />
+
+  <!-- ============================================
+       FINANCING TEASER
+       Remove price objection
+       ============================================ -->
+  <FinancingTeaserSection />
+
+  <!-- ============================================
+       SERVICE AREAS
+       Local relevance - "we serve your area"
+       ============================================ -->
+  <ServiceAreasSection />
+
+  <!-- ============================================
+       BLOG PREVIEW
+       Establish expertise through helpful content
+       ============================================ -->
+  <BlogPreviewSection
+    limit={3}
+    variant="default"
+  />
+
+  <!-- ============================================
+       FAQ SECTION
+       Answer common objections
+       ============================================ -->
+  {faqsForSection.length > 0 && (
+    <FAQSection
+      faqs={faqsForSection}
+      title="Frequently Asked Questions"
+      eyebrow="FAQ"
+      description="Have questions? We've got answers. Here's what Ontario homeowners commonly ask us."
+      variant="muted"
+      accordionVariant="bordered"
+      showCTA={true}
+      ctaHeadline="Still have questions?"
+      ctaLabel={`Call Us: ${phoneDisplay}`}
+      ctaHref={phoneLink}
+    />
+  )}
+
+  <!-- ============================================
+       FINAL CTA
+       Last chance conversion push
+       ============================================ -->
+  <CTASection
+    variant="primary"
+    headline="Ready for Reliable Home Comfort?"
+    description="Join thousands of Ontario homeowners who trust B.A.P for their heating and cooling needs. Free estimates, fair pricing, and work guaranteed."
+    primaryCTA={{
+      label: `Call: ${phoneDisplay}`,
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: "Book Online",
+      href: profile.contact.booking.url,
+    }}
+    showPhone={true}
+    showHours={false}
+  />
 </BaseLayout>

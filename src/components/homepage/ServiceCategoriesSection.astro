@@ -1,0 +1,670 @@
+---
+/**
+ * ServiceCategoriesSection Component (Homepage)
+ *
+ * Showcases B.A.P's core service offerings in an organized, scannable grid.
+ * Designed to quickly answer "What do you do?" while driving users toward
+ * specific service pages.
+ *
+ * Design Philosophy:
+ * - Each category is a clear entry point into deeper content
+ * - Emergency/repair services get visual urgency treatment
+ * - Icons provide instant recognition of service types
+ * - Hover interactions reward exploration
+ * - Grid layout creates professional, organized impression
+ *
+ * The goal: Help visitors find exactly what they need in seconds.
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface ServiceCategory {
+  icon: string;
+  title: string;
+  description: string;
+  href: string;
+  featured?: boolean;
+  emergency?: boolean;
+}
+
+interface Props {
+  /** Override default eyebrow text */
+  eyebrow?: string;
+  /** Override default headline */
+  headline?: string;
+  /** Override default description */
+  description?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  eyebrow = 'What We Do',
+  headline = 'Complete Home Comfort Solutions',
+  description = 'From emergency repairs to new installations, our certified technicians deliver reliable HVAC services across the Greater Toronto Area.',
+  class: className = '',
+} = Astro.props;
+
+// Service categories data
+const categories: ServiceCategory[] = [
+  {
+    icon: 'flame',
+    title: 'Heating',
+    description: 'Furnaces, boilers, heat pumps, and radiant heating systems to keep you warm all winter.',
+    href: '/services/heating/',
+    featured: true,
+  },
+  {
+    icon: 'snowflake',
+    title: 'Cooling',
+    description: 'Central air conditioning, ductless systems, and heat pump cooling for summer comfort.',
+    href: '/services/cooling/',
+    featured: true,
+  },
+  {
+    icon: 'air',
+    title: 'Indoor Air Quality',
+    description: 'Air purifiers, humidifiers, ventilation systems, and duct cleaning for healthier air.',
+    href: '/services/indoor-air-quality/',
+  },
+  {
+    icon: 'water',
+    title: 'Water Heating',
+    description: 'Tank and tankless water heaters, plus high-efficiency solutions for endless hot water.',
+    href: '/services/water-heating/',
+  },
+  {
+    icon: 'tools',
+    title: '24/7 Repairs',
+    description: 'Emergency service when you need it most. Fast response, upfront pricing, guaranteed work.',
+    href: '/services/heating/',
+    emergency: true,
+  },
+  {
+    icon: 'shield',
+    title: 'Maintenance Plans',
+    description: 'Preventive care that extends equipment life, improves efficiency, and prevents breakdowns.',
+    href: '/services/maintenance-plans/',
+  },
+];
+---
+
+<Section variant="muted" padding="lg" class:list={['service-categories-section', className]}>
+  <Container size="xl">
+    <!-- Section Header -->
+    <div class="section-header-wrapper">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+        maxWidth="lg"
+        animate
+      />
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="categories-grid">
+      {categories.map((category, index) => (
+        <a
+          href={category.href}
+          class:list={[
+            'category-card',
+            category.emergency && 'category-card--emergency',
+            category.featured && 'category-card--featured',
+          ]}
+          style={`--card-index: ${index};`}
+          data-cta-context={`homepage-service-${category.title.toLowerCase().replace(/\s+/g, '-')}`}
+        >
+          <!-- Icon Container -->
+          <div class="category-icon-wrapper">
+            <div class="category-icon">
+              <Icon name={category.icon} size="xl" />
+            </div>
+            {/* Decorative ring for featured/emergency cards */}
+            {(category.featured || category.emergency) && (
+              <div class="category-icon-ring" aria-hidden="true" />
+            )}
+          </div>
+
+          <!-- Content -->
+          <div class="category-content">
+            <h3 class="category-title">{category.title}</h3>
+            <p class="category-description">{category.description}</p>
+          </div>
+
+          <!-- Arrow indicator -->
+          <div class="category-arrow">
+            <Icon name="arrowRight" size="md" />
+          </div>
+
+          {/* Emergency badge */}
+          {category.emergency && (
+            <div class="emergency-badge">
+              <span class="emergency-pulse" aria-hidden="true" />
+              <span class="emergency-text">24/7</span>
+            </div>
+          )}
+
+          {/* Hover accent line */}
+          <div class="category-accent" aria-hidden="true" />
+        </a>
+      ))}
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* =================================================================
+     SECTION WRAPPER
+     ================================================================= */
+
+  .service-categories-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle texture overlay for depth */
+  .service-categories-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.015;
+    background-image:
+      radial-gradient(circle at 20% 50%, var(--color-primary-500) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, var(--color-accent-500) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .section-header-wrapper {
+    margin-bottom: var(--space-12);
+  }
+
+  @media (min-width: 768px) {
+    .section-header-wrapper {
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* =================================================================
+     CATEGORIES GRID
+     ================================================================= */
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 640px) {
+    .categories-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .categories-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  /* =================================================================
+     CATEGORY CARD
+     ================================================================= */
+
+  .category-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-xl);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: cardEnter 0.6s var(--ease-out) forwards;
+    animation-delay: calc(var(--card-index, 0) * 80ms + 300ms);
+  }
+
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .category-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary-200);
+  }
+
+  .category-card:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 640px) {
+    .category-card {
+      padding: var(--space-7);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .category-card {
+      padding: var(--space-8);
+    }
+  }
+
+  /* =================================================================
+     FEATURED CARD VARIANT
+     ================================================================= */
+
+  .category-card--featured {
+    background: linear-gradient(
+      145deg,
+      var(--color-surface-primary) 0%,
+      var(--color-primary-50) 100%
+    );
+    border-color: var(--color-primary-100);
+  }
+
+  .category-card--featured:hover {
+    border-color: var(--color-primary-300);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 1px var(--color-primary-100);
+  }
+
+  .category-card--featured .category-icon {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+    color: var(--color-text-inverse);
+  }
+
+  .category-card--featured .category-icon-ring {
+    border-color: var(--color-primary-200);
+  }
+
+  /* =================================================================
+     EMERGENCY CARD VARIANT
+     ================================================================= */
+
+  .category-card--emergency {
+    background: linear-gradient(
+      145deg,
+      var(--color-surface-primary) 0%,
+      var(--color-emergency-50) 100%
+    );
+    border-color: var(--color-emergency-100);
+  }
+
+  .category-card--emergency:hover {
+    border-color: var(--color-emergency-300);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 1px var(--color-emergency-100),
+      0 4px 20px -4px rgba(239, 68, 68, 0.2);
+  }
+
+  .category-card--emergency .category-icon {
+    background: linear-gradient(
+      135deg,
+      var(--color-emergency-500) 0%,
+      var(--color-emergency-600) 100%
+    );
+    color: var(--color-text-inverse);
+  }
+
+  .category-card--emergency .category-icon-ring {
+    border-color: var(--color-emergency-200);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  .category-card--emergency .category-title {
+    color: var(--color-emergency-700);
+  }
+
+  .category-card--emergency .category-arrow {
+    color: var(--color-emergency-500);
+  }
+
+  /* =================================================================
+     ICON WRAPPER
+     ================================================================= */
+
+  .category-icon-wrapper {
+    position: relative;
+    width: fit-content;
+    margin-bottom: var(--space-5);
+  }
+
+  .category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary-600);
+    transition: transform var(--duration-normal) var(--ease-bounce);
+  }
+
+  .category-card:hover .category-icon {
+    transform: scale(1.1) rotate(-3deg);
+  }
+
+  .category-icon-ring {
+    position: absolute;
+    inset: -6px;
+    border: 2px dashed var(--color-border-secondary);
+    border-radius: var(--radius-xl);
+    opacity: 0.5;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .category-card:hover .category-icon-ring {
+    opacity: 1;
+  }
+
+  @media (min-width: 768px) {
+    .category-icon {
+      width: 64px;
+      height: 64px;
+    }
+
+    .category-icon :global(svg) {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  /* =================================================================
+     CONTENT
+     ================================================================= */
+
+  .category-content {
+    flex: 1;
+  }
+
+  .category-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-2) 0;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .category-card:hover .category-title {
+    color: var(--color-primary-700);
+  }
+
+  .category-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+    /* Clamp to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .category-title {
+      font-size: var(--font-size-2xl);
+    }
+  }
+
+  /* =================================================================
+     ARROW INDICATOR
+     ================================================================= */
+
+  .category-arrow {
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-full);
+    color: var(--color-text-tertiary);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      background-color var(--duration-normal) var(--ease-out),
+      color var(--duration-normal) var(--ease-out);
+  }
+
+  .category-card:hover .category-arrow {
+    transform: translateX(4px);
+    background: var(--color-primary-600);
+    color: var(--color-text-inverse);
+  }
+
+  .category-card--featured:hover .category-arrow {
+    background: var(--color-primary-700);
+  }
+
+  .category-card--emergency:hover .category-arrow {
+    background: var(--color-emergency-600);
+  }
+
+  @media (min-width: 768px) {
+    .category-arrow {
+      right: var(--space-6);
+      bottom: var(--space-6);
+    }
+  }
+
+  /* =================================================================
+     EMERGENCY BADGE
+     ================================================================= */
+
+  .emergency-badge {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: var(--space-1-5) var(--space-3);
+    background: var(--color-emergency-600);
+    border-radius: var(--radius-full);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  }
+
+  .emergency-pulse {
+    width: 8px;
+    height: 8px;
+    background: var(--color-text-inverse);
+    border-radius: var(--radius-full);
+    animation: emergency-blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes emergency-blink {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  .emergency-text {
+    text-transform: uppercase;
+  }
+
+  /* =================================================================
+     HOVER ACCENT LINE
+     ================================================================= */
+
+  .category-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .category-card:hover .category-accent {
+    transform: scaleX(1);
+  }
+
+  .category-card--featured .category-accent {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-500) 100%
+    );
+  }
+
+  .category-card--emergency .category-accent {
+    background: linear-gradient(
+      90deg,
+      var(--color-emergency-600) 0%,
+      var(--color-emergency-500) 100%
+    );
+  }
+
+  /* =================================================================
+     REDUCED MOTION
+     ================================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .category-card {
+      animation: none;
+      opacity: 1;
+    }
+
+    .category-card:hover {
+      transform: none;
+    }
+
+    .category-card:hover .category-icon {
+      transform: none;
+    }
+
+    .category-icon-ring {
+      animation: none;
+    }
+
+    .emergency-pulse {
+      animation: none;
+    }
+  }
+
+  /* =================================================================
+     MOBILE OPTIMIZATIONS
+     ================================================================= */
+
+  @media (max-width: 639px) {
+    .category-card {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+
+    .category-icon-wrapper {
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .category-icon {
+      width: 48px;
+      height: 48px;
+    }
+
+    .category-icon :global(svg) {
+      width: 24px;
+      height: 24px;
+    }
+
+    .category-icon-ring {
+      inset: -4px;
+    }
+
+    .category-content {
+      min-width: 0;
+    }
+
+    .category-title {
+      font-size: var(--font-size-lg);
+      padding-right: var(--space-8);
+    }
+
+    .category-description {
+      font-size: var(--font-size-sm);
+      -webkit-line-clamp: 2;
+    }
+
+    .category-arrow {
+      top: var(--space-4);
+      right: var(--space-4);
+      bottom: auto;
+      width: 32px;
+      height: 32px;
+    }
+
+    .emergency-badge {
+      top: auto;
+      bottom: var(--space-4);
+      right: var(--space-4);
+      padding: var(--space-1) var(--space-2);
+      font-size: 10px;
+    }
+  }
+</style>

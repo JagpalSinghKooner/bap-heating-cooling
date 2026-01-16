@@ -1,0 +1,588 @@
+---
+/**
+ * BlogPostCard Component
+ *
+ * A card component for displaying blog posts in listings and grids.
+ * Builds on the Card primitive with blog-specific content structure
+ * and editorial styling.
+ *
+ * Design Direction: Editorial Grid
+ * Think of a curated magazine layout - each card is a doorway to
+ * valuable content. Clean imagery, clear typography, and subtle
+ * hover interactions invite exploration while maintaining the
+ * professional B.A.P brand feel.
+ *
+ * Aesthetic Choices:
+ * - Featured images with 16:9 aspect ratio for visual consistency
+ * - Category badges positioned over the image for quick scanning
+ * - Warm shadows and lift on hover for tactile feel
+ * - Title uses heading font for authority
+ * - Date/metadata is subtle but accessible
+ *
+ * Variants:
+ * - default:  Standard card for grid layouts
+ * - featured: Larger horizontal card for hero positions
+ * - compact:  Minimal card for sidebar/related posts
+ */
+
+import Card from '../primitives/Card.astro';
+import CardMedia from '../primitives/CardMedia.astro';
+import CardBody from '../primitives/CardBody.astro';
+import Badge from '../primitives/Badge.astro';
+
+interface Props {
+  /** Blog post data */
+  post: {
+    title: string;
+    description?: string;
+    slug: string;
+    publishDate: Date;
+    category?: string;
+    featuredImage?: string;
+    author?: string;
+    readingTime?: string;
+  };
+  /** Display variant */
+  variant?: 'default' | 'featured' | 'compact';
+  /** Show the description/excerpt */
+  showDescription?: boolean;
+  /** Show the read more link */
+  showReadMore?: boolean;
+  /** Image loading behavior */
+  imageLoading?: 'lazy' | 'eager';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  post,
+  variant = 'default',
+  showDescription = true,
+  showReadMore = true,
+  imageLoading = 'lazy',
+  class: className = '',
+} = Astro.props;
+
+// Format the date
+const formattedDate = post.publishDate.toLocaleDateString('en-CA', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+// Category display names
+const categoryNames: Record<string, string> = {
+  heating: 'Heating',
+  cooling: 'Cooling',
+  maintenance: 'Maintenance',
+  efficiency: 'Energy Efficiency',
+  news: 'News',
+  guides: 'Guides',
+};
+
+const categoryLabel = post.category ? (categoryNames[post.category] || post.category) : null;
+
+// Default image if none provided
+const imageSrc = post.featuredImage || '/images/blog/default-blog.svg';
+const imageAlt = `Featured image for: ${post.title}`;
+
+// Build the URL
+const postUrl = `/blog/${post.slug}/`;
+
+// Variant-specific configurations
+const variantConfig: Record<string, {
+  cardClass: string;
+  aspectRatio: '16/9' | '4/3' | '3/2';
+  imageRounded: 'top' | 'none';
+}> = {
+  default: {
+    cardClass: 'blog-card-default',
+    aspectRatio: '16/9',
+    imageRounded: 'top',
+  },
+  featured: {
+    cardClass: 'blog-card-featured',
+    aspectRatio: '16/9',
+    imageRounded: 'none',
+  },
+  compact: {
+    cardClass: 'blog-card-compact',
+    aspectRatio: '4/3',
+    imageRounded: 'top',
+  },
+};
+
+const config = variantConfig[variant];
+
+// Build class string
+const cardClasses = [
+  'blog-card',
+  config.cardClass,
+  className,
+].filter(Boolean).join(' ');
+---
+
+{variant === 'featured' ? (
+  <article class={cardClasses}>
+    <a href={postUrl} class="blog-card-featured-link">
+      {/* Image side */}
+      <div class="blog-card-featured-image">
+        <CardMedia
+          src={imageSrc}
+          alt={imageAlt}
+          aspectRatio={config.aspectRatio}
+          loading={imageLoading}
+          overlay="subtle"
+          rounded="all"
+        >
+          {/* Category badge overlay */}
+          {categoryLabel && (
+            <div class="blog-card-badge-overlay">
+              <Badge variant="primary" size="sm" pill class="badge-uppercase badge-solid">
+                {categoryLabel}
+              </Badge>
+            </div>
+          )}
+        </CardMedia>
+      </div>
+
+      {/* Content side */}
+      <div class="blog-card-featured-content">
+        {/* Meta row */}
+        <div class="blog-card-meta">
+          <time datetime={post.publishDate.toISOString()} class="blog-card-date">
+            {formattedDate}
+          </time>
+          {post.readingTime && (
+            <>
+              <span class="blog-card-meta-separator" aria-hidden="true">&middot;</span>
+              <span class="blog-card-reading-time">{post.readingTime}</span>
+            </>
+          )}
+        </div>
+
+        {/* Title */}
+        <h3 class="blog-card-title">{post.title}</h3>
+
+        {/* Description */}
+        {showDescription && post.description && (
+          <p class="blog-card-description">{post.description}</p>
+        )}
+
+        {/* Read more */}
+        {showReadMore && (
+          <span class="blog-card-read-more">
+            Read article
+            <svg class="blog-card-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
+            </svg>
+          </span>
+        )}
+      </div>
+    </a>
+  </article>
+) : (
+  <Card
+    variant="elevated"
+    interactive
+    href={postUrl}
+    radius={variant === 'compact' ? 'lg' : 'xl'}
+    class={cardClasses}
+  >
+    {/* Featured image with category badge */}
+    <div class="blog-card-image-wrapper">
+      <CardMedia
+        src={imageSrc}
+        alt={imageAlt}
+        aspectRatio={config.aspectRatio}
+        rounded={config.imageRounded}
+        loading={imageLoading}
+      >
+        {/* Category badge overlay */}
+        {categoryLabel && (
+          <div class="blog-card-badge-overlay">
+            <Badge variant="primary" size="sm" pill class="badge-uppercase">
+              {categoryLabel}
+            </Badge>
+          </div>
+        )}
+      </CardMedia>
+    </div>
+
+    {/* Content body */}
+    <CardBody padding={variant === 'compact' ? 'sm' : 'md'}>
+      {/* Meta row */}
+      <div class="blog-card-meta">
+        <time datetime={post.publishDate.toISOString()} class="blog-card-date">
+          {formattedDate}
+        </time>
+        {post.readingTime && variant !== 'compact' && (
+          <>
+            <span class="blog-card-meta-separator" aria-hidden="true">&middot;</span>
+            <span class="blog-card-reading-time">{post.readingTime}</span>
+          </>
+        )}
+      </div>
+
+      {/* Title */}
+      <h3 class="blog-card-title">{post.title}</h3>
+
+      {/* Description */}
+      {showDescription && post.description && variant !== 'compact' && (
+        <p class="blog-card-description">{post.description}</p>
+      )}
+
+      {/* Read more link */}
+      {showReadMore && variant !== 'compact' && (
+        <span class="blog-card-read-more">
+          Read article
+          <svg class="blog-card-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
+          </svg>
+        </span>
+      )}
+    </CardBody>
+  </Card>
+)}
+
+<style is:global>
+  /**
+   * BlogPostCard Styles
+   * Editorial card design for blog listings
+   */
+
+  /* ============================================
+     BASE CARD STYLES
+     ============================================ */
+
+  .blog-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Image wrapper for badge positioning */
+  .blog-card-image-wrapper {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Badge overlay positioning */
+  .blog-card-badge-overlay {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 10;
+  }
+
+  /* ============================================
+     META ROW
+     ============================================ */
+
+  .blog-card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .blog-card-date,
+  .blog-card-reading-time {
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-body);
+    color: var(--color-text-secondary);
+  }
+
+  .blog-card-meta-separator {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
+  }
+
+  /* ============================================
+     TITLE
+     ============================================ */
+
+  .blog-card-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-2) 0;
+    transition: color var(--duration-fast) var(--ease-out);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Title hover effect */
+  .card-interactive:hover .blog-card-title,
+  .blog-card-featured-link:hover .blog-card-title {
+    color: var(--color-primary-600);
+  }
+
+  /* ============================================
+     DESCRIPTION
+     ============================================ */
+
+  .blog-card-description {
+    font-size: var(--font-size-base);
+    font-family: var(--font-family-body);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-4) 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     READ MORE LINK
+     ============================================ */
+
+  .blog-card-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    transition: gap var(--duration-fast) var(--ease-out);
+    margin-top: auto;
+  }
+
+  .blog-card-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  /* Arrow movement on hover */
+  .card-interactive:hover .blog-card-arrow,
+  .blog-card-featured-link:hover .blog-card-arrow {
+    transform: translateX(4px);
+  }
+
+  /* ============================================
+     VARIANT: DEFAULT
+     Standard card for grid layouts
+     ============================================ */
+
+  .blog-card-default {
+    /* Uses standard Card styles */
+  }
+
+  .blog-card-default .blog-card-title {
+    font-size: var(--font-size-xl);
+  }
+
+  /* ============================================
+     VARIANT: FEATURED
+     Larger horizontal card for hero positions
+     ============================================ */
+
+  .blog-card-featured {
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out);
+  }
+
+  .blog-card-featured:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .blog-card-featured-link {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  .blog-card-featured-image {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .blog-card-featured-image .card-media {
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .blog-card-featured-image .card-media-img {
+    height: 100%;
+    min-height: 280px;
+  }
+
+  .blog-card-featured-image .card-media-rounded-all {
+    border-radius: 0;
+    border-top-left-radius: var(--radius-2xl);
+    border-bottom-left-radius: var(--radius-2xl);
+  }
+
+  .blog-card-featured-content {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-8);
+    justify-content: center;
+  }
+
+  .blog-card-featured .blog-card-title {
+    font-size: var(--font-size-3xl);
+    -webkit-line-clamp: 3;
+    margin-bottom: var(--space-3);
+  }
+
+  .blog-card-featured .blog-card-description {
+    font-size: var(--font-size-lg);
+    -webkit-line-clamp: 3;
+    margin-bottom: var(--space-6);
+  }
+
+  .blog-card-featured .blog-card-read-more {
+    font-size: var(--font-size-base);
+  }
+
+  /* Featured responsive - stack on mobile */
+  @media (max-width: 768px) {
+    .blog-card-featured-link {
+      grid-template-columns: 1fr;
+    }
+
+    .blog-card-featured-image .card-media-rounded-all {
+      border-radius: 0;
+      border-top-left-radius: var(--radius-2xl);
+      border-top-right-radius: var(--radius-2xl);
+    }
+
+    .blog-card-featured-image .card-media-img {
+      min-height: 200px;
+    }
+
+    .blog-card-featured-content {
+      padding: var(--space-6);
+    }
+
+    .blog-card-featured .blog-card-title {
+      font-size: var(--font-size-2xl);
+    }
+
+    .blog-card-featured .blog-card-description {
+      font-size: var(--font-size-base);
+    }
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Minimal card for sidebar/related posts
+     ============================================ */
+
+  .blog-card-compact {
+    /* Smaller overall footprint */
+  }
+
+  .blog-card-compact .blog-card-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    -webkit-line-clamp: 2;
+    margin-bottom: 0;
+  }
+
+  .blog-card-compact .blog-card-meta {
+    margin-bottom: var(--space-1);
+  }
+
+  .blog-card-compact .blog-card-date {
+    font-size: var(--font-size-xs);
+  }
+
+  /* ============================================
+     CARD BODY ADJUSTMENTS
+     ============================================ */
+
+  .blog-card .card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  /* ============================================
+     GRID LAYOUTS
+     Helper classes for common grid patterns
+     ============================================ */
+
+  .blog-card-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .blog-card-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blog-card-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .blog-card-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 1024px) {
+    .blog-card-grid-4,
+    .blog-card-grid-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .blog-card-grid-4,
+    .blog-card-grid-3,
+    .blog-card-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ============================================
+     FOCUS STATES
+     ============================================ */
+
+  .blog-card-featured-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-2xl);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-card-featured {
+      transition: none;
+    }
+
+    .blog-card-featured:hover {
+      transform: none;
+    }
+
+    .blog-card-arrow {
+      transition: none;
+    }
+
+    .card-interactive:hover .blog-card-arrow,
+    .blog-card-featured-link:hover .blog-card-arrow {
+      transform: none;
+    }
+  }
+</style>

@@ -1,26 +1,309 @@
 ---
 /**
- * 404 Page - Gutted for Redesign
+ * 404 Not Found Page
  *
- * Preserves all data fetching logic.
+ * Custom error page with helpful navigation.
+ * Still emphasizes phone number for help.
+ *
+ * Design: Industrial, helpful, not frustrating
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getBusinessProfile } from '../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink, getPhoneDisplay } from '../lib/getBusinessProfile';
+
+// Components
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Button from '../components/primitives/Button.astro';
+import Icon from '../components/primitives/Icon.astro';
 
 const profile = await getBusinessProfile();
+const phoneLink = getPhoneLink(profile);
+const phoneDisplay = getPhoneDisplay(profile);
+
+// Helpful links
+const helpfulLinks = [
+  { label: 'Homepage', href: '/', icon: 'home' },
+  { label: 'Services', href: '/services/', icon: 'settings' },
+  { label: 'Locations', href: '/locations/', icon: 'mapPin' },
+  { label: 'Contact', href: '/contact-us/', icon: 'phone' },
+];
 ---
 
 <BaseLayout
   title="Page Not Found - B.A.P Heating and Cooling"
-  description="The page you're looking for doesn't exist."
+  description="The page you're looking for doesn't exist. Let us help you find what you need."
   robots="noindex,follow"
 >
-  <div class="redesign-placeholder">
-    <h1>404 - Page Not Found</h1>
-    <p>The page you're looking for doesn't exist.</p>
-    <p style="margin-top: 1rem;">
-      <a href="/" style="color: #1e40af; text-decoration: underline;">Return to Homepage</a>
-    </p>
-  </div>
+  <Section variant="default" padding="lg">
+    <Container size="md">
+      <div class="error-page">
+        <!-- Error Badge -->
+        <div class="error-badge">
+          <span class="error-code">404</span>
+        </div>
+
+        <!-- Main Content -->
+        <div class="error-content">
+          <Heading level={1} size="3xl" align="center">
+            Page Not Found
+          </Heading>
+          <Text size="lg" color="secondary" align="center" class="error-description">
+            Looks like this page took an unexpected detour. No worries - let's get you back on track.
+          </Text>
+        </div>
+
+        <!-- Helpful Links -->
+        <div class="error-links">
+          <Text size="sm" color="tertiary" weight="semibold" class="error-links-label">
+            Try one of these:
+          </Text>
+          <div class="error-links-grid">
+            {helpfulLinks.map((link) => (
+              <a href={link.href} class="error-link">
+                <Icon name={link.icon} size="md" />
+                <span>{link.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="error-divider">
+          <span>or</span>
+        </div>
+
+        <!-- Phone CTA -->
+        <div class="error-phone">
+          <Text size="base" color="secondary" align="center">
+            Need immediate assistance? Give us a call:
+          </Text>
+          <a href={phoneLink} class="error-phone-link">
+            <Icon name="phone" size="xl" />
+            <span class="error-phone-number">{phoneDisplay}</span>
+          </a>
+          <Text size="sm" color="tertiary" align="center">
+            We're available 24/7 for emergencies
+          </Text>
+        </div>
+
+        <!-- Back Button -->
+        <div class="error-back">
+          <Button variant="outline" size="md" href="/">
+            Return to Homepage
+          </Button>
+        </div>
+      </div>
+    </Container>
+  </Section>
 </BaseLayout>
+
+<style>
+  /* ============================================
+     ERROR PAGE LAYOUT
+     ============================================ */
+
+  .error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-8);
+    padding: var(--space-8) 0;
+  }
+
+  /* ============================================
+     ERROR BADGE
+     ============================================ */
+
+  .error-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-32);
+    height: var(--space-32);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 50%,
+      var(--color-primary-50) 100%
+    );
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .error-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(36, 81, 179, 0.05) 10px,
+      rgba(36, 81, 179, 0.05) 20px
+    );
+  }
+
+  .error-code {
+    position: relative;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-5xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
+    letter-spacing: -0.02em;
+  }
+
+  /* ============================================
+     ERROR CONTENT
+     ============================================ */
+
+  .error-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .error-description {
+    max-width: 45ch;
+  }
+
+  /* ============================================
+     HELPFUL LINKS
+     ============================================ */
+
+  .error-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .error-links-label {
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+  }
+
+  .error-links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .error-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .error-link:hover {
+    background: var(--color-primary-50);
+    border-color: var(--color-primary-200);
+    color: var(--color-primary-700);
+  }
+
+  /* ============================================
+     DIVIDER
+     ============================================ */
+
+  .error-divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .error-divider::before,
+  .error-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border-primary);
+  }
+
+  .error-divider span {
+    padding: 0 var(--space-4);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ============================================
+     PHONE CTA
+     ============================================ */
+
+  .error-phone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border: 2px solid var(--color-primary-200);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 350px;
+  }
+
+  .error-phone-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary-600);
+    border-radius: var(--radius-full);
+    color: white;
+    text-decoration: none;
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .error-phone-link:hover {
+    background: var(--color-primary-700);
+    transform: scale(1.02);
+  }
+
+  .error-phone-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.02em;
+  }
+
+  /* ============================================
+     BACK BUTTON
+     ============================================ */
+
+  .error-back {
+    margin-top: var(--space-4);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .error-link,
+    .error-phone-link {
+      transition: none;
+    }
+
+    .error-phone-link:hover {
+      transform: none;
+    }
+  }
+</style>

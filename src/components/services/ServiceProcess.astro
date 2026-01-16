@@ -1,0 +1,280 @@
+---
+/**
+ * ServiceProcess Component
+ *
+ * Displays the step-by-step service process on service pages.
+ * Wraps the ProcessTimeline component with appropriate section styling,
+ * header content, and visual treatments specific to service pages.
+ *
+ * Design Philosophy:
+ * Trust is built through transparency. When customers see exactly what
+ * will happen during their service, anxiety decreases and confidence grows.
+ * The numbered steps feel like a work order - professional and systematic.
+ *
+ * Features:
+ * - Section header with eyebrow and headline
+ * - ProcessTimeline with auto-responsive layout
+ * - Muted background for visual rhythm
+ * - Optional custom headline and description
+ * - Service-type aware styling (repair/install/maintenance)
+ *
+ * @example
+ * <ServiceProcess
+ *   processSteps={service.data.processSteps}
+ *   serviceTitle="Furnace Installation"
+ * />
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import ProcessTimeline from '../shared/ProcessTimeline.astro';
+
+interface ProcessStep {
+  /** Step number (1-indexed) */
+  step?: number;
+  /** Step title - the action or milestone */
+  title: string;
+  /** Step description - additional context */
+  description: string;
+  /** Optional icon name from icons.ts */
+  icon?: string;
+}
+
+interface Props {
+  /** Array of process steps from service content */
+  processSteps: ProcessStep[];
+  /** Service title for contextual headline */
+  serviceTitle?: string;
+  /** Custom headline override */
+  headline?: string;
+  /** Custom description override */
+  description?: string;
+  /** Custom eyebrow text */
+  eyebrow?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'primary' | 'dark';
+  /** Timeline layout - auto switches based on viewport */
+  layout?: 'auto' | 'horizontal' | 'vertical';
+  /** Whether to show step numbers (true) or icons */
+  showNumbers?: boolean;
+  /** Section ID for anchor links */
+  id?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  processSteps,
+  serviceTitle,
+  headline,
+  description,
+  eyebrow = 'Our Process',
+  variant = 'muted',
+  layout = 'auto',
+  showNumbers = true,
+  id = 'process',
+  class: className = '',
+} = Astro.props;
+
+// Generate contextual headline if not provided
+const resolvedHeadline = headline ||
+  (serviceTitle
+    ? `How Your ${serviceTitle} Works`
+    : 'How It Works');
+
+// Generate contextual description if not provided
+const resolvedDescription = description ||
+  'A clear, systematic process ensures quality results every time. Here\'s what to expect when you work with B.A.P.';
+
+// Normalize steps - ensure each has a step number
+const normalizedSteps = processSteps.map((step, index) => ({
+  ...step,
+  step: step.step ?? index + 1,
+}));
+
+// Build class names
+const sectionClasses = [
+  'service-process',
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Section
+  variant={variant}
+  padding="lg"
+  id={id}
+  class={sectionClasses}
+>
+  <Container size="xl">
+    {/* Section Header */}
+    <div class="service-process-header">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={resolvedHeadline}
+        description={resolvedDescription}
+        align="center"
+        headlineSize="lg"
+      />
+    </div>
+
+    {/* Process Timeline */}
+    <div class="service-process-timeline">
+      <ProcessTimeline
+        steps={normalizedSteps}
+        variant={layout}
+        showNumbers={showNumbers}
+        animationDelayBase={200}
+      />
+    </div>
+
+    {/* Decorative Elements */}
+    <div class="service-process-decoration" aria-hidden="true">
+      <div class="service-process-decoration-line"></div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /**
+   * ServiceProcess Component Styles
+   * Industrial modern aesthetic with clear visual hierarchy
+   */
+
+  /* ============================================
+     SECTION STRUCTURE
+     ============================================ */
+
+  .service-process {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     HEADER AREA
+     ============================================ */
+
+  .service-process-header {
+    margin-bottom: var(--space-12);
+    position: relative;
+  }
+
+  @media (min-width: 1024px) {
+    .service-process-header {
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* ============================================
+     TIMELINE WRAPPER
+     ============================================ */
+
+  .service-process-timeline {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Add some breathing room for the timeline */
+  @media (min-width: 1024px) {
+    .service-process-timeline {
+      padding-left: var(--space-8);
+      padding-right: var(--space-8);
+    }
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial-inspired visual accents
+     ============================================ */
+
+  .service-process-decoration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* Subtle horizontal rule accent */
+  .service-process-decoration-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-border-secondary) 20%,
+      var(--color-border-secondary) 80%,
+      transparent 100%
+    );
+    transform: translateY(-50%);
+  }
+
+  /* Hide decoration on smaller screens where timeline is vertical */
+  @media (max-width: 1023px) {
+    .service-process-decoration-line {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     VARIANT-SPECIFIC OVERRIDES
+     ============================================ */
+
+  /* Dark/Primary section adjustments */
+  :global(.section-primary) .service-process-decoration-line,
+  :global(.section-dark) .service-process-decoration-line {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 20%,
+      rgba(255, 255, 255, 0.1) 80%,
+      transparent 100%
+    );
+  }
+
+  /* ============================================
+     BACKGROUND TEXTURE
+     Subtle industrial pattern
+     ============================================ */
+
+  .service-process::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.015;
+    background-image: repeating-linear-gradient(
+      45deg,
+      currentColor 0px,
+      currentColor 1px,
+      transparent 1px,
+      transparent 12px
+    );
+    z-index: 0;
+  }
+
+  /* Adjust pattern for dark variants */
+  :global(.section-primary) .service-process::before,
+  :global(.section-dark) .service-process::before {
+    opacity: 0.03;
+    color: white;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .service-process-header {
+      margin-bottom: var(--space-8);
+    }
+  }
+</style>

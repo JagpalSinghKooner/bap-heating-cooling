@@ -1,0 +1,438 @@
+---
+/**
+ * BrandLogosSection Component (Homepage)
+ *
+ * Displays a curated collection of HVAC brand logos to build credibility
+ * and reassure visitors that B.A.P works with premium, recognized equipment.
+ *
+ * Design Philosophy:
+ * - Understated elegance - these are trust signals, not the main attraction
+ * - Grayscale treatment keeps focus on CTAs while building credibility
+ * - Subtle infinite scroll animation adds sophistication and visual interest
+ * - Industrial aesthetic with clean divider lines
+ *
+ * The goal: Instant recognition that B.A.P works with quality brands,
+ * without competing for attention with primary conversion elements.
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+
+interface Brand {
+  name: string;
+  /** SVG viewBox dimensions */
+  viewBox?: string;
+  /** Custom width for this logo (in pixels) */
+  width?: number;
+}
+
+interface Props {
+  /** Override default headline */
+  headline?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  headline = 'Brands We Install & Service',
+  class: className = '',
+} = Astro.props;
+
+// HVAC brand logos - hardcoded for homepage use
+// These are the major brands B.A.P installs and services
+const brands: Brand[] = [
+  { name: 'Carrier', width: 110 },
+  { name: 'Lennox', width: 100 },
+  { name: 'Trane', width: 90 },
+  { name: 'Goodman', width: 105 },
+  { name: 'Daikin', width: 90 },
+  { name: 'Rheem', width: 95 },
+  { name: 'York', width: 80 },
+  { name: 'American Standard', width: 130 },
+  { name: 'Bryant', width: 85 },
+  { name: 'Amana', width: 90 },
+];
+
+// Duplicate brands array for seamless infinite scroll
+const scrollBrands = [...brands, ...brands];
+---
+
+<Section variant="default" padding="md" class:list={['brand-logos-section', className]}>
+  <Container size="xl">
+    <!-- Section Header with industrial accent lines -->
+    <div class="brand-header">
+      <div class="brand-header-line" aria-hidden="true"></div>
+      <h2 class="brand-headline">{headline}</h2>
+      <div class="brand-header-line" aria-hidden="true"></div>
+    </div>
+
+    <!-- Brands Marquee Container -->
+    <div class="brands-wrapper">
+      <!-- Gradient fade overlays -->
+      <div class="brands-fade brands-fade--left" aria-hidden="true"></div>
+      <div class="brands-fade brands-fade--right" aria-hidden="true"></div>
+
+      <!-- Scrolling track -->
+      <div class="brands-track" role="list" aria-label="Partner brands">
+        {scrollBrands.map((brand, index) => (
+          <div
+            class="brand-item"
+            role="listitem"
+            style={`--brand-index: ${index}; --brand-width: ${brand.width || 100}px;`}
+          >
+            <div class="brand-logo" aria-label={brand.name}>
+              {/* Text-based logo placeholder - replace with actual SVG/images */}
+              <span class="brand-text">{brand.name}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Static grid fallback for reduced motion / hover pause state -->
+    <div class="brands-static" aria-hidden="true">
+      {brands.slice(0, 6).map((brand) => (
+        <div class="brand-item-static" style={`--brand-width: ${brand.width || 100}px;`}>
+          <div class="brand-logo">
+            <span class="brand-text">{brand.name}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Subtle trust reinforcement -->
+    <p class="brand-tagline">
+      Factory-trained technicians. Genuine parts. Manufacturer warranties.
+    </p>
+  </Container>
+</Section>
+
+<style>
+  /* =================================================================
+     SECTION STYLING
+     ================================================================= */
+
+  .brand-logos-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle top border for section definition */
+  .brand-logos-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--space-8);
+    right: var(--space-8);
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-border-secondary) 20%,
+      var(--color-border-secondary) 80%,
+      transparent 100%
+    );
+  }
+
+  /* =================================================================
+     HEADER WITH INDUSTRIAL ACCENT LINES
+     ================================================================= */
+
+  .brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+    margin-bottom: var(--space-10);
+  }
+
+  .brand-header-line {
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-border-primary) 100%
+    );
+  }
+
+  .brand-header-line:last-child {
+    background: linear-gradient(
+      90deg,
+      var(--color-border-primary) 0%,
+      transparent 100%
+    );
+  }
+
+  .brand-headline {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wider);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 768px) {
+    .brand-header {
+      gap: var(--space-8);
+    }
+
+    .brand-header-line {
+      max-width: 200px;
+    }
+
+    .brand-headline {
+      font-size: var(--font-size-base);
+    }
+  }
+
+  /* =================================================================
+     BRANDS WRAPPER (MARQUEE CONTAINER)
+     ================================================================= */
+
+  .brands-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
+  }
+
+  /* Gradient fade overlays for extra depth */
+  .brands-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .brands-fade--left {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      var(--color-surface-primary) 0%,
+      transparent 100%
+    );
+  }
+
+  .brands-fade--right {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      var(--color-surface-primary) 0%,
+      transparent 100%
+    );
+  }
+
+  /* =================================================================
+     SCROLLING TRACK
+     ================================================================= */
+
+  .brands-track {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    width: max-content;
+    animation: scrollBrands 35s linear infinite;
+    padding: var(--space-4) 0;
+  }
+
+  /* Pause on hover for accessibility and interaction */
+  .brands-wrapper:hover .brands-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes scrollBrands {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* =================================================================
+     INDIVIDUAL BRAND ITEMS
+     ================================================================= */
+
+  .brand-item {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--brand-width, 100px);
+    height: 48px;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: grayscale(100%);
+    opacity: 0.5;
+    transition:
+      filter var(--duration-normal) var(--ease-out),
+      opacity var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .brand-item:hover .brand-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  /* Text-based logo styling (placeholder - replace with actual logos) */
+  .brand-text {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--letter-spacing-tight);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* =================================================================
+     STATIC GRID (FOR REDUCED MOTION)
+     ================================================================= */
+
+  .brands-static {
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: var(--space-4) 0;
+  }
+
+  .brand-item-static {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--brand-width, 100px);
+    height: 48px;
+  }
+
+  .brand-item-static .brand-logo {
+    filter: grayscale(100%);
+    opacity: 0.5;
+    transition:
+      filter var(--duration-normal) var(--ease-out),
+      opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .brand-item-static:hover .brand-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+
+  /* =================================================================
+     TRUST TAGLINE
+     ================================================================= */
+
+  .brand-tagline {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    text-align: center;
+    margin: var(--space-8) 0 0 0;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  @media (min-width: 768px) {
+    .brand-tagline {
+      margin-top: var(--space-10);
+    }
+  }
+
+  /* =================================================================
+     REDUCED MOTION & ACCESSIBILITY
+     ================================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .brands-wrapper {
+      display: none;
+    }
+
+    .brands-static {
+      display: flex;
+    }
+
+    .brands-track {
+      animation: none;
+    }
+  }
+
+  /* =================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================= */
+
+  @media (max-width: 639px) {
+    .brand-header-line {
+      display: none;
+    }
+
+    .brand-header {
+      justify-content: center;
+    }
+
+    .brands-track {
+      gap: var(--space-8);
+    }
+
+    .brand-item {
+      height: 40px;
+    }
+
+    .brand-text {
+      font-size: var(--font-size-base);
+    }
+
+    .brand-tagline {
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .brands-track {
+      gap: var(--space-16);
+    }
+
+    .brand-item {
+      height: 56px;
+    }
+
+    .brand-text {
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  /* =================================================================
+     HOVER STATE: SHOW STATIC GRID ON LONG HOVER
+     Allows users to see all brands without waiting for scroll
+     ================================================================= */
+
+  .brands-wrapper:focus-within .brands-track {
+    animation-play-state: paused;
+  }
+</style>

@@ -1,19 +1,31 @@
 ---
 /**
- * Location Page - Gutted for Redesign
+ * Location Page - Redesigned
  *
- * Preserves all data fetching, routing logic, and schemas.
+ * City-specific landing page with localized services, reviews, and trust signals.
+ * Emphasizes local expertise and drives phone calls.
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import { getBusinessProfile, getPhoneLink } from '../../lib/getBusinessProfile';
 import { getLocationSchema } from '../../lib/schema';
 import { getLocationBreadcrumbs, getBreadcrumbSchema } from '../../lib/breadcrumbs';
 import { resolveFAQs } from '../../lib/faqResolver';
 import { generateFAQSchema } from '../../lib/faqSchema';
 import { getReviewsForPage } from '../../lib/reviewResolver';
 import { generateReviewSchemas } from '../../lib/reviewSchema';
+
+// Components
+import PageHero from '../../components/shared/PageHero.astro';
+import TrustSignals from '../../components/shared/TrustSignals.astro';
+import ServicesGrid from '../../components/shared/ServicesGrid.astro';
+import ReviewsCarousel from '../../components/shared/ReviewsCarousel.astro';
+import MapEmbed from '../../components/shared/MapEmbed.astro';
+import FAQSection from '../../components/shared/FAQSection.astro';
+import CTASection from '../../components/shared/CTASection.astro';
+import Section from '../../components/primitives/Section.astro';
+import Container from '../../components/primitives/Container.astro';
 
 export async function getStaticPaths() {
   const locations = await getCollection('locations');
@@ -101,6 +113,15 @@ if (reviewSchemas.length > 0) {
 }
 
 const schema = schemas;
+
+// Get phone link for CTAs
+const phoneLink = getPhoneLink(profile);
+
+// Map FAQs for FAQSection component
+const faqItems = pageFAQs.map(faq => ({
+  question: faq.data.question,
+  answer: faq.data.answer,
+}));
 ---
 
 <BaseLayout
@@ -109,8 +130,118 @@ const schema = schemas;
   robots={robots}
   schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>HVAC Services in {location.data.title}, ON</h1>
-    <p>Location page redesign in progress. {services.length} services available here.</p>
-  </div>
+  {/* Hero Section - Location variant emphasizes local trust */}
+  <PageHero
+    title={`HVAC Services in ${location.data.title}`}
+    description={location.data.description || `Professional heating, cooling, and indoor air quality services for homes and businesses in ${location.data.title}. Family-owned since 1992.`}
+    eyebrow={`Serving ${location.data.title}, Ontario`}
+    variant="location"
+    breadcrumbs={breadcrumbItems}
+    ctaButtons={[
+      {
+        label: 'Call Now',
+        href: phoneLink,
+        variant: 'primary',
+        icon: 'phone',
+      },
+      {
+        label: 'View Services',
+        href: '#services',
+        variant: 'outline',
+      },
+    ]}
+  />
+
+  {/* Trust Signals - Location-specific review count */}
+  <Section variant="default" padding="sm">
+    <Container size="xl">
+      <TrustSignals
+        variant="horizontal"
+        showRating={true}
+        showReviewCount={true}
+        showYears={true}
+        showLicense={true}
+        showEmergency={true}
+      />
+    </Container>
+  </Section>
+
+  {/* Services Grid - Links to service-city pages */}
+  <Section variant="muted" padding="lg" id="services">
+    <Container size="xl">
+      <ServicesGrid
+        locationSlug={locationSlug}
+        columns={3}
+        variant="cards"
+        showDescription={true}
+        showCategory={true}
+        title={`Our Services in ${location.data.title}`}
+        eyebrow="What We Offer"
+        description={`Complete HVAC solutions for ${location.data.title} homes and businesses. Click any service to learn about local availability and pricing.`}
+        headerAlign="center"
+      />
+    </Container>
+  </Section>
+
+  {/* Reviews Carousel - Filtered by location */}
+  {pageReviews.length > 0 && (
+    <ReviewsCarousel
+      filterBy={{ locationSlug: locationSlug }}
+      limit={6}
+      title={`What ${location.data.title} Customers Say`}
+      eyebrow="Customer Reviews"
+      description={`Real reviews from our neighbors in ${location.data.title}.`}
+      showNavigation={true}
+      showDots={true}
+      variant="default"
+      showSummary={true}
+    />
+  )}
+
+  {/* Map Embed - Show business location */}
+  <Section variant="muted" padding="md">
+    <Container size="lg">
+      <MapEmbed
+        title={`Serving ${location.data.title} & Surrounding Areas`}
+        variant="featured"
+        aspectRatio="16/9"
+        lazy={true}
+      />
+    </Container>
+  </Section>
+
+  {/* FAQ Section - Location-scoped */}
+  {faqItems.length > 0 && (
+    <FAQSection
+      faqs={faqItems}
+      title={`Common Questions in ${location.data.title}`}
+      eyebrow="FAQ"
+      description={`Answers to frequently asked questions from ${location.data.title} homeowners.`}
+      columns={1}
+      variant="default"
+      accordionVariant="bordered"
+      showCTA={true}
+      ctaHeadline="Have a different question?"
+      ctaLabel="Call Us"
+      ctaHref={phoneLink}
+    />
+  )}
+
+  {/* CTA Section - Final conversion push */}
+  <CTASection
+    variant="primary"
+    headline={`Ready for Expert HVAC Service in ${location.data.title}?`}
+    description={`From emergency repairs to new installations, our team is ready to help. Call now for fast, reliable service.`}
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'Book Online',
+      href: '/contact-us/',
+    }}
+    showPhone={true}
+    showHours={true}
+    align="center"
+  />
 </BaseLayout>

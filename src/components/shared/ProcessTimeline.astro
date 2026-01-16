@@ -1,0 +1,407 @@
+---
+/**
+ * ProcessTimeline Component
+ *
+ * A visual representation of a multi-step process, perfect for showing
+ * service workflows, how-it-works sections, and customer journeys.
+ *
+ * Design Philosophy:
+ * When someone needs HVAC service, they want to know what to expect.
+ * This component transforms a list of steps into a clear visual journey.
+ * The industrial aesthetic (bold badges, strong connectors) reinforces
+ * that B.A.P follows a professional, systematic process.
+ *
+ * Features:
+ * - Horizontal (desktop) and vertical (mobile/default) layouts
+ * - Numbered steps with optional icons
+ * - Staggered animation on scroll/load
+ * - Responsive - auto-switches to vertical on mobile
+ * - Section background aware (inverse/dark support)
+ *
+ * Common use cases:
+ * - "How It Works" sections on homepage
+ * - Service process on service pages
+ * - Booking/scheduling flow explanation
+ *
+ * @example
+ * <ProcessTimeline
+ *   steps={[
+ *     { step: 1, title: 'Call or Book Online', description: 'Reach us 24/7' },
+ *     { step: 2, title: 'Same-Day Diagnosis', description: 'We arrive fast' },
+ *     { step: 3, title: 'Upfront Quote', description: 'No surprise fees' },
+ *     { step: 4, title: 'Expert Service', description: 'Done right' },
+ *   ]}
+ *   variant="horizontal"
+ * />
+ */
+
+import TimelineStep from './TimelineStep.astro';
+import Container from '../primitives/Container.astro';
+
+interface Step {
+  /** Step number (1-indexed). If omitted, auto-generated from array index */
+  step?: number;
+  /** Step title - the action or milestone */
+  title: string;
+  /** Step description - additional context */
+  description: string;
+  /** Optional icon name from icons.ts */
+  icon?: string;
+}
+
+interface Props {
+  /** Array of process steps to display */
+  steps: Step[];
+  /** Layout variant - horizontal shows all steps in a row (desktop), vertical stacks them */
+  variant?: 'horizontal' | 'vertical' | 'auto';
+  /** Whether to show step numbers (true) or just icons if provided (false) */
+  showNumbers?: boolean;
+  /** Base animation delay in ms - each step adds 100ms to this */
+  animationDelayBase?: number;
+  /** Whether to wrap in a container */
+  contained?: boolean;
+  /** Container size when contained */
+  containerSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  steps,
+  variant = 'auto',
+  showNumbers = true,
+  animationDelayBase = 0,
+  contained = false,
+  containerSize = 'xl',
+  class: className = '',
+} = Astro.props;
+
+// Normalize steps - ensure each has a step number
+const normalizedSteps = steps.map((step, index) => ({
+  ...step,
+  step: step.step ?? index + 1,
+}));
+
+// Build class string
+const classes = [
+  'process-timeline',
+  `process-timeline-${variant}`,
+  className,
+].filter(Boolean).join(' ');
+
+// Calculate stagger delays
+const staggerIncrement = 150; // ms between each step animation
+---
+
+{contained ? (
+  <Container size={containerSize}>
+    <div class={classes} role="list" aria-label="Process steps">
+      {normalizedSteps.map((step, index) => (
+        <TimelineStep
+          step={step.step}
+          title={step.title}
+          description={step.description}
+          icon={step.icon}
+          isLast={index === normalizedSteps.length - 1}
+          orientation={variant === 'horizontal' ? 'horizontal' : 'vertical'}
+          showNumbers={showNumbers}
+          animationDelay={animationDelayBase + (index * staggerIncrement)}
+        />
+      ))}
+    </div>
+  </Container>
+) : (
+  <div class={classes} role="list" aria-label="Process steps">
+    {normalizedSteps.map((step, index) => (
+      <TimelineStep
+        step={step.step}
+        title={step.title}
+        description={step.description}
+        icon={step.icon}
+        isLast={index === normalizedSteps.length - 1}
+        orientation={variant === 'horizontal' ? 'horizontal' : 'vertical'}
+        showNumbers={showNumbers}
+        animationDelay={animationDelayBase + (index * staggerIncrement)}
+      />
+    ))}
+  </div>
+)}
+
+<style is:global>
+  /**
+   * ProcessTimeline Component Styles
+   * Container for TimelineStep components with layout management
+   */
+
+  /* ============================================
+     BASE STRUCTURE
+     ============================================ */
+
+  .process-timeline {
+    display: flex;
+    width: 100%;
+  }
+
+  /* ============================================
+     VERTICAL LAYOUT (Default)
+     ============================================ */
+
+  .process-timeline-vertical {
+    flex-direction: column;
+  }
+
+  /* ============================================
+     HORIZONTAL LAYOUT
+     ============================================ */
+
+  .process-timeline-horizontal {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  /* Ensure equal spacing in horizontal mode */
+  .process-timeline-horizontal > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ============================================
+     AUTO LAYOUT (Responsive)
+     Vertical on mobile, horizontal on desktop
+     ============================================ */
+
+  .process-timeline-auto {
+    flex-direction: column;
+  }
+
+  @media (min-width: 1024px) {
+    .process-timeline-auto {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-4);
+    }
+
+    .process-timeline-auto > * {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Override TimelineStep orientation in auto mode */
+    .process-timeline-auto .timeline-step {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-bottom: 0;
+    }
+
+    .process-timeline-auto .timeline-step-indicator {
+      flex-direction: row;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .process-timeline-auto .timeline-step-connector {
+      position: absolute;
+      top: 50%;
+      left: calc(50% + 1.75rem + var(--space-2));
+      right: calc(-50% + 1.75rem + var(--space-2));
+      height: 4px;
+      transform: translateY(-50%);
+      width: auto;
+      min-height: 0;
+      margin-top: 0;
+    }
+
+    .process-timeline-auto .timeline-step-connector-line {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        var(--color-primary-200) 0%,
+        var(--color-primary-100) 100%
+      );
+    }
+
+    .process-timeline-auto .timeline-step-connector-progress {
+      width: 100%;
+      height: 100%;
+      transform-origin: left center;
+      transform: scaleX(0);
+      background: linear-gradient(
+        90deg,
+        var(--color-primary-500) 0%,
+        var(--color-primary-400) 100%
+      );
+      animation-name: connectorFillHorizontal;
+    }
+
+    .process-timeline-auto .timeline-step-content {
+      margin-top: var(--space-5);
+      padding-top: 0;
+      max-width: 200px;
+    }
+
+    .process-timeline-auto .timeline-step-description {
+      max-width: none;
+    }
+
+    /* Inverse section support for auto mode horizontal */
+    .section-inverse .process-timeline-auto .timeline-step-connector-line,
+    .section-primary .process-timeline-auto .timeline-step-connector-line,
+    .section-dark .process-timeline-auto .timeline-step-connector-line {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.2) 100%
+      );
+    }
+
+    .section-inverse .process-timeline-auto .timeline-step-connector-progress,
+    .section-primary .process-timeline-auto .timeline-step-connector-progress,
+    .section-dark .process-timeline-auto .timeline-step-connector-progress {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.7) 100%
+      );
+    }
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial aesthetic flourishes
+     ============================================ */
+
+  /* Optional: Add subtle diagonal line pattern behind timeline */
+  .process-timeline::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    /* Subtle industrial pattern - uncomment if desired */
+    /* background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(36, 81, 179, 0.02) 10px,
+      rgba(36, 81, 179, 0.02) 11px
+    ); */
+  }
+
+  /* ============================================
+     STEP COUNT VARIANTS
+     Adjust spacing based on number of steps
+     ============================================ */
+
+  /* 3 steps - can be slightly wider */
+  .process-timeline-horizontal:has(.timeline-step:nth-child(3):last-child) > *,
+  .process-timeline-auto:has(.timeline-step:nth-child(3):last-child) > * {
+    max-width: 280px;
+  }
+
+  /* 5+ steps - need to be more compact */
+  .process-timeline-horizontal:has(.timeline-step:nth-child(5)) > *,
+  .process-timeline-auto:has(.timeline-step:nth-child(5)) > * {
+    max-width: 180px;
+  }
+
+  @media (min-width: 1024px) {
+    .process-timeline-auto:has(.timeline-step:nth-child(3):last-child) .timeline-step-content {
+      max-width: 240px;
+    }
+
+    .process-timeline-auto:has(.timeline-step:nth-child(5)) .timeline-step-content {
+      max-width: 160px;
+    }
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 1023px) {
+    /* Force vertical on tablet and below for horizontal variant */
+    .process-timeline-horizontal {
+      flex-direction: column;
+    }
+
+    .process-timeline-horizontal > * {
+      flex: none;
+      max-width: none;
+    }
+
+    /* Reset TimelineStep to vertical orientation */
+    .process-timeline-horizontal .timeline-step {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+      padding-bottom: var(--space-8);
+    }
+
+    .process-timeline-horizontal .timeline-step.timeline-step-last {
+      padding-bottom: 0;
+    }
+
+    .process-timeline-horizontal .timeline-step-indicator {
+      flex-direction: column;
+      width: auto;
+    }
+
+    .process-timeline-horizontal .timeline-step-connector {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      height: auto;
+      transform: none;
+      width: 4px;
+      min-height: var(--space-8);
+      margin-top: var(--space-3);
+    }
+
+    .process-timeline-horizontal .timeline-step-connector-line {
+      height: 100%;
+      background: linear-gradient(
+        180deg,
+        var(--color-primary-200) 0%,
+        var(--color-primary-100) 100%
+      );
+    }
+
+    .process-timeline-horizontal .timeline-step-connector-progress {
+      height: 100%;
+      transform-origin: top center;
+      background: linear-gradient(
+        180deg,
+        var(--color-primary-500) 0%,
+        var(--color-primary-400) 100%
+      );
+      animation-name: connectorFill;
+    }
+
+    .process-timeline-horizontal .timeline-step-content {
+      margin-top: 0;
+      padding-top: var(--space-2);
+      max-width: none;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .process-timeline {
+      flex-direction: column;
+    }
+
+    .process-timeline > * {
+      flex: none;
+      max-width: none;
+    }
+  }
+</style>

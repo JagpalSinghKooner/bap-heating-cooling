@@ -1,0 +1,498 @@
+---
+/**
+ * SeasonalCalloutBar Component
+ *
+ * A time-sensitive promotional strip that appears below the TopBar during relevant seasons.
+ * Fetches from the seasonal-messages collection and displays based on current date.
+ *
+ * Design: Industrial alert strip with seasonal color coding.
+ * Think: The dashboard warning light that's helpful, not alarming.
+ * Dismissible with localStorage persistence - respects user choice.
+ *
+ * Aesthetic Notes:
+ * - Compact horizontal strip with diagonal accent stripe (industrial heritage)
+ * - Season-specific color gradients (winter=cool, summer=warm)
+ * - Icon + message + dismiss button layout
+ * - Smooth slide-down animation on mount
+ * - Subtle hover effect on CTA link
+ */
+import { getCollection } from 'astro:content';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Current page's service category (optional - for category filtering) */
+  category?: 'heating' | 'cooling' | 'iaq' | 'water-heating' | 'commercial' | 'plans';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const { category, class: className = '' } = Astro.props;
+
+// Get all seasonal messages
+const allMessages = await getCollection('seasonal-messages');
+
+// Get current date info for filtering
+const now = new Date();
+const currentMonth = now.getMonth() + 1; // 1-12
+const currentDay = now.getDate();
+
+// Helper to check if current date falls within range (handles year wraparound for winter)
+function isDateInRange(startDate: string, endDate: string): boolean {
+  const [startMonth, startDay] = startDate.split('-').map(Number);
+  const [endMonth, endDay] = endDate.split('-').map(Number);
+
+  const startNum = startMonth * 100 + startDay;
+  const endNum = endMonth * 100 + endDay;
+  const currentNum = currentMonth * 100 + currentDay;
+
+  // Handle year wraparound (e.g., winter: 12-01 to 02-28)
+  if (startNum > endNum) {
+    // Range wraps around year end
+    return currentNum >= startNum || currentNum <= endNum;
+  } else {
+    // Normal range
+    return currentNum >= startNum && currentNum <= endNum;
+  }
+}
+
+// Find the active seasonal message
+const activeMessage = allMessages.find(msg => {
+  const data = msg.data;
+
+  // Must be enabled
+  if (!data.enabled) return false;
+
+  // Must be within date range
+  if (!isDateInRange(data.startDate, data.endDate)) return false;
+
+  // If category prop provided, filter by it
+  if (category && data.categories && data.categories.length > 0) {
+    return data.categories.includes(category);
+  }
+
+  // If no category prop, show messages with empty categories (global) or any
+  if (!category && data.categories && data.categories.length > 0) {
+    // On pages without category context, show if heating/cooling (common pages)
+    return true;
+  }
+
+  return true;
+});
+
+// Don't render if no active message
+if (!activeMessage) {
+  return null;
+}
+
+const { season, message, icon } = activeMessage.data;
+
+// Map icons to icon names in our icon system
+const iconMap: Record<string, string> = {
+  snowflake: 'snowflake',
+  sun: 'sun',
+  flame: 'flame',
+  leaf: 'leaf',
+};
+
+const iconName = icon ? iconMap[icon] || 'alert' : 'alert';
+
+// Generate a unique ID for localStorage based on message
+const messageId = `seasonal-${season}-${activeMessage.id}`;
+---
+
+<div
+  class:list={['seasonal-bar', `seasonal-bar--${season}`, className]}
+  data-seasonal-bar
+  data-message-id={messageId}
+  role="complementary"
+  aria-label="Seasonal promotion"
+>
+  {/* Industrial diagonal stripe accent */}
+  <div class="seasonal-bar__accent" aria-hidden="true"></div>
+
+  <div class="seasonal-bar__container">
+    {/* Left: Icon + Message */}
+    <div class="seasonal-bar__content">
+      <span class="seasonal-bar__icon">
+        <Icon name={iconName} size="sm" />
+      </span>
+      <span class="seasonal-bar__message">
+        {message}
+      </span>
+      <a href="/contact-us/" class="seasonal-bar__cta">
+        Book Now
+        <svg class="seasonal-bar__cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </a>
+    </div>
+
+    {/* Right: Dismiss button */}
+    <button
+      type="button"
+      class="seasonal-bar__dismiss"
+      aria-label="Dismiss seasonal message"
+      data-dismiss-seasonal
+    >
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 4l8 8M12 4l-8 8"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style>
+  /* ================================================================
+     SEASONAL CALLOUT BAR
+     Industrial alert strip with seasonal theming.
+     Compact, dismissible, date-aware.
+     ================================================================ */
+
+  .seasonal-bar {
+    --bar-height: 44px;
+    --bar-bg: var(--color-primary-600);
+    --bar-text: var(--color-text-inverse);
+    --bar-accent: var(--color-primary-500);
+    --bar-hover: var(--color-accent-400);
+
+    position: relative;
+    height: var(--bar-height);
+    background: var(--bar-bg);
+    color: var(--bar-text);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    overflow: hidden;
+    animation: slideDown var(--duration-slow) var(--ease-out) forwards;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Hidden state for JS */
+  .seasonal-bar[hidden] {
+    display: none;
+  }
+
+  /* ================================================================
+     SEASONAL VARIANTS
+     Each season gets its own color scheme
+     ================================================================ */
+
+  /* Winter: Cool blue-gray with frost accent */
+  .seasonal-bar--winter {
+    --bar-bg: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    --bar-accent: rgba(99, 179, 237, 0.2);
+    --bar-hover: #90cdf4;
+  }
+
+  /* Summer: Warm amber with sun glow */
+  .seasonal-bar--summer {
+    --bar-bg: linear-gradient(135deg, #c05621 0%, #dd6b20 100%);
+    --bar-accent: rgba(251, 211, 141, 0.2);
+    --bar-hover: #fbd38d;
+  }
+
+  /* Spring: Fresh green with leaf accent */
+  .seasonal-bar--spring {
+    --bar-bg: linear-gradient(135deg, #276749 0%, #38a169 100%);
+    --bar-accent: rgba(154, 230, 180, 0.2);
+    --bar-hover: #9ae6b4;
+  }
+
+  /* Fall: Rich amber-brown with warm accent */
+  .seasonal-bar--fall {
+    --bar-bg: linear-gradient(135deg, #744210 0%, #975a16 100%);
+    --bar-accent: rgba(236, 201, 75, 0.2);
+    --bar-hover: #ecc94b;
+  }
+
+  .seasonal-bar--winter,
+  .seasonal-bar--summer,
+  .seasonal-bar--spring,
+  .seasonal-bar--fall {
+    background: var(--bar-bg);
+  }
+
+  /* ================================================================
+     INDUSTRIAL DIAGONAL ACCENT
+     Subtle striped pattern inspired by safety markings
+     ================================================================ */
+
+  .seasonal-bar__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(
+        -55deg,
+        transparent,
+        transparent 8px,
+        var(--bar-accent) 8px,
+        var(--bar-accent) 16px
+      );
+    pointer-events: none;
+  }
+
+  /* ================================================================
+     CONTAINER
+     ================================================================ */
+
+  .seasonal-bar__container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--container-xl);
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+  }
+
+  /* ================================================================
+     CONTENT: Icon + Message + CTA
+     ================================================================ */
+
+  .seasonal-bar__content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Seasonal Icon */
+  .seasonal-bar__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Message Text */
+  .seasonal-bar__message {
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* CTA Link */
+  .seasonal-bar__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: var(--space-1-5) var(--space-3);
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--bar-text);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition:
+      background var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-default);
+    flex-shrink: 0;
+  }
+
+  .seasonal-bar__cta:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateX(2px);
+  }
+
+  .seasonal-bar__cta:focus-visible {
+    outline: 2px solid var(--bar-text);
+    outline-offset: 2px;
+  }
+
+  .seasonal-bar__cta-arrow {
+    width: 14px;
+    height: 14px;
+    transition: transform var(--duration-fast) var(--ease-default);
+  }
+
+  .seasonal-bar__cta:hover .seasonal-bar__cta-arrow {
+    transform: translateX(2px);
+  }
+
+  /* ================================================================
+     DISMISS BUTTON
+     ================================================================ */
+
+  .seasonal-bar__dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--bar-text);
+    cursor: pointer;
+    opacity: 0.7;
+    transition:
+      opacity var(--duration-fast) var(--ease-default),
+      background var(--duration-fast) var(--ease-default);
+  }
+
+  .seasonal-bar__dismiss:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .seasonal-bar__dismiss:focus-visible {
+    outline: 2px solid var(--bar-text);
+    outline-offset: 2px;
+    opacity: 1;
+  }
+
+  .seasonal-bar__dismiss svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ================================================================
+     MOBILE RESPONSIVE
+     ================================================================ */
+
+  @media (max-width: 639px) {
+    .seasonal-bar {
+      --bar-height: 52px;
+    }
+
+    .seasonal-bar__content {
+      gap: var(--space-2);
+    }
+
+    .seasonal-bar__message {
+      font-size: var(--font-size-xs);
+    }
+
+    .seasonal-bar__cta {
+      padding: var(--space-1) var(--space-2);
+      font-size: 10px;
+    }
+
+    .seasonal-bar__icon {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  /* Extra small screens: hide CTA text, show just icon */
+  @media (max-width: 380px) {
+    .seasonal-bar__cta span {
+      display: none;
+    }
+
+    .seasonal-bar__cta {
+      padding: var(--space-1-5);
+    }
+  }
+
+  /* ================================================================
+     PRINT STYLES
+     ================================================================ */
+
+  @media print {
+    .seasonal-bar {
+      display: none;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .seasonal-bar {
+      animation: none;
+    }
+
+    .seasonal-bar__cta,
+    .seasonal-bar__cta-arrow,
+    .seasonal-bar__dismiss {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * SeasonalCalloutBar Client-Side Logic
+   *
+   * Handles:
+   * 1. Checking localStorage for dismissed state
+   * 2. Dismiss button click → hide and remember in localStorage
+   * 3. Smooth hide animation
+   */
+  document.addEventListener('DOMContentLoaded', () => {
+    const bar = document.querySelector('[data-seasonal-bar]') as HTMLElement | null;
+    if (!bar) return;
+
+    const messageId = bar.dataset.messageId;
+    const dismissKey = `seasonal-dismissed-${messageId}`;
+
+    // Check if already dismissed
+    if (localStorage.getItem(dismissKey) === 'true') {
+      bar.hidden = true;
+      return;
+    }
+
+    // Handle dismiss click
+    const dismissBtn = bar.querySelector('[data-dismiss-seasonal]');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        // Animate out
+        bar.style.animation = 'slideUp 0.3s ease-in forwards';
+
+        // Store dismissal
+        localStorage.setItem(dismissKey, 'true');
+
+        // Remove from DOM after animation
+        setTimeout(() => {
+          bar.hidden = true;
+        }, 300);
+      });
+    }
+  });
+
+  // Add slideUp animation for dismissal
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideUp {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-100%);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>

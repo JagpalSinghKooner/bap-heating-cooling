@@ -1,0 +1,824 @@
+---
+/**
+ * ServiceProblemAgitation Component
+ *
+ * Creates urgency by highlighting the consequences of delaying service.
+ * This is classic "problem agitation" copywriting—making the pain feel
+ * real enough that visitors pick up the phone.
+ *
+ * Design Philosophy:
+ * Unlike the reassuring blue of value props, this section uses
+ * darker, more dramatic styling to convey seriousness. The
+ * industrial aesthetic shifts toward caution/warning territory
+ * with subtle emergency accents. It's not panic-inducing—but
+ * it does make consequences tangible.
+ *
+ * Visual Treatment:
+ * - Dark surface background (almost black) for contrast
+ * - Cards with red/orange accent stripes (danger signals)
+ * - Warning-style icon treatment
+ * - Bold typography that commands attention
+ * - Staggered reveal animation
+ *
+ * @example
+ * <ServiceProblemAgitation problems={[
+ *   { title: "No Heat in Freezing Weather", description: "...", icon: "emergency" },
+ *   { title: "Strange Noises", description: "...", icon: "warning" },
+ * ]} />
+ */
+
+import Container from '../primitives/Container.astro';
+import Section from '../primitives/Section.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Problem {
+  /** Problem headline */
+  title: string;
+  /** Problem description - consequences of ignoring */
+  description: string;
+  /** Icon name from icons.ts */
+  icon: string;
+}
+
+interface Props {
+  /** Array of problems to display */
+  problems: Problem[];
+  /** Optional section eyebrow text */
+  eyebrow?: string;
+  /** Optional section headline */
+  headline?: string;
+  /** Optional section description */
+  description?: string;
+  /** Visual variant */
+  variant?: 'default' | 'urgent' | 'subtle';
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  problems,
+  eyebrow = 'Warning Signs',
+  headline = "Don't Wait Until It's Too Late",
+  description,
+  variant = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Don't render if no problems provided
+if (!problems || problems.length === 0) {
+  return null;
+}
+
+// Build component classes
+const classes = [
+  'problem-agitation',
+  `problem-agitation--${variant}`,
+  className,
+].filter(Boolean).join(' ');
+
+// Map common problem icons to appropriate system icons
+const iconMapping: Record<string, string> = {
+  'emergency': 'warning',
+  'danger': 'warning',
+  'alert': 'exclamation',
+  'temperature': 'thermometer',
+  'freeze': 'snowflake',
+  'heat': 'flame',
+  'noise': 'noise',
+  'smell': 'air',
+  'breakdown': 'breakdown',
+};
+
+function resolveIcon(icon: string): string {
+  return iconMapping[icon] || icon || 'warning';
+}
+---
+
+<Section variant="dark" padding="lg" class={classes}>
+  {/* Background pattern for texture */}
+  <div class="problem-agitation__pattern" aria-hidden="true"></div>
+
+  <Container size="xl">
+    {/* Section Header */}
+    <header class="problem-agitation__header">
+      {eyebrow && (
+        <span class="problem-agitation__eyebrow">
+          <Icon name="warning" size="sm" />
+          <span>{eyebrow}</span>
+        </span>
+      )}
+
+      <h2 class="problem-agitation__headline">{headline}</h2>
+
+      {description && (
+        <p class="problem-agitation__description">{description}</p>
+      )}
+    </header>
+
+    {/* Problems Grid */}
+    <div class="problem-grid">
+      {problems.map((problem, index) => (
+        <article
+          class="problem-card"
+          style={`--card-index: ${index}`}
+        >
+          {/* Danger stripe accent */}
+          <div class="problem-card__stripe" aria-hidden="true"></div>
+
+          {/* Card content wrapper */}
+          <div class="problem-card__inner">
+            {/* Icon with warning treatment */}
+            <div class="problem-card__icon-area">
+              <div class="problem-card__icon">
+                <Icon name={resolveIcon(problem.icon)} size="lg" />
+              </div>
+              {/* Pulse animation for urgency */}
+              <div class="problem-card__pulse" aria-hidden="true"></div>
+            </div>
+
+            {/* Content */}
+            <div class="problem-card__content">
+              <h3 class="problem-card__title">{problem.title}</h3>
+              <p class="problem-card__description">{problem.description}</p>
+            </div>
+
+            {/* Index marker */}
+            <div class="problem-card__index" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </div>
+          </div>
+
+          {/* Bottom danger gradient */}
+          <div class="problem-card__gradient" aria-hidden="true"></div>
+        </article>
+      ))}
+    </div>
+
+    {/* Urgency message */}
+    <div class="problem-agitation__cta-hint">
+      <p class="problem-agitation__cta-text">
+        <Icon name="clock" size="sm" />
+        <span>Noticing these signs? <strong>Act now</strong> before a small issue becomes a costly emergency.</span>
+      </p>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* ================================================================
+     PROBLEM AGITATION - Main Container
+     Dark, dramatic section that creates urgency
+     ================================================================ */
+
+  .problem-agitation {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-inverse) 0%,
+      #0c1220 100%
+    );
+  }
+
+  /* Subtle diagonal pattern for industrial texture */
+  .problem-agitation__pattern {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(255, 255, 255, 0.01) 20px,
+      rgba(255, 255, 255, 0.01) 40px
+    );
+    pointer-events: none;
+  }
+
+  /* ================================================================
+     SECTION HEADER
+     Bold, centered header with warning styling
+     ================================================================ */
+
+  .problem-agitation__header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto var(--space-14);
+    position: relative;
+    z-index: 1;
+  }
+
+  .problem-agitation__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-emergency-200, #fecaca);
+    margin-bottom: var(--space-5);
+
+    /* Animation */
+    opacity: 0;
+    animation: fade-in var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 100ms;
+  }
+
+  .problem-agitation__eyebrow :global(svg) {
+    color: var(--color-emergency-400, #f87171);
+    flex-shrink: 0;
+  }
+
+  .problem-agitation__headline {
+    font-family: var(--font-family-display, 'Fraunces', serif);
+    font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-5xl));
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.02em;
+    color: var(--color-text-inverse);
+    margin: 0 0 var(--space-4);
+
+    /* Animation */
+    opacity: 0;
+    animation: slide-up var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 200ms;
+  }
+
+  .problem-agitation__description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-tertiary);
+    margin: 0;
+
+    /* Animation */
+    opacity: 0;
+    animation: slide-up var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 300ms;
+  }
+
+  /* ================================================================
+     PROBLEMS GRID
+     3-column grid on desktop, stacked on mobile
+     ================================================================ */
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 1024px) {
+    .problem-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Last item spans full width if odd count */
+    .problem-grid > :last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .problem-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    .problem-grid > :last-child:nth-child(odd) {
+      max-width: none;
+    }
+  }
+
+  /* ================================================================
+     PROBLEM CARD
+     Dark card with danger accent styling
+     ================================================================ */
+
+  .problem-card {
+    position: relative;
+    background: linear-gradient(
+      145deg,
+      rgba(30, 41, 59, 0.8) 0%,
+      rgba(15, 23, 42, 0.9) 100%
+    );
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: card-reveal var(--duration-slower) var(--ease-out) forwards;
+    animation-delay: calc(400ms + (var(--card-index, 0) * 150ms));
+  }
+
+  @keyframes card-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(32px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .problem-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow:
+      0 20px 40px -12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(239, 68, 68, 0.15);
+  }
+
+  /* ================================================================
+     DANGER STRIPE
+     Left border accent in warning color
+     ================================================================ */
+
+  .problem-card__stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(
+      180deg,
+      var(--color-emergency-500, #ef4444) 0%,
+      var(--color-accent-500, #f97316) 100%
+    );
+    opacity: 0.8;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .problem-card:hover .problem-card__stripe {
+    opacity: 1;
+    width: 5px;
+  }
+
+  /* ================================================================
+     CARD INNER
+     Content container with padding
+     ================================================================ */
+
+  .problem-card__inner {
+    position: relative;
+    padding: var(--space-6);
+    padding-left: calc(var(--space-6) + 4px); /* Account for stripe */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: 240px;
+  }
+
+  /* ================================================================
+     ICON AREA
+     Warning-styled icon with pulse effect
+     ================================================================ */
+
+  .problem-card__icon-area {
+    position: relative;
+    width: fit-content;
+  }
+
+  .problem-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.2) 0%,
+      rgba(249, 115, 22, 0.15) 100%
+    );
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-lg);
+    color: var(--color-emergency-400, #f87171);
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .problem-card:hover .problem-card__icon {
+    background: linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.3) 0%,
+      rgba(249, 115, 22, 0.25) 100%
+    );
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+  }
+
+  /* Subtle pulse animation around icon */
+  .problem-card__pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 52px;
+    height: 52px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-lg);
+    animation: pulse-ring 3s ease-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      opacity: 0.6;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    70% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+  }
+
+  .problem-card:hover .problem-card__pulse {
+    animation-duration: 2s;
+  }
+
+  /* ================================================================
+     CARD CONTENT
+     Title and description
+     ================================================================ */
+
+  .problem-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .problem-card__title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-inverse);
+    margin: 0;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .problem-card:hover .problem-card__title {
+    color: var(--color-emergency-200, #fecaca);
+  }
+
+  .problem-card__description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-tertiary);
+    margin: 0;
+  }
+
+  /* ================================================================
+     INDEX MARKER
+     Subtle card number for visual hierarchy
+     ================================================================ */
+
+  .problem-card__index {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: rgba(148, 163, 184, 0.08);
+    line-height: 1;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .problem-card:hover .problem-card__index {
+    color: rgba(239, 68, 68, 0.15);
+  }
+
+  /* ================================================================
+     BOTTOM GRADIENT
+     Subtle danger gradient at bottom
+     ================================================================ */
+
+  .problem-card__gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(
+      to top,
+      rgba(239, 68, 68, 0.05) 0%,
+      transparent 100%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .problem-card:hover .problem-card__gradient {
+    opacity: 1;
+  }
+
+  /* ================================================================
+     CTA HINT
+     Urgency message below cards
+     ================================================================ */
+
+  .problem-agitation__cta-hint {
+    margin-top: var(--space-10);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+
+    /* Animation */
+    opacity: 0;
+    animation: fade-in var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 900ms;
+  }
+
+  .problem-agitation__cta-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding: var(--space-4) var(--space-6);
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-accent-200, #fed7aa);
+    margin: 0;
+  }
+
+  .problem-agitation__cta-text :global(svg) {
+    color: var(--color-accent-400, #fb923c);
+    flex-shrink: 0;
+  }
+
+  .problem-agitation__cta-text strong {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-accent-300, #fdba74);
+  }
+
+  /* ================================================================
+     ANIMATIONS
+     ================================================================ */
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ================================================================
+     VARIANT: URGENT
+     More aggressive visual treatment
+     ================================================================ */
+
+  .problem-agitation--urgent .problem-card__stripe {
+    width: 6px;
+    opacity: 1;
+  }
+
+  .problem-agitation--urgent .problem-card__icon {
+    background: linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.35) 0%,
+      rgba(249, 115, 22, 0.3) 100%
+    );
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  .problem-agitation--urgent .problem-card__pulse {
+    animation-duration: 2s;
+  }
+
+  /* ================================================================
+     VARIANT: SUBTLE
+     Less aggressive for maintenance/non-emergency services
+     ================================================================ */
+
+  .problem-agitation--subtle {
+    background: var(--color-surface-inverse);
+  }
+
+  .problem-agitation--subtle .problem-agitation__eyebrow {
+    background: rgba(59, 111, 217, 0.15);
+    border-color: rgba(59, 111, 217, 0.3);
+    color: var(--color-primary-200);
+  }
+
+  .problem-agitation--subtle .problem-agitation__eyebrow :global(svg) {
+    color: var(--color-primary-400);
+  }
+
+  .problem-agitation--subtle .problem-card__stripe {
+    background: linear-gradient(
+      180deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-600) 100%
+    );
+  }
+
+  .problem-agitation--subtle .problem-card__icon {
+    background: linear-gradient(
+      135deg,
+      rgba(59, 111, 217, 0.2) 0%,
+      rgba(36, 81, 179, 0.15) 100%
+    );
+    border-color: rgba(59, 111, 217, 0.3);
+    color: var(--color-primary-400);
+  }
+
+  .problem-agitation--subtle .problem-card__pulse {
+    border-color: rgba(59, 111, 217, 0.3);
+  }
+
+  .problem-agitation--subtle .problem-card:hover .problem-card__title {
+    color: var(--color-primary-200);
+  }
+
+  .problem-agitation--subtle .problem-card__index {
+    color: rgba(59, 111, 217, 0.08);
+  }
+
+  .problem-agitation--subtle .problem-card:hover .problem-card__index {
+    color: rgba(59, 111, 217, 0.15);
+  }
+
+  .problem-agitation--subtle .problem-card:hover {
+    border-color: rgba(59, 111, 217, 0.3);
+    box-shadow:
+      0 20px 40px -12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(59, 111, 217, 0.15);
+  }
+
+  .problem-agitation--subtle .problem-card__gradient {
+    background: linear-gradient(
+      to top,
+      rgba(59, 111, 217, 0.05) 0%,
+      transparent 100%
+    );
+  }
+
+  .problem-agitation--subtle .problem-agitation__cta-text {
+    background: rgba(59, 111, 217, 0.1);
+    border-color: rgba(59, 111, 217, 0.2);
+    color: var(--color-primary-200);
+  }
+
+  .problem-agitation--subtle .problem-agitation__cta-text :global(svg) {
+    color: var(--color-primary-400);
+  }
+
+  .problem-agitation--subtle .problem-agitation__cta-text strong {
+    color: var(--color-primary-300);
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 768px) {
+    .problem-agitation__header {
+      margin-bottom: var(--space-10);
+    }
+
+    .problem-agitation__headline {
+      font-size: var(--font-size-3xl);
+    }
+
+    .problem-agitation__description {
+      font-size: var(--font-size-base);
+    }
+
+    .problem-card__inner {
+      padding: var(--space-5);
+      padding-left: calc(var(--space-5) + 4px);
+      min-height: auto;
+    }
+
+    .problem-card__icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .problem-card__pulse {
+      width: 44px;
+      height: 44px;
+    }
+
+    .problem-card__title {
+      font-size: var(--font-size-lg);
+    }
+
+    .problem-card__description {
+      font-size: var(--font-size-sm);
+    }
+
+    .problem-card__index {
+      font-size: var(--font-size-xl);
+    }
+
+    .problem-agitation__cta-hint {
+      margin-top: var(--space-8);
+    }
+
+    .problem-agitation__cta-text {
+      font-size: var(--font-size-sm);
+      padding: var(--space-3) var(--space-4);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .problem-agitation__eyebrow {
+      font-size: 10px;
+      padding: var(--space-1) var(--space-3);
+    }
+
+    .problem-card__inner {
+      padding: var(--space-4);
+      padding-left: calc(var(--space-4) + 4px);
+      gap: var(--space-3);
+    }
+
+    .problem-card__icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .problem-card__pulse {
+      width: 40px;
+      height: 40px;
+    }
+
+    .problem-card__index {
+      font-size: var(--font-size-lg);
+      top: var(--space-3);
+      right: var(--space-3);
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .problem-agitation__eyebrow,
+    .problem-agitation__headline,
+    .problem-agitation__description,
+    .problem-agitation__cta-hint,
+    .problem-card {
+      opacity: 1;
+      animation: none;
+      transform: none;
+    }
+
+    .problem-card:hover {
+      transform: none;
+    }
+
+    .problem-card:hover .problem-card__icon {
+      transform: none;
+    }
+
+    .problem-card__pulse {
+      display: none;
+    }
+  }
+</style>

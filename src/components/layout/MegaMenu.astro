@@ -1,0 +1,1031 @@
+---
+/**
+ * MegaMenu Layout Component
+ *
+ * A full-width dropdown menu for service navigation with categories,
+ * service lists, featured highlights, and conversion-focused CTAs.
+ *
+ * Aesthetic: Trustworthy Industrial Modern
+ * - Clean category tabs with clear hierarchy
+ * - Generous whitespace for easy scanning
+ * - Featured callout for high-value services
+ * - Phone CTA always prominent
+ *
+ * Features:
+ * - Category-based organization
+ * - Keyboard accessible (arrow keys, escape)
+ * - Smooth reveal animation
+ * - Featured service spotlight
+ * - Conversion-optimized CTA
+ */
+
+import { getBusinessProfile, getPhoneDisplay, getPhoneLink } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
+import Button from '../primitives/Button.astro';
+
+interface ServiceItem {
+  title: string;
+  slug: string;
+}
+
+interface ServiceCategory {
+  name: string;
+  key: string;
+  icon?: string;
+  description?: string;
+  services: ServiceItem[];
+  featured?: {
+    title: string;
+    description: string;
+    href: string;
+  };
+}
+
+interface Props {
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Fetch business data
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+
+// Get services list with fallback
+const servicesList = profile.services?.list || {};
+
+// Map services from profile to categories with icons and descriptions
+const serviceCategories: ServiceCategory[] = [
+  {
+    name: 'Heating',
+    key: 'heating',
+    icon: 'flame',
+    description: 'Stay warm all winter with expert heating solutions',
+    services: servicesList.heating || [],
+    featured: {
+      title: 'Furnace Repair',
+      description: 'Same-day emergency service. We fix all brands and keep you warm when it matters most.',
+      href: '/services/furnace-repair/',
+    },
+  },
+  {
+    name: 'Cooling',
+    key: 'cooling',
+    icon: 'snowflake',
+    description: 'Beat the heat with reliable AC systems',
+    services: servicesList.cooling || [],
+    featured: {
+      title: 'AC Installation',
+      description: 'Energy-efficient cooling systems sized perfectly for your home. Expert installation guaranteed.',
+      href: '/services/air-conditioner-installation/',
+    },
+  },
+  {
+    name: 'Indoor Air Quality',
+    key: 'iaq',
+    icon: 'air',
+    description: 'Breathe cleaner, healthier air at home',
+    services: servicesList.iaq || [],
+    featured: {
+      title: 'Air Filtration',
+      description: 'Remove allergens, dust, and pollutants. Improve your family\'s health and comfort.',
+      href: '/services/air-filtration-air-purifiers/',
+    },
+  },
+  {
+    name: 'Water Heating',
+    key: 'water-heating',
+    icon: 'water',
+    description: 'Hot water on demand, every time',
+    services: servicesList.water_heating || [],
+    featured: {
+      title: 'Tankless Water Heaters',
+      description: 'Endless hot water with up to 40% energy savings. Compact, efficient, and long-lasting.',
+      href: '/services/tankless-water-heaters/',
+    },
+  },
+  {
+    name: 'Commercial',
+    key: 'commercial',
+    icon: 'tools',
+    description: 'HVAC solutions for businesses of all sizes',
+    services: servicesList.commercial || [],
+    featured: {
+      title: 'Commercial HVAC',
+      description: 'Full-service commercial heating and cooling. Minimize downtime, maximize comfort.',
+      href: '/services/commercial-hvac/',
+    },
+  },
+];
+---
+
+<div
+  class:list={['mega-menu', className]}
+  data-mega-menu
+  role="dialog"
+  aria-label="Services navigation"
+  aria-hidden="true"
+>
+  <!-- Backdrop -->
+  <div class="mega-menu__backdrop" data-mega-menu-backdrop></div>
+
+  <!-- Content Panel -->
+  <div class="mega-menu__panel">
+    <div class="mega-menu__container">
+      <!-- Category Tabs -->
+      <div class="mega-menu__categories" role="tablist" aria-label="Service categories">
+        {serviceCategories.map((category, index) => (
+          <button
+            type="button"
+            class="mega-menu__category-tab"
+            role="tab"
+            id={`tab-${category.key}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            aria-controls={`panel-${category.key}`}
+            tabindex={index === 0 ? 0 : -1}
+            data-category={category.key}
+          >
+            <span class="mega-menu__category-icon">
+              <Icon name={category.icon || 'tools'} size="md" />
+            </span>
+            <span class="mega-menu__category-name">{category.name}</span>
+            <span class="mega-menu__category-chevron">
+              <Icon name="chevronRight" size="xs" />
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <!-- Service Panels -->
+      <div class="mega-menu__panels">
+        {serviceCategories.map((category, index) => (
+          <div
+            class="mega-menu__panel-content"
+            role="tabpanel"
+            id={`panel-${category.key}`}
+            aria-labelledby={`tab-${category.key}`}
+            hidden={index !== 0}
+            data-panel={category.key}
+          >
+            <!-- Panel Header -->
+            <div class="mega-menu__panel-header">
+              <h3 class="mega-menu__panel-title">{category.name} Services</h3>
+              <p class="mega-menu__panel-description">{category.description}</p>
+            </div>
+
+            <!-- Service Grid -->
+            <div class="mega-menu__services">
+              <ul class="mega-menu__service-list">
+                {category.services.map((service) => (
+                  <li class="mega-menu__service-item">
+                    <a href={`/services/${service.slug}/`} class="mega-menu__service-link">
+                      <span class="mega-menu__service-bullet"></span>
+                      <span class="mega-menu__service-name">{service.title}</span>
+                      <span class="mega-menu__service-arrow">
+                        <Icon name="arrowRight" size="sm" />
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Featured Service Card */}
+              {category.featured && (
+                <div class="mega-menu__featured">
+                  <div class="mega-menu__featured-badge">
+                    <span class="mega-menu__featured-badge-text">Featured</span>
+                  </div>
+                  <h4 class="mega-menu__featured-title">{category.featured.title}</h4>
+                  <p class="mega-menu__featured-desc">{category.featured.description}</p>
+                  <a href={category.featured.href} class="mega-menu__featured-link">
+                    <span>Learn more</span>
+                    <Icon name="arrowRight" size="sm" />
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <!-- View All Link -->
+            <div class="mega-menu__panel-footer">
+              <a
+                href={`/services/${category.key === 'iaq' ? 'indoor-air-quality' : category.key}/`}
+                class="mega-menu__view-all"
+              >
+                <span>View all {category.name.toLowerCase()} services</span>
+                <Icon name="arrowRight" size="sm" />
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA Strip -->
+      <div class="mega-menu__cta-strip">
+        <div class="mega-menu__cta-content">
+          <div class="mega-menu__cta-text">
+            <span class="mega-menu__cta-label">Need help deciding?</span>
+            <span class="mega-menu__cta-headline">Call for a free consultation</span>
+          </div>
+          <div class="mega-menu__cta-actions">
+            <a href={phoneLink} class="mega-menu__cta-phone">
+              <Icon name="phone" size="md" />
+              <span>{phoneDisplay}</span>
+            </a>
+            <Button
+              variant="primary"
+              size="sm"
+              href="/contact-us/"
+              class="mega-menu__cta-button"
+            >
+              Contact Us
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ================================================================
+     MEGA MENU - TRUSTWORTHY INDUSTRIAL MODERN
+     Full-width dropdown with categories, services, and CTAs
+     ================================================================ */
+
+  .mega-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-dropdown);
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .mega-menu[aria-hidden="false"] {
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  /* ================================================================
+     BACKDROP
+     Subtle overlay to focus attention on menu
+     ================================================================ */
+
+  .mega-menu__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0);
+    transition: background-color var(--duration-normal) var(--ease-out);
+  }
+
+  .mega-menu[aria-hidden="false"] .mega-menu__backdrop {
+    background-color: rgba(15, 23, 42, 0.4);
+  }
+
+  /* ================================================================
+     PANEL - Main Content Container
+     ================================================================ */
+
+  .mega-menu__panel {
+    position: absolute;
+    top: calc(var(--topbar-height, 40px) + var(--header-height-desktop, 80px));
+    left: 0;
+    width: 100%;
+    background-color: var(--color-surface-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+    box-shadow: var(--shadow-xl);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity var(--duration-normal) var(--ease-out),
+      transform var(--duration-normal) var(--ease-out);
+  }
+
+  .mega-menu[aria-hidden="false"] .mega-menu__panel {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mega-menu__container {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 1fr auto;
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    min-height: 360px;
+    max-height: calc(100vh - 200px);
+  }
+
+  /* ================================================================
+     CATEGORY TABS - Left sidebar navigation
+     ================================================================ */
+
+  .mega-menu__categories {
+    display: flex;
+    flex-direction: column;
+    grid-row: 1 / 2;
+    padding: var(--space-4) 0;
+    background-color: var(--color-surface-secondary);
+    border-right: 1px solid var(--color-border-secondary);
+  }
+
+  .mega-menu__category-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__category-tab:hover,
+  .mega-menu__category-tab:focus-visible {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-tertiary);
+  }
+
+  .mega-menu__category-tab:focus-visible {
+    outline: none;
+    border-left-color: var(--color-primary-400);
+  }
+
+  .mega-menu__category-tab[aria-selected="true"] {
+    color: var(--color-primary-700);
+    background-color: var(--color-surface-primary);
+    border-left-color: var(--color-primary-600);
+  }
+
+  .mega-menu__category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    color: var(--color-primary-600);
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__category-tab[aria-selected="true"] .mega-menu__category-icon {
+    background-color: var(--color-primary-100);
+  }
+
+  .mega-menu__category-name {
+    flex: 1;
+  }
+
+  .mega-menu__category-chevron {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-default);
+    color: var(--color-primary-500);
+  }
+
+  .mega-menu__category-tab[aria-selected="true"] .mega-menu__category-chevron {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ================================================================
+     PANEL CONTENT - Service listings and featured
+     ================================================================ */
+
+  .mega-menu__panels {
+    grid-row: 1 / 2;
+    overflow-y: auto;
+  }
+
+  .mega-menu__panel-content {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    animation: fadeIn var(--duration-fast) var(--ease-out);
+  }
+
+  .mega-menu__panel-content[hidden] {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .mega-menu__panel-header {
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .mega-menu__panel-title {
+    margin: 0 0 var(--space-1) 0;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+  }
+
+  .mega-menu__panel-description {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-normal);
+  }
+
+  /* ================================================================
+     SERVICES GRID
+     ================================================================ */
+
+  .mega-menu__services {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-8);
+    flex: 1;
+  }
+
+  .mega-menu__service-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-content: start;
+  }
+
+  .mega-menu__service-item {
+    /* Item container */
+  }
+
+  .mega-menu__service-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__service-link:hover,
+  .mega-menu__service-link:focus-visible {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .mega-menu__service-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  .mega-menu__service-bullet {
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-primary-400);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__service-link:hover .mega-menu__service-bullet {
+    background-color: var(--color-primary-600);
+  }
+
+  .mega-menu__service-name {
+    flex: 1;
+  }
+
+  .mega-menu__service-arrow {
+    opacity: 0;
+    transform: translateX(-4px);
+    color: var(--color-primary-500);
+    transition:
+      opacity var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__service-link:hover .mega-menu__service-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ================================================================
+     FEATURED SERVICE CARD
+     Prominent callout for high-value services
+     ================================================================ */
+
+  .mega-menu__featured {
+    position: relative;
+    padding: var(--space-5);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-surface-tertiary) 100%
+    );
+    border: 1px solid var(--color-primary-100);
+    border-radius: var(--radius-xl);
+  }
+
+  .mega-menu__featured-badge {
+    position: absolute;
+    top: calc(-1 * var(--space-3));
+    left: var(--space-4);
+  }
+
+  .mega-menu__featured-badge-text {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    color: var(--color-text-inverse);
+    background-color: var(--color-primary-600);
+    border-radius: var(--radius-full);
+  }
+
+  .mega-menu__featured-title {
+    margin: var(--space-2) 0 var(--space-2) 0;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-800);
+    line-height: var(--line-height-tight);
+  }
+
+  .mega-menu__featured-desc {
+    margin: 0 0 var(--space-4) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .mega-menu__featured-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-700);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      gap var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__featured-link:hover {
+    color: var(--color-primary-800);
+    gap: var(--space-3);
+  }
+
+  .mega-menu__featured-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ================================================================
+     PANEL FOOTER - View All Link
+     ================================================================ */
+
+  .mega-menu__panel-footer {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .mega-menu__view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      gap var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__view-all:hover {
+    color: var(--color-primary-700);
+    gap: var(--space-3);
+  }
+
+  .mega-menu__view-all:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ================================================================
+     CTA STRIP - Conversion-focused footer
+     ================================================================ */
+
+  .mega-menu__cta-strip {
+    grid-column: 1 / -1;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-900) 0%,
+      var(--color-primary-800) 100%
+    );
+  }
+
+  .mega-menu__cta-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .mega-menu__cta-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .mega-menu__cta-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-300);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .mega-menu__cta-headline {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+  }
+
+  .mega-menu__cta-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .mega-menu__cta-phone {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    text-decoration: none;
+    padding: var(--space-2) var(--space-4);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    transition:
+      background-color var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-default);
+  }
+
+  .mega-menu__cta-phone:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .mega-menu__cta-phone:focus-visible {
+    outline: 2px solid var(--color-accent-400);
+    outline-offset: 2px;
+  }
+
+  /* ================================================================
+     RESPONSIVE - Hide on mobile (mobile menu takes over)
+     ================================================================ */
+
+  @media (max-width: 1023px) {
+    .mega-menu {
+      display: none;
+    }
+  }
+
+  /* Larger screens - more columns */
+  @media (min-width: 1280px) {
+    .mega-menu__container {
+      grid-template-columns: 260px 1fr;
+    }
+
+    .mega-menu__service-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mega-menu__services {
+      grid-template-columns: 1fr 320px;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .mega-menu__backdrop,
+    .mega-menu__panel,
+    .mega-menu__panel-content,
+    .mega-menu__category-tab,
+    .mega-menu__category-icon,
+    .mega-menu__category-chevron,
+    .mega-menu__service-link,
+    .mega-menu__service-bullet,
+    .mega-menu__service-arrow,
+    .mega-menu__featured-link,
+    .mega-menu__view-all,
+    .mega-menu__cta-phone {
+      transition: none;
+    }
+
+    .mega-menu__panel-content {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * MegaMenu Behavior
+   *
+   * Handles keyboard navigation, tab switching, and open/close states.
+   * Integrates with Header component via custom events.
+   */
+
+  function initMegaMenu() {
+    const megaMenu = document.querySelector('[data-mega-menu]') as HTMLElement | null;
+    if (!megaMenu) return;
+
+    const backdrop = megaMenu.querySelector('[data-mega-menu-backdrop]');
+    const categoryTabs = megaMenu.querySelectorAll('[data-category]') as NodeListOf<HTMLButtonElement>;
+    const panels = megaMenu.querySelectorAll('[data-panel]') as NodeListOf<HTMLElement>;
+
+    let isOpen = false;
+    let currentCategoryIndex = 0;
+
+    /**
+     * Open the mega menu
+     */
+    function openMenu() {
+      if (isOpen || !megaMenu) return;
+      isOpen = true;
+      megaMenu.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      // Focus first tab
+      categoryTabs[0]?.focus();
+    }
+
+    /**
+     * Close the mega menu
+     */
+    function closeMenu() {
+      if (!isOpen || !megaMenu) return;
+      isOpen = false;
+      megaMenu.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+
+      // Return focus to trigger element
+      const trigger = document.querySelector('[data-mega-menu-trigger]') as HTMLElement | null;
+      trigger?.focus();
+    }
+
+    /**
+     * Switch to a specific category
+     */
+    function switchCategory(index: number) {
+      if (index < 0 || index >= categoryTabs.length) return;
+
+      // Update tabs
+      categoryTabs.forEach((tab, i) => {
+        const isSelected = i === index;
+        tab.setAttribute('aria-selected', String(isSelected));
+        tab.setAttribute('tabindex', isSelected ? '0' : '-1');
+      });
+
+      // Update panels
+      panels.forEach((panel, i) => {
+        panel.hidden = i !== index;
+      });
+
+      currentCategoryIndex = index;
+    }
+
+    /**
+     * Handle category tab click
+     */
+    function handleTabClick(e: Event) {
+      const target = e.currentTarget as HTMLButtonElement;
+      const categoryKey = target.dataset.category;
+      const index = Array.from(categoryTabs).findIndex(
+        (tab) => tab.dataset.category === categoryKey
+      );
+      switchCategory(index);
+    }
+
+    /**
+     * Handle keyboard navigation within tabs
+     */
+    function handleTabKeydown(e: KeyboardEvent) {
+      const { key } = e;
+
+      switch (key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          const nextIndex = (currentCategoryIndex + 1) % categoryTabs.length;
+          switchCategory(nextIndex);
+          categoryTabs[nextIndex]?.focus();
+          break;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          const prevIndex = currentCategoryIndex === 0
+            ? categoryTabs.length - 1
+            : currentCategoryIndex - 1;
+          switchCategory(prevIndex);
+          categoryTabs[prevIndex]?.focus();
+          break;
+
+        case 'Home':
+          e.preventDefault();
+          switchCategory(0);
+          categoryTabs[0]?.focus();
+          break;
+
+        case 'End':
+          e.preventDefault();
+          const lastIndex = categoryTabs.length - 1;
+          switchCategory(lastIndex);
+          categoryTabs[lastIndex]?.focus();
+          break;
+
+        case 'Escape':
+          e.preventDefault();
+          closeMenu();
+          break;
+
+        case 'Tab':
+          // Allow tabbing into panel content
+          if (!e.shiftKey) {
+            e.preventDefault();
+            const activePanel = panels[currentCategoryIndex];
+            const firstLink = activePanel?.querySelector('a, button') as HTMLElement | null;
+            firstLink?.focus();
+          }
+          break;
+      }
+    }
+
+    /**
+     * Handle keyboard navigation within panels
+     */
+    function handlePanelKeydown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+      }
+    }
+
+    // Event listeners for tabs
+    categoryTabs.forEach((tab) => {
+      tab.addEventListener('click', handleTabClick);
+      tab.addEventListener('keydown', handleTabKeydown);
+    });
+
+    // Event listener for panels
+    panels.forEach((panel) => {
+      panel.addEventListener('keydown', handlePanelKeydown);
+    });
+
+    // Close on backdrop click
+    backdrop?.addEventListener('click', closeMenu);
+
+    // Close on escape key (global)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeMenu();
+      }
+    });
+
+    // Listen for open/close events from Header
+    document.addEventListener('megamenu:open', () => {
+      openMenu();
+    });
+
+    document.addEventListener('megamenu:close', () => {
+      closeMenu();
+    });
+
+    document.addEventListener('megamenu:toggle', () => {
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    // Close when clicking service links (navigation)
+    const serviceLinks = megaMenu.querySelectorAll('.mega-menu__service-link, .mega-menu__featured-link, .mega-menu__view-all');
+    serviceLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        // Small delay to allow navigation to start
+        setTimeout(closeMenu, 50);
+      });
+    });
+
+    // Hover triggers from navigation items
+    const navItems = document.querySelectorAll('.header__nav-item');
+    navItems.forEach((item) => {
+      const link = item.querySelector('.header__nav-link[aria-haspopup="true"]');
+      if (!link) return;
+
+      let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+
+      item.addEventListener('mouseenter', () => {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+        hoverTimeout = setTimeout(() => {
+          // Get category from nav link text
+          const categoryText = link.textContent?.trim().toLowerCase() || '';
+          const categoryMap: Record<string, number> = {
+            'heating': 0,
+            'cooling': 1,
+            'indoor air quality': 2,
+            'water heating': 3,
+            'commercial': 4,
+          };
+          const categoryIndex = categoryMap[categoryText] ?? 0;
+          switchCategory(categoryIndex);
+          openMenu();
+        }, 150);
+      });
+
+      item.addEventListener('mouseleave', () => {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+      });
+    });
+
+    // Close on mouse leave from mega menu (with delay)
+    let closeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    megaMenu.addEventListener('mouseleave', () => {
+      closeTimeout = setTimeout(closeMenu, 300);
+    });
+
+    megaMenu.addEventListener('mouseenter', () => {
+      if (closeTimeout) clearTimeout(closeTimeout);
+    });
+
+    // Also keep menu open when hovering nav items
+    navItems.forEach((item) => {
+      item.addEventListener('mouseenter', () => {
+        if (closeTimeout) clearTimeout(closeTimeout);
+      });
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMegaMenu);
+  } else {
+    initMegaMenu();
+  }
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', initMegaMenu);
+</script>

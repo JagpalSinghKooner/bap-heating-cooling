@@ -1,0 +1,829 @@
+---
+/**
+ * ServiceInclusions Component
+ *
+ * Displays what's included in the service package using a 4-quadrant layout.
+ * Each quadrant represents a category: Equipment, Labour, Warranty, Extras.
+ *
+ * Design Philosophy:
+ * This component builds confidence and eliminates purchase anxiety by clearly
+ * communicating the complete value proposition. Like a professional estimate
+ * sheet that leaves nothing to question—every item clearly called out with
+ * visual confirmation. Trust through transparency.
+ *
+ * Visual Treatment:
+ * - 2x2 grid on desktop creating a balanced, organized visual
+ * - Each quadrant has a distinct colored top accent bar for category identification
+ * - Icon badges with gradient fills that match the accent color
+ * - Checkmark-style bullet lists reinforce "you get all this" messaging
+ * - Subtle diagonal blueprint pattern evokes industrial professionalism
+ * - Staggered entrance animation creates visual interest
+ * - Decorative corner elements inspired by industrial design
+ *
+ * Aesthetic: Trustworthy Industrial Modern
+ * The design feels like a work order from a professional contractor—
+ * comprehensive, organized, and completely transparent.
+ *
+ * @example
+ * <ServiceInclusions
+ *   inclusions={{
+ *     equipment: ['New high-efficiency furnace', 'Digital thermostat'],
+ *     labour: ['Professional installation', 'System testing'],
+ *     warranty: ['10-year parts warranty', '1-year labour warranty'],
+ *     extras: ['Permit handling', 'Old unit removal']
+ *   }}
+ * />
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** The inclusions object with arrays for each category */
+  inclusions: {
+    /** Equipment/parts included */
+    equipment?: string[];
+    /** Labour/work included */
+    labour?: string[];
+    /** Warranty coverage items */
+    warranty?: string[];
+    /** Extra services/bonuses */
+    extras?: string[];
+  };
+  /** Custom section headline */
+  headline?: string;
+  /** Custom section description */
+  description?: string;
+  /** Custom eyebrow text */
+  eyebrow?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm';
+  /** Section ID for anchor links */
+  id?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  inclusions,
+  headline = "What's Included",
+  description = "Complete transparency on everything you get. No hidden fees, no surprises—just honest, upfront value.",
+  eyebrow = 'Full Package',
+  variant = 'default',
+  id = 'whats-included',
+  class: className = '',
+} = Astro.props;
+
+// Category configuration with icons, labels, and distinct accent colors
+const categories = [
+  {
+    key: 'equipment' as const,
+    icon: 'tools',
+    title: 'Equipment',
+    subtitle: 'Quality parts & materials',
+    accentColor: 'primary',
+  },
+  {
+    key: 'labour' as const,
+    icon: 'team',
+    title: 'Labour',
+    subtitle: 'Expert workmanship',
+    accentColor: 'accent',
+  },
+  {
+    key: 'warranty' as const,
+    icon: 'shield-check',
+    title: 'Warranty',
+    subtitle: 'Peace of mind protection',
+    accentColor: 'success',
+  },
+  {
+    key: 'extras' as const,
+    icon: 'plus',
+    title: 'Extras',
+    subtitle: 'Bonus services included',
+    accentColor: 'info',
+  },
+];
+
+// Filter to only show categories that have items
+const activeCategories = categories.filter(
+  cat => inclusions[cat.key] && inclusions[cat.key]!.length > 0
+);
+
+// Don't render if no inclusions
+if (activeCategories.length === 0) {
+  return null;
+}
+
+// Build section classes
+const sectionClasses = [
+  'service-inclusions',
+  `service-inclusions--${variant}`,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Section
+  variant={variant}
+  padding="lg"
+  id={id}
+  class={sectionClasses}
+>
+  {/* Blueprint-style background pattern */}
+  <div class="inclusions-pattern" aria-hidden="true"></div>
+
+  <Container size="xl">
+    {/* Section Header */}
+    <div class="inclusions-header">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+        eyebrowIcon="check-circle"
+      />
+    </div>
+
+    {/* Quadrant Grid */}
+    <div class="inclusions-grid" data-count={activeCategories.length}>
+      {activeCategories.map((category, index) => (
+        <article
+          class={`inclusion-card inclusion-card--${category.accentColor}`}
+          style={`--stagger-index: ${index};`}
+        >
+          {/* Top accent bar - colored stripe for category identification */}
+          <div class="inclusion-accent-bar" aria-hidden="true"></div>
+
+          {/* Card Header with Icon Badge */}
+          <div class="inclusion-card-header">
+            <div class="inclusion-icon-badge">
+              <Icon name={category.icon} size="lg" />
+            </div>
+            <div class="inclusion-titles">
+              <h3 class="inclusion-title">{category.title}</h3>
+              <p class="inclusion-subtitle">{category.subtitle}</p>
+            </div>
+          </div>
+
+          {/* Item List */}
+          <ul class="inclusion-list">
+            {inclusions[category.key]!.map((item: string, itemIndex: number) => (
+              <li class="inclusion-item" style={`--item-index: ${itemIndex};`}>
+                <span class="inclusion-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span class="inclusion-text">{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Decorative corner accent */}
+          <div class="inclusion-corner" aria-hidden="true"></div>
+        </article>
+      ))}
+    </div>
+
+    {/* Trust reinforcement footer */}
+    <footer class="inclusions-footer">
+      <div class="inclusions-promise">
+        <Icon name="shield-check" size="md" />
+        <span>All prices include applicable taxes. No hidden fees—ever.</span>
+      </div>
+    </footer>
+  </Container>
+</Section>
+
+<style>
+  /**
+   * ServiceInclusions Component Styles
+   *
+   * Design: Industrial modern with clean grid layout
+   * Aesthetic: Professional work order feel - itemized and comprehensive
+   * Trust through transparency and organization
+   */
+
+  /* ============================================
+     SECTION STRUCTURE
+     ============================================ */
+
+  .service-inclusions {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-inclusions--warm {
+    background: var(--color-surface-warm);
+  }
+
+  /* ============================================
+     BLUEPRINT PATTERN BACKGROUND
+     Subtle diagonal grid inspired by technical drawings
+     ============================================ */
+
+  .inclusions-pattern {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.025;
+    background-image:
+      linear-gradient(
+        45deg,
+        var(--color-primary-500) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        -45deg,
+        var(--color-primary-500) 1px,
+        transparent 1px
+      );
+    background-size: 32px 32px;
+  }
+
+  /* ============================================
+     HEADER AREA
+     ============================================ */
+
+  .inclusions-header {
+    margin-bottom: var(--space-12);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 1024px) {
+    .inclusions-header {
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* ============================================
+     QUADRANT GRID
+     2x2 layout on desktop, responsive down
+     ============================================ */
+
+  .inclusions-grid {
+    display: grid;
+    gap: var(--space-5);
+    position: relative;
+    z-index: 1;
+    grid-template-columns: 1fr;
+  }
+
+  /* Tablet: 2 columns */
+  @media (min-width: 640px) {
+    .inclusions-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  /* Desktop adjustments based on count */
+  @media (min-width: 1024px) {
+    .inclusions-grid {
+      gap: var(--space-8);
+    }
+
+    /* 4 items = 2x2 grid */
+    .inclusions-grid[data-count="4"] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* 3 items = 3 columns */
+    .inclusions-grid[data-count="3"] {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* 2 items = 2 columns centered */
+    .inclusions-grid[data-count="2"] {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* 1 item = single centered */
+    .inclusions-grid[data-count="1"] {
+      grid-template-columns: 1fr;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  /* ============================================
+     INCLUSION CARD
+     Each quadrant card with accent bar
+     ============================================ */
+
+  .inclusion-card {
+    position: relative;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    padding-top: calc(var(--space-6) + 4px); /* Account for accent bar */
+    overflow: hidden;
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    animation: inclusion-card-enter var(--duration-slower) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 100ms + 150ms);
+    opacity: 0;
+  }
+
+  @keyframes inclusion-card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .inclusion-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  @media (min-width: 1024px) {
+    .inclusion-card {
+      padding: var(--space-8);
+      padding-top: calc(var(--space-8) + 4px);
+    }
+  }
+
+  /* ============================================
+     ACCENT BAR
+     Colored top stripe for category identification
+     ============================================ */
+
+  .inclusion-accent-bar {
+    position: absolute;
+    top: 0;
+    left: var(--space-6);
+    right: var(--space-6);
+    height: 4px;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    background: var(--color-primary-500);
+  }
+
+  @media (min-width: 1024px) {
+    .inclusion-accent-bar {
+      left: var(--space-8);
+      right: var(--space-8);
+    }
+  }
+
+  /* Accent bar color variants */
+  .inclusion-card--primary .inclusion-accent-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+  }
+
+  .inclusion-card--accent .inclusion-accent-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-500) 0%,
+      var(--color-accent-400) 100%
+    );
+  }
+
+  .inclusion-card--success .inclusion-accent-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-success-500) 0%,
+      var(--color-success-600) 100%
+    );
+  }
+
+  .inclusion-card--info .inclusion-accent-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-info-500) 0%,
+      var(--color-primary-400) 100%
+    );
+  }
+
+  /* ============================================
+     CARD HEADER
+     Icon badge + titles
+     ============================================ */
+
+  .inclusion-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  /* Icon Badge - circular with color background */
+  .inclusion-icon-badge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .inclusion-card:hover .inclusion-icon-badge {
+    transform: scale(1.05);
+  }
+
+  /* Badge color variants */
+  .inclusion-card--primary .inclusion-icon-badge {
+    background: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+
+  .inclusion-card--accent .inclusion-icon-badge {
+    background: var(--color-accent-50);
+    color: var(--color-accent-600);
+  }
+
+  .inclusion-card--success .inclusion-icon-badge {
+    background: var(--color-success-50);
+    color: var(--color-success-600);
+  }
+
+  .inclusion-card--info .inclusion-icon-badge {
+    background: var(--color-info-50);
+    color: var(--color-info-600);
+  }
+
+  /* Titles */
+  .inclusion-titles {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .inclusion-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  @media (min-width: 1024px) {
+    .inclusion-title {
+      font-size: var(--font-size-2xl);
+    }
+  }
+
+  .inclusion-subtitle {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    margin: 0;
+    line-height: var(--line-height-normal);
+  }
+
+  /* ============================================
+     ITEM LIST
+     Checkmark bullets
+     ============================================ */
+
+  .inclusion-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .inclusion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+
+    /* Staggered item animation */
+    animation: inclusion-item-enter var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 100ms + var(--item-index, 0) * 50ms + 400ms);
+    opacity: 0;
+  }
+
+  @keyframes inclusion-item-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .inclusion-check {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-top: 2px;
+    border-radius: var(--radius-full);
+    background: var(--color-success-100);
+    color: var(--color-success-600);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .inclusion-check svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .inclusion-item:hover .inclusion-check {
+    transform: scale(1.1);
+  }
+
+  .inclusion-text {
+    flex: 1;
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-normal);
+  }
+
+  @media (min-width: 1024px) {
+    .inclusion-text {
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  /* ============================================
+     DECORATIVE CORNER
+     Industrial accent element
+     ============================================ */
+
+  .inclusion-corner {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    border-radius: 0 0 var(--radius-xl) 0;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .inclusion-corner::before {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    right: -30px;
+    width: 60px;
+    height: 60px;
+    transform: rotate(45deg);
+    transform-origin: center;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .inclusion-card:hover .inclusion-corner::before {
+    opacity: 0.8;
+  }
+
+  /* Corner color variants */
+  .inclusion-card--primary .inclusion-corner::before {
+    background: var(--color-primary-100);
+  }
+
+  .inclusion-card--accent .inclusion-corner::before {
+    background: var(--color-accent-100);
+  }
+
+  .inclusion-card--success .inclusion-corner::before {
+    background: var(--color-success-50);
+  }
+
+  .inclusion-card--info .inclusion-corner::before {
+    background: var(--color-info-50);
+  }
+
+  /* ============================================
+     FOOTER - TRUST REINFORCEMENT
+     ============================================ */
+
+  .inclusions-footer {
+    margin-top: var(--space-10);
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .inclusions-promise {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    padding: var(--space-3) var(--space-5);
+    background: var(--color-surface-tertiary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-full);
+
+    /* Entrance animation */
+    animation: footer-enter var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 700ms;
+    opacity: 0;
+  }
+
+  @keyframes footer-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .inclusions-promise :global(svg) {
+    color: var(--color-success-600);
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .inclusions-footer {
+      margin-top: var(--space-12);
+    }
+
+    .inclusions-promise {
+      font-size: var(--font-size-base);
+      padding: var(--space-3) var(--space-6);
+    }
+  }
+
+  /* ============================================
+     VARIANT: MUTED BACKGROUND
+     ============================================ */
+
+  .service-inclusions--muted .inclusion-card {
+    background: var(--color-surface-primary);
+  }
+
+  /* ============================================
+     VARIANT: WARM BACKGROUND
+     ============================================ */
+
+  .service-inclusions--warm {
+    background: var(--color-surface-warm);
+  }
+
+  .service-inclusions--warm .inclusion-card {
+    background: var(--color-surface-primary);
+    border-color: rgba(234, 88, 12, 0.08);
+  }
+
+  .service-inclusions--warm .inclusions-pattern {
+    background-image:
+      linear-gradient(
+        45deg,
+        var(--color-accent-500) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        -45deg,
+        var(--color-accent-500) 1px,
+        transparent 1px
+      );
+  }
+
+  .service-inclusions--warm .inclusions-promise {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  /* ============================================
+     DARK SECTION OVERRIDES
+     ============================================ */
+
+  :global(.section-dark) .inclusion-card,
+  :global(.section-primary) .inclusion-card {
+    background: rgba(255, 255, 255, 0.97);
+  }
+
+  :global(.section-dark) .inclusions-promise,
+  :global(.section-primary) .inclusions-promise {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-text-inverse);
+  }
+
+  :global(.section-dark) .inclusions-pattern,
+  :global(.section-primary) .inclusions-pattern {
+    opacity: 0.03;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 639px) {
+    .inclusions-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .inclusion-card {
+      padding: var(--space-5);
+      padding-top: calc(var(--space-5) + 4px);
+    }
+
+    .inclusion-accent-bar {
+      left: var(--space-5);
+      right: var(--space-5);
+    }
+
+    .inclusion-icon-badge {
+      width: 40px;
+      height: 40px;
+    }
+
+    .inclusion-title {
+      font-size: var(--font-size-lg);
+    }
+
+    .inclusions-footer {
+      margin-top: var(--space-8);
+    }
+
+    .inclusions-promise {
+      font-size: var(--font-size-xs);
+      padding: var(--space-2) var(--space-4);
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .inclusion-card,
+    .inclusion-item,
+    .inclusions-promise {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .inclusion-card:hover {
+      transform: none;
+    }
+
+    .inclusion-card:hover .inclusion-icon-badge {
+      transform: none;
+    }
+
+    .inclusion-item:hover .inclusion-check {
+      transform: none;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     Clean output for printed estimates
+     ============================================ */
+
+  @media print {
+    .inclusions-pattern,
+    .inclusion-corner {
+      display: none;
+    }
+
+    .inclusion-card {
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #ccc;
+    }
+
+    .inclusion-accent-bar {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+</style>

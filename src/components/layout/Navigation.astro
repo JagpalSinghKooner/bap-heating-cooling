@@ -1,0 +1,480 @@
+---
+/**
+ * Navigation Component
+ *
+ * Desktop navigation with dropdown support for service categories.
+ * Part of the "Trustworthy Industrial Modern" design system.
+ *
+ * Features:
+ * - Clean, confident nav links with subtle hover states
+ * - Dropdown indicators for items with children
+ * - Keyboard accessible with proper ARIA attributes
+ * - Smooth, snappy transitions
+ *
+ * The navigation is hidden on mobile (< 1024px) where MobileMenu takes over.
+ */
+
+import Icon from '../primitives/Icon.astro';
+
+interface NavItem {
+  label: string;
+  href: string;
+  children?: Array<{
+    label: string;
+    href: string;
+    description?: string;
+    icon?: string;
+  }>;
+}
+
+interface Props {
+  /** Navigation items with optional nested children */
+  items: NavItem[];
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const { items, class: className = '' } = Astro.props as Props;
+
+// Get current path for active state
+const currentPath = Astro.url.pathname;
+
+// Type for child nav items
+type NavChild = NonNullable<NavItem['children']>[number];
+
+/**
+ * Check if a nav item is active (current page or parent of current page)
+ */
+function isActive(href: string): boolean {
+  if (href === '/') {
+    return currentPath === '/';
+  }
+  return currentPath.startsWith(href);
+}
+---
+
+<nav
+  class:list={['nav', className]}
+  aria-label="Main navigation"
+  data-navigation
+>
+  <ul class="nav__list" role="menubar">
+    {items.map((item: NavItem) => (
+      <li
+        class:list={[
+          'nav__item',
+          { 'nav__item--has-dropdown': item.children && item.children.length > 0 }
+        ]}
+        role="none"
+        data-nav-item
+      >
+        <a
+          href={item.href}
+          class:list={[
+            'nav__link',
+            { 'nav__link--active': isActive(item.href) }
+          ]}
+          role="menuitem"
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          aria-haspopup={item.children && item.children.length > 0 ? 'true' : undefined}
+          aria-expanded={item.children && item.children.length > 0 ? 'false' : undefined}
+          data-nav-link
+        >
+          <span class="nav__link-text">{item.label}</span>
+          {item.children && item.children.length > 0 && (
+            <span class="nav__link-icon" aria-hidden="true">
+              <Icon name="chevronDown" size="xs" />
+            </span>
+          )}
+        </a>
+
+        {/* Dropdown Menu */}
+        {item.children && item.children.length > 0 && (
+          <div class="nav__dropdown" data-nav-dropdown role="menu">
+            <div class="nav__dropdown-inner">
+              <ul class="nav__dropdown-list">
+                {item.children.map((child: NavChild) => (
+                  <li class="nav__dropdown-item" role="none">
+                    <a
+                      href={child.href}
+                      class:list={[
+                        'nav__dropdown-link',
+                        { 'nav__dropdown-link--active': isActive(child.href) }
+                      ]}
+                      role="menuitem"
+                      aria-current={isActive(child.href) ? 'page' : undefined}
+                    >
+                      {child.icon && (
+                        <span class="nav__dropdown-link-icon">
+                          <Icon name={child.icon} size="md" />
+                        </span>
+                      )}
+                      <span class="nav__dropdown-link-content">
+                        <span class="nav__dropdown-link-label">{child.label}</span>
+                        {child.description && (
+                          <span class="nav__dropdown-link-desc">{child.description}</span>
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  /* ================================================================
+     NAVIGATION - TRUSTWORTHY INDUSTRIAL MODERN
+     Clean, confident desktop nav with subtle interactions
+     ================================================================ */
+
+  .nav {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .nav {
+      display: flex;
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  /* ================================================================
+     NAV LIST
+     ================================================================ */
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ================================================================
+     NAV ITEM
+     ================================================================ */
+
+  .nav__item {
+    position: relative;
+  }
+
+  .nav__item--has-dropdown {
+    /* Ensure dropdown doesn't clip */
+  }
+
+  /* ================================================================
+     NAV LINK - Main Navigation Links
+     Confident, readable with subtle hover states
+     ================================================================ */
+
+  .nav__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+    white-space: nowrap;
+  }
+
+  .nav__link:hover,
+  .nav__link:focus-visible {
+    color: var(--color-primary-600);
+    background-color: var(--color-primary-50);
+  }
+
+  .nav__link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .nav__link--active {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .nav__link-text {
+    /* Text styling handled by parent */
+  }
+
+  .nav__link-icon {
+    display: flex;
+    align-items: center;
+    transition: transform var(--duration-fast) var(--ease-default);
+  }
+
+  .nav__link[aria-expanded="true"] .nav__link-icon {
+    transform: rotate(180deg);
+  }
+
+  .nav__link:hover .nav__link-icon,
+  .nav__link:focus-visible .nav__link-icon {
+    color: var(--color-primary-500);
+  }
+
+  /* ================================================================
+     DROPDOWN MENU
+     Elegant dropdown with smooth reveal
+     ================================================================ */
+
+  .nav__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-top: var(--space-2);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      visibility var(--duration-fast) var(--ease-out);
+    z-index: var(--z-dropdown);
+  }
+
+  /* Show dropdown on hover or when expanded */
+  .nav__item:hover .nav__dropdown,
+  .nav__item:focus-within .nav__dropdown,
+  .nav__link[aria-expanded="true"] + .nav__dropdown {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav__dropdown-inner {
+    min-width: 220px;
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .nav__dropdown-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2);
+  }
+
+  .nav__dropdown-item {
+    /* Item container */
+  }
+
+  /* ================================================================
+     DROPDOWN LINKS
+     ================================================================ */
+
+  .nav__dropdown-link {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2-5) var(--space-3);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      color var(--duration-fast) var(--ease-default),
+      background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .nav__dropdown-link:hover,
+  .nav__dropdown-link:focus-visible {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .nav__dropdown-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  .nav__dropdown-link--active {
+    color: var(--color-primary-700);
+    background-color: var(--color-primary-50);
+  }
+
+  .nav__dropdown-link-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--space-8);
+    height: var(--space-8);
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    color: var(--color-primary-600);
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .nav__dropdown-link:hover .nav__dropdown-link-icon {
+    background-color: var(--color-primary-100);
+  }
+
+  .nav__dropdown-link-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-0-5);
+    padding-top: var(--space-1);
+  }
+
+  .nav__dropdown-link-label {
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+  }
+
+  .nav__dropdown-link-desc {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav__link,
+    .nav__link-icon,
+    .nav__dropdown,
+    .nav__dropdown-link,
+    .nav__dropdown-link-icon {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Navigation Dropdown Behavior
+   *
+   * Handles keyboard navigation and ARIA states for dropdown menus.
+   * Uses native hover for mouse interaction, enhanced with JS for keyboard.
+   */
+
+  function initNavigation() {
+    const navItems = document.querySelectorAll('[data-nav-item]');
+
+    navItems.forEach((item) => {
+      const link = item.querySelector('[data-nav-link]') as HTMLAnchorElement | null;
+      const dropdown = item.querySelector('[data-nav-dropdown]') as HTMLElement | null;
+
+      if (!link || !dropdown) return;
+
+      // Handle keyboard navigation
+      link.addEventListener('keydown', (e: KeyboardEvent) => {
+        const isExpanded = link.getAttribute('aria-expanded') === 'true';
+
+        switch (e.key) {
+          case 'Enter':
+          case ' ':
+            // If it has dropdown, toggle it instead of navigating
+            if (dropdown) {
+              e.preventDefault();
+              link.setAttribute('aria-expanded', String(!isExpanded));
+            }
+            break;
+
+          case 'Escape':
+            if (isExpanded) {
+              e.preventDefault();
+              link.setAttribute('aria-expanded', 'false');
+              link.focus();
+            }
+            break;
+
+          case 'ArrowDown':
+            if (dropdown && !isExpanded) {
+              e.preventDefault();
+              link.setAttribute('aria-expanded', 'true');
+              const firstLink = dropdown.querySelector('a');
+              firstLink?.focus();
+            }
+            break;
+        }
+      });
+
+      // Handle dropdown keyboard navigation
+      dropdown?.addEventListener('keydown', (e: KeyboardEvent) => {
+        const links = Array.from(dropdown.querySelectorAll('a'));
+        const currentIndex = links.indexOf(document.activeElement as HTMLAnchorElement);
+
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % links.length;
+            links[nextIndex]?.focus();
+            break;
+
+          case 'ArrowUp':
+            e.preventDefault();
+            const prevIndex = currentIndex <= 0 ? links.length - 1 : currentIndex - 1;
+            links[prevIndex]?.focus();
+            break;
+
+          case 'Escape':
+            e.preventDefault();
+            link.setAttribute('aria-expanded', 'false');
+            link.focus();
+            break;
+
+          case 'Tab':
+            // Close dropdown when tabbing out
+            if (!e.shiftKey && currentIndex === links.length - 1) {
+              link.setAttribute('aria-expanded', 'false');
+            }
+            break;
+        }
+      });
+
+      // Handle mouse interactions
+      item.addEventListener('mouseenter', () => {
+        link.setAttribute('aria-expanded', 'true');
+      });
+
+      item.addEventListener('mouseleave', () => {
+        link.setAttribute('aria-expanded', 'false');
+      });
+
+      // Handle focus management
+      item.addEventListener('focusin', () => {
+        link.setAttribute('aria-expanded', 'true');
+      });
+
+      item.addEventListener('focusout', (e) => {
+        // Check if focus is moving outside the item
+        const focusEvent = e as FocusEvent;
+        const relatedTarget = focusEvent.relatedTarget as Node | null;
+        if (!item.contains(relatedTarget)) {
+          link.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavigation);
+  } else {
+    initNavigation();
+  }
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', initNavigation);
+</script>

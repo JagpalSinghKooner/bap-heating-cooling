@@ -1,0 +1,640 @@
+---
+/**
+ * ServiceGuarantee Component
+ *
+ * Displays warranty and guarantee information on service pages.
+ * This section is critical for building trust and reducing purchase anxiety.
+ * When customers see "Our Guarantee," they need to feel reassured that
+ * they're making a safe choice.
+ *
+ * Design Philosophy:
+ * The guarantee is a promise - and promises should feel solid, official,
+ * almost like a certificate you'd hang on the wall. We use shield iconography,
+ * warm backgrounds, and a subtle "badge" quality to cards. The layout
+ * feels like itemized commitments - clear and accountable.
+ *
+ * Visual Approach:
+ * - Warm background creates trust-building atmosphere
+ * - Shield icon badges reinforce protection theme
+ * - Cards have certificate/badge aesthetic
+ * - Generous spacing for readability and gravitas
+ * - Industrial accent line adds brand signature
+ *
+ * @example
+ * <ServiceGuarantee
+ *   guarantee={{
+ *     items: [
+ *       { title: "100% Satisfaction", description: "If you're not happy, we'll make it right." },
+ *       { title: "Price Match Promise", description: "Found a lower price? We'll match it." },
+ *     ]
+ *   }}
+ * />
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface GuaranteeItem {
+  /** Guarantee title - the promise */
+  title: string;
+  /** Guarantee description - explains the commitment */
+  description: string;
+  /** Optional icon override (defaults to shield) */
+  icon?: string;
+}
+
+interface Props {
+  /** Guarantee object containing items array */
+  guarantee: {
+    items: GuaranteeItem[];
+  };
+  /** Custom headline override */
+  headline?: string;
+  /** Custom description override */
+  description?: string;
+  /** Custom eyebrow text */
+  eyebrow?: string;
+  /** Section background variant */
+  variant?: 'default' | 'muted' | 'warm' | 'dark';
+  /** Section ID for anchor links */
+  id?: string;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  guarantee,
+  headline = 'Our Promise to You',
+  description = 'Every guarantee is backed by our 30+ years of reputation. We stand behind our work because your trust means everything.',
+  eyebrow = 'Our Guarantee',
+  variant = 'warm',
+  id = 'guarantee',
+  class: className = '',
+} = Astro.props;
+
+// Build section classes
+const sectionClasses = [
+  'service-guarantee',
+  className,
+].filter(Boolean).join(' ');
+
+// Determine grid columns based on number of items
+const itemCount = guarantee.items.length;
+const gridClass = itemCount === 1
+  ? 'guarantee-grid-single'
+  : itemCount === 2
+    ? 'guarantee-grid-two'
+    : itemCount === 3
+      ? 'guarantee-grid-three'
+      : 'guarantee-grid-four';
+---
+
+<Section
+  variant={variant}
+  padding="lg"
+  id={id}
+  class={sectionClasses}
+>
+  <Container size="xl">
+    {/* Decorative top accent - industrial badge feel */}
+    <div class="guarantee-badge-accent" aria-hidden="true">
+      <div class="guarantee-badge-icon">
+        <Icon name="shield-check" size="2xl" />
+      </div>
+    </div>
+
+    {/* Section Header */}
+    <div class="guarantee-header">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+      />
+    </div>
+
+    {/* Guarantee Cards Grid */}
+    <div class={`guarantee-grid ${gridClass}`}>
+      {guarantee.items.map((item, index) => (
+        <article
+          class="guarantee-card"
+          style={`--card-delay: ${index * 100}ms`}
+        >
+          {/* Card decorative corner accent */}
+          <div class="guarantee-card-accent" aria-hidden="true"></div>
+
+          {/* Icon Badge */}
+          <div class="guarantee-card-badge">
+            <div class="guarantee-card-badge-ring">
+              <Icon
+                name={item.icon || 'shield-check'}
+                size="lg"
+                color="primary"
+              />
+            </div>
+          </div>
+
+          {/* Card Content */}
+          <div class="guarantee-card-content">
+            <h3 class="guarantee-card-title">{item.title}</h3>
+            <p class="guarantee-card-description">{item.description}</p>
+          </div>
+
+          {/* Checkmark seal */}
+          <div class="guarantee-card-seal" aria-hidden="true">
+            <Icon name="checkmark" size="sm" />
+          </div>
+        </article>
+      ))}
+    </div>
+
+    {/* Trust reinforcement footer */}
+    <div class="guarantee-footer">
+      <div class="guarantee-footer-line" aria-hidden="true"></div>
+      <p class="guarantee-footer-text">
+        Backed by our reputation since 1992
+      </p>
+      <div class="guarantee-footer-line" aria-hidden="true"></div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /**
+   * ServiceGuarantee Component Styles
+   *
+   * Aesthetic: "Certificate of Trust"
+   * - Warm, reassuring atmosphere
+   * - Badge/certificate visual language
+   * - Industrial modern accents
+   * - Deliberate, confident spacing
+   */
+
+  /* ============================================
+     SECTION STRUCTURE
+     ============================================ */
+
+  .service-guarantee {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle diagonal pattern overlay - industrial signature */
+  .service-guarantee::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0px,
+      currentColor 1px,
+      transparent 1px,
+      transparent 16px
+    );
+    z-index: 0;
+  }
+
+  /* ============================================
+     DECORATIVE BADGE ACCENT
+     Central shield icon as section anchor
+     ============================================ */
+
+  .guarantee-badge-accent {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  .guarantee-badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-full);
+    color: var(--color-primary-600);
+    box-shadow:
+      0 0 0 4px var(--color-surface-warm, var(--color-surface-primary)),
+      0 0 0 6px var(--color-primary-200),
+      var(--shadow-md);
+    animation: badge-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 4px var(--color-surface-warm, var(--color-surface-primary)),
+        0 0 0 6px var(--color-primary-200),
+        var(--shadow-md);
+    }
+    50% {
+      box-shadow:
+        0 0 0 4px var(--color-surface-warm, var(--color-surface-primary)),
+        0 0 0 8px var(--color-primary-100),
+        var(--shadow-lg);
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .guarantee-badge-icon {
+      animation: none;
+    }
+  }
+
+  /* ============================================
+     HEADER AREA
+     ============================================ */
+
+  .guarantee-header {
+    margin-bottom: var(--space-12);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 1024px) {
+    .guarantee-header {
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* ============================================
+     GUARANTEE GRID
+     Responsive card layout
+     ============================================ */
+
+  .guarantee-grid {
+    display: grid;
+    gap: var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Single item - centered */
+  .guarantee-grid-single {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Two items */
+  .guarantee-grid-two {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .guarantee-grid-two {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-8);
+    }
+  }
+
+  /* Three items */
+  .guarantee-grid-three {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .guarantee-grid-three {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .guarantee-grid-three {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+    }
+  }
+
+  /* Four or more items */
+  .guarantee-grid-four {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .guarantee-grid-four {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .guarantee-grid-four {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  /* ============================================
+     GUARANTEE CARD
+     Certificate/badge aesthetic
+     ============================================ */
+
+  .guarantee-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-8) var(--space-6);
+    background-color: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-primary);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    animation: card-enter var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: var(--card-delay, 0ms);
+    opacity: 0;
+  }
+
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .guarantee-card {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  .guarantee-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary-200);
+  }
+
+  /* Card corner accent - industrial detail */
+  .guarantee-card-accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 0 var(--radius-xl) 0 0;
+  }
+
+  .guarantee-card-accent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      -45deg,
+      var(--color-primary-100) 50%,
+      transparent 50%
+    );
+  }
+
+  /* ============================================
+     CARD BADGE
+     Icon container with ring decoration
+     ============================================ */
+
+  .guarantee-card-badge {
+    margin-bottom: var(--space-5);
+  }
+
+  .guarantee-card-badge-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-primary-200);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .guarantee-card:hover .guarantee-card-badge-ring {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100) 0%,
+      var(--color-primary-200) 100%
+    );
+    border-color: var(--color-primary-300);
+    transform: scale(1.05);
+  }
+
+  /* ============================================
+     CARD CONTENT
+     ============================================ */
+
+  .guarantee-card-content {
+    flex: 1;
+  }
+
+  .guarantee-card-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-3);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .guarantee-card-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ============================================
+     CARD SEAL
+     Checkmark verification badge
+     ============================================ */
+
+  .guarantee-card-seal {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: var(--color-success-500);
+    border-radius: var(--radius-full);
+    color: white;
+    opacity: 0.9;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .guarantee-card:hover .guarantee-card-seal {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  /* ============================================
+     FOOTER TRUST LINE
+     "Since 1992" reinforcement
+     ============================================ */
+
+  .guarantee-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-top: var(--space-12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .guarantee-footer-line {
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-border-primary) 50%,
+      transparent 100%
+    );
+  }
+
+  .guarantee-footer-text {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .guarantee-badge-icon {
+      width: 64px;
+      height: 64px;
+    }
+
+    .guarantee-card {
+      padding: var(--space-6) var(--space-5);
+    }
+
+    .guarantee-card-title {
+      font-size: var(--font-size-lg);
+    }
+
+    .guarantee-footer {
+      margin-top: var(--space-8);
+    }
+
+    .guarantee-footer-line {
+      max-width: 60px;
+    }
+
+    .guarantee-footer-text {
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  /* ============================================
+     DARK SECTION VARIANT
+     Invert colors for dark backgrounds
+     ============================================ */
+
+  :global(.section-inverse) .guarantee-badge-icon {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    color: var(--color-text-inverse);
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.1),
+      0 0 0 6px rgba(255, 255, 255, 0.05),
+      var(--shadow-md);
+  }
+
+  :global(.section-inverse) .guarantee-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(.section-inverse) .guarantee-card:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  :global(.section-inverse) .guarantee-card-accent::before {
+    background: linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 50%
+    );
+  }
+
+  :global(.section-inverse) .guarantee-card-badge-ring {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  :global(.section-inverse) .guarantee-card-badge-ring :global(.icon) {
+    color: var(--color-text-inverse);
+  }
+
+  :global(.section-inverse) .guarantee-card-title {
+    color: var(--color-text-inverse);
+  }
+
+  :global(.section-inverse) .guarantee-card-description {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  :global(.section-inverse) .guarantee-footer-line {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+  }
+
+  :global(.section-inverse) .guarantee-footer-text {
+    color: rgba(255, 255, 255, 0.6);
+  }
+</style>

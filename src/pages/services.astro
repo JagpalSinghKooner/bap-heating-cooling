@@ -1,42 +1,350 @@
 ---
 /**
- * Services Index Page - Gutted for Redesign
+ * Services Index Page
  *
- * Preserves all data fetching logic.
+ * Overview of all services offered by B.A.P.
+ * Organized by category for easy navigation.
+ *
+ * Sections:
+ * 1. PageHero
+ * 2. ServicesGrid (by category)
+ * 3. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
-import { buildServicePath } from '../lib/slugBuilder';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
+import { getLocalBusinessSchema } from '../lib/schema';
 
-const services = await getCollection('services');
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import ServicesGrid from '../components/shared/ServicesGrid.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Icon from '../components/primitives/Icon.astro';
 
-// Group services by category
-const servicesByCategory = {
-  heating: services.filter(s => s.data.category === 'heating').sort((a, b) => a.data.order - b.data.order),
-  cooling: services.filter(s => s.data.category === 'cooling').sort((a, b) => a.data.order - b.data.order),
-  iaq: services.filter(s => s.data.category === 'iaq').sort((a, b) => a.data.order - b.data.order),
-  'water-heating': services.filter(s => s.data.category === 'water-heating').sort((a, b) => a.data.order - b.data.order),
-  commercial: services.filter(s => s.data.category === 'commercial').sort((a, b) => a.data.order - b.data.order),
-  plans: services.filter(s => s.data.category === 'plans').sort((a, b) => a.data.order - b.data.order),
-};
+const profile = await getBusinessProfile();
+const schema = getLocalBusinessSchema(profile);
+const phoneLink = getPhoneLink(profile);
 
-const categoryTitles = {
-  heating: 'Heating Services',
-  cooling: 'Cooling Services',
-  iaq: 'Indoor Air Quality',
-  'water-heating': 'Water Heating',
-  commercial: 'Commercial HVAC',
-  plans: 'Maintenance Plans',
-};
+// Service categories with descriptions
+const categories = [
+  {
+    category: 'heating',
+    title: 'Heating Services',
+    description: 'Stay warm all winter with our comprehensive heating solutions.',
+    icon: 'flame',
+  },
+  {
+    category: 'cooling',
+    title: 'Cooling Services',
+    description: 'Beat the heat with efficient air conditioning services.',
+    icon: 'snowflake',
+  },
+  {
+    category: 'iaq',
+    title: 'Indoor Air Quality',
+    description: 'Breathe easier with cleaner, healthier indoor air.',
+    icon: 'wind',
+  },
+  {
+    category: 'water-heating',
+    title: 'Water Heating',
+    description: 'Reliable hot water solutions for your home.',
+    icon: 'droplet',
+  },
+];
+
+// Why choose us items
+const whyChoose = [
+  {
+    icon: 'clock',
+    title: '24/7 Emergency Service',
+    description: 'We\'re available around the clock when you need us most.',
+  },
+  {
+    icon: 'shield',
+    title: 'Licensed & Insured',
+    description: 'TSSA certified technicians with full liability coverage.',
+  },
+  {
+    icon: 'award',
+    title: 'Quality Guaranteed',
+    description: 'We stand behind our work with comprehensive warranties.',
+  },
+  {
+    icon: 'dollarSign',
+    title: 'Upfront Pricing',
+    description: 'No surprises. You\'ll know the cost before we start.',
+  },
+];
 ---
 
 <BaseLayout
-  title="Services - B.A.P Heating and Cooling"
-  description="Comprehensive heating and cooling services including installation, repair, and maintenance"
+  title="HVAC Services - B.A.P Heating and Cooling"
+  description="Complete HVAC services in Southern Ontario. Heating, cooling, maintenance, and indoor air quality solutions from certified professionals."
+  schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>Our Services</h1>
-    <p>Services page redesign in progress. {services.length} services available.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Complete HVAC Solutions"
+    description="From emergency repairs to planned installations, we handle all your heating and cooling needs with expertise and care."
+    eyebrow="Our Services"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Services', href: '/services/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call for Service', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Why Choose Section (Brief) -->
+  <Section variant="muted" padding="md">
+    <Container size="xl">
+      <div class="services-why-grid">
+        {whyChoose.map((item) => (
+          <div class="services-why-item">
+            <div class="services-why-icon">
+              <Icon name={item.icon} size="lg" color="primary" />
+            </div>
+            <div class="services-why-content">
+              <span class="services-why-title">{item.title}</span>
+              <span class="services-why-desc">{item.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Services by Category -->
+  {categories.map((cat, index) => (
+    <Section variant={index % 2 === 0 ? 'default' : 'muted'} padding="lg">
+      <Container size="xl">
+        <div class="services-category-header">
+          <div class="services-category-icon">
+            <Icon name={cat.icon} size="xl" color="primary" />
+          </div>
+          <div class="services-category-text">
+            <Heading level={2} size="2xl">
+              {cat.title}
+            </Heading>
+            <Text size="lg" color="secondary">
+              {cat.description}
+            </Text>
+          </div>
+        </div>
+        <ServicesGrid
+          filterByCategory={cat.category}
+          columns={3}
+          variant="cards"
+          showDescription={true}
+          limit={6}
+        />
+      </Container>
+    </Section>
+  ))}
+
+  <!-- All Services CTA -->
+  <Section variant="warm" padding="md">
+    <Container size="lg">
+      <div class="services-all-cta">
+        <div class="services-all-cta-content">
+          <Heading level={2} size="xl">
+            Not Sure What You Need?
+          </Heading>
+          <Text size="lg" color="secondary">
+            Our experts will diagnose the problem and recommend the right solution.
+            There's no pressure - just honest advice from experienced professionals.
+          </Text>
+        </div>
+        <div class="services-all-cta-action">
+          <a href={phoneLink} class="services-phone-cta">
+            <Icon name="phone" size="xl" />
+            <span class="services-phone-cta-text">Call for Free Assessment</span>
+          </a>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Ready to Get Started?"
+    description="Whether it's an emergency or a planned upgrade, we're here to help. Call today for fast, reliable HVAC service."
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Locations',
+      href: '/locations/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     WHY CHOOSE SECTION
+     ============================================ */
+
+  .services-why-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 640px) {
+    .services-why-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .services-why-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .services-why-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-primary);
+  }
+
+  .services-why-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-12);
+    height: var(--space-12);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+  }
+
+  .services-why-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .services-why-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .services-why-desc {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  /* ============================================
+     CATEGORY SECTIONS
+     ============================================ */
+
+  .services-category-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    margin-bottom: var(--space-10);
+  }
+
+  .services-category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-16);
+    height: var(--space-16);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-xl);
+    flex-shrink: 0;
+  }
+
+  .services-category-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* ============================================
+     ALL SERVICES CTA
+     ============================================ */
+
+  .services-all-cta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .services-all-cta {
+      flex-direction: row;
+      text-align: left;
+      justify-content: space-between;
+    }
+  }
+
+  .services-all-cta-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 50ch;
+  }
+
+  .services-phone-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-8);
+    background: var(--color-primary-600);
+    border-radius: var(--radius-xl);
+    color: white;
+    text-decoration: none;
+    transition: all var(--duration-normal) var(--ease-out);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .services-phone-cta:hover {
+    background: var(--color-primary-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .services-phone-cta-text {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .services-phone-cta {
+      transition: none;
+    }
+
+    .services-phone-cta:hover {
+      transform: none;
+    }
+  }
+</style>

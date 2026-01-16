@@ -1,0 +1,554 @@
+---
+/**
+ * TimelineStep Component
+ *
+ * An individual step in a process timeline. Designed to clearly communicate
+ * sequential progress with strong visual hierarchy.
+ *
+ * Design Philosophy:
+ * Each step should feel like a milestone - substantial and trustworthy.
+ * The numbered badge is industrial and confident, like a work order being
+ * checked off. The connector line shows clear progression.
+ *
+ * Features:
+ * - Bold numbered badge with optional icon override
+ * - Title and description with clear hierarchy
+ * - Visual connector to next step
+ * - Staggered animation on scroll
+ * - Works in both horizontal and vertical layouts
+ *
+ * Used by ProcessTimeline for consistent step display.
+ */
+
+import Icon from '../primitives/Icon.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+
+interface Props {
+  /** Step number (1-indexed) */
+  step: number;
+  /** Step title - the action or milestone */
+  title: string;
+  /** Step description - additional context */
+  description: string;
+  /** Optional icon to display instead of number */
+  icon?: string;
+  /** Whether this is the last step (hides connector) */
+  isLast?: boolean;
+  /** Layout orientation - controlled by parent ProcessTimeline */
+  orientation?: 'horizontal' | 'vertical';
+  /** Show step numbers even when icon is provided */
+  showNumbers?: boolean;
+  /** Animation delay in milliseconds (for stagger effect) */
+  animationDelay?: number;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  step,
+  title,
+  description,
+  icon,
+  isLast = false,
+  orientation = 'vertical',
+  showNumbers = true,
+  animationDelay = 0,
+  class: className = '',
+} = Astro.props;
+
+// Build class string
+const classes = [
+  'timeline-step',
+  `timeline-step-${orientation}`,
+  isLast ? 'timeline-step-last' : '',
+  className,
+].filter(Boolean).join(' ');
+
+// Calculate animation delay for stagger effect
+const staggerDelay = `${animationDelay}ms`;
+---
+
+<div
+  class={classes}
+  style={`--stagger-delay: ${staggerDelay}; --step-index: ${step};`}
+  data-step={step}
+>
+  {/* Step Indicator */}
+  <div class="timeline-step-indicator">
+    {/* The Badge */}
+    <div class="timeline-step-badge">
+      {icon && !showNumbers ? (
+        <Icon name={icon} size="lg" color="inverse" />
+      ) : (
+        <span class="timeline-step-number">{step}</span>
+      )}
+      {/* Decorative ring for emphasis */}
+      <div class="timeline-step-badge-ring" aria-hidden="true"></div>
+    </div>
+
+    {/* Connector Line */}
+    {!isLast && (
+      <div class="timeline-step-connector" aria-hidden="true">
+        <div class="timeline-step-connector-line"></div>
+        {/* Animated progress indicator */}
+        <div class="timeline-step-connector-progress"></div>
+      </div>
+    )}
+  </div>
+
+  {/* Step Content */}
+  <div class="timeline-step-content">
+    <Heading level={4} size="sm" weight="bold" class="timeline-step-title">
+      {title}
+    </Heading>
+    <Text size="sm" color="secondary" class="timeline-step-description">
+      {description}
+    </Text>
+  </div>
+</div>
+
+<style is:global>
+  /**
+   * TimelineStep Component Styles
+   * Industrial modern aesthetic with clear visual progression
+   */
+
+  /* ============================================
+     BASE STRUCTURE
+     ============================================ */
+
+  .timeline-step {
+    display: flex;
+    position: relative;
+    opacity: 0;
+    animation: timelineStepReveal var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: var(--stagger-delay, 0ms);
+  }
+
+  @keyframes timelineStepReveal {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     STEP INDICATOR (Badge + Connector)
+     ============================================ */
+
+  .timeline-step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  /* The numbered/icon badge */
+  .timeline-step-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: linear-gradient(
+      145deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-700) 100%
+    );
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 4px 12px -2px rgba(36, 81, 179, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    z-index: 2;
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .timeline-step:hover .timeline-step-badge {
+    transform: scale(1.05);
+    box-shadow:
+      0 6px 16px -2px rgba(36, 81, 179, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* Step number typography */
+  .timeline-step-number {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: white;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Decorative ring that pulses subtly */
+  .timeline-step-badge-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-primary-300);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .timeline-step:hover .timeline-step-badge-ring {
+    opacity: 0.5;
+  }
+
+  /* ============================================
+     CONNECTOR LINE
+     ============================================ */
+
+  .timeline-step-connector {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timeline-step-connector-line {
+    background: linear-gradient(
+      180deg,
+      var(--color-primary-200) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-full);
+  }
+
+  /* Progress indicator (animated fill) */
+  .timeline-step-connector-progress {
+    position: absolute;
+    background: linear-gradient(
+      180deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+    border-radius: var(--radius-full);
+    transform-origin: top center;
+    transform: scaleY(0);
+    animation: connectorFill var(--duration-slower) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-delay, 0ms) + 200ms);
+  }
+
+  @keyframes connectorFill {
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* ============================================
+     STEP CONTENT
+     ============================================ */
+
+  .timeline-step-content {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .timeline-step-title {
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .timeline-step-description {
+    max-width: 28ch;
+    line-height: var(--line-height-relaxed);
+  }
+
+  /* ============================================
+     VERTICAL LAYOUT (Default)
+     ============================================ */
+
+  .timeline-step-vertical {
+    flex-direction: row;
+    gap: var(--space-5);
+    padding-bottom: var(--space-8);
+  }
+
+  .timeline-step-vertical.timeline-step-last {
+    padding-bottom: 0;
+  }
+
+  .timeline-step-vertical .timeline-step-indicator {
+    flex-direction: column;
+  }
+
+  .timeline-step-vertical .timeline-step-connector {
+    width: 4px;
+    min-height: var(--space-8);
+    margin-top: var(--space-3);
+  }
+
+  .timeline-step-vertical .timeline-step-connector-line {
+    width: 100%;
+    height: 100%;
+  }
+
+  .timeline-step-vertical .timeline-step-connector-progress {
+    width: 100%;
+    height: 100%;
+    transform-origin: top center;
+  }
+
+  .timeline-step-vertical .timeline-step-content {
+    padding-top: var(--space-2);
+  }
+
+  .timeline-step-vertical .timeline-step-description {
+    max-width: none;
+  }
+
+  /* ============================================
+     HORIZONTAL LAYOUT
+     ============================================ */
+
+  .timeline-step-horizontal {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    padding-bottom: 0;
+  }
+
+  .timeline-step-horizontal .timeline-step-indicator {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .timeline-step-horizontal .timeline-step-badge {
+    position: relative;
+    z-index: 2;
+  }
+
+  .timeline-step-horizontal .timeline-step-connector {
+    position: absolute;
+    top: 50%;
+    left: calc(50% + 1.75rem + var(--space-2));
+    right: calc(-50% + 1.75rem + var(--space-2));
+    height: 4px;
+    transform: translateY(-50%);
+    width: auto;
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .timeline-step-horizontal .timeline-step-connector-line {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-200) 0%,
+      var(--color-primary-100) 100%
+    );
+  }
+
+  .timeline-step-horizontal .timeline-step-connector-progress {
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-500) 0%,
+      var(--color-primary-400) 100%
+    );
+  }
+
+  @keyframes connectorFillHorizontal {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .timeline-step-horizontal .timeline-step-connector-progress {
+    animation-name: connectorFillHorizontal;
+  }
+
+  .timeline-step-horizontal .timeline-step-content {
+    margin-top: var(--space-5);
+    padding-top: 0;
+    max-width: 200px;
+  }
+
+  .timeline-step-horizontal .timeline-step-description {
+    max-width: none;
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     ============================================ */
+
+  .section-inverse .timeline-step-badge,
+  .section-primary .timeline-step-badge,
+  .section-dark .timeline-step-badge {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.85) 100%
+    );
+    box-shadow:
+      0 4px 12px -2px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .section-inverse .timeline-step-number,
+  .section-primary .timeline-step-number,
+  .section-dark .timeline-step-number {
+    color: var(--color-primary-700);
+    text-shadow: none;
+  }
+
+  .section-inverse .timeline-step-badge-ring,
+  .section-primary .timeline-step-badge-ring,
+  .section-dark .timeline-step-badge-ring {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .section-inverse .timeline-step-connector-line,
+  .section-primary .timeline-step-connector-line,
+  .section-dark .timeline-step-connector-line {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+
+  .section-inverse .timeline-step-horizontal .timeline-step-connector-line,
+  .section-primary .timeline-step-horizontal .timeline-step-connector-line,
+  .section-dark .timeline-step-horizontal .timeline-step-connector-line {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+
+  .section-inverse .timeline-step-connector-progress,
+  .section-primary .timeline-step-connector-progress,
+  .section-dark .timeline-step-connector-progress {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+  }
+
+  .section-inverse .timeline-step-horizontal .timeline-step-connector-progress,
+  .section-primary .timeline-step-horizontal .timeline-step-connector-progress,
+  .section-dark .timeline-step-horizontal .timeline-step-connector-progress {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+  }
+
+  .section-inverse .timeline-step-title,
+  .section-primary .timeline-step-title,
+  .section-dark .timeline-step-title {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .timeline-step-description,
+  .section-primary .timeline-step-description,
+  .section-dark .timeline-step-description {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Icon color override for inverse sections */
+  .section-inverse .timeline-step-badge .icon,
+  .section-primary .timeline-step-badge .icon,
+  .section-dark .timeline-step-badge .icon {
+    color: var(--color-primary-700);
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .timeline-step-badge {
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .timeline-step-number {
+      font-size: var(--font-size-lg);
+    }
+
+    .timeline-step-vertical {
+      gap: var(--space-4);
+      padding-bottom: var(--space-6);
+    }
+
+    .timeline-step-horizontal .timeline-step-content {
+      max-width: 160px;
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-step {
+      opacity: 1;
+      animation: none;
+      transform: none;
+    }
+
+    .timeline-step-connector-progress {
+      animation: none;
+      transform: scaleY(1);
+    }
+
+    .timeline-step-horizontal .timeline-step-connector-progress {
+      transform: scaleX(1);
+    }
+
+    .timeline-step-badge,
+    .timeline-step-badge-ring {
+      transition: none;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .timeline-step {
+      opacity: 1;
+      animation: none;
+      page-break-inside: avoid;
+    }
+
+    .timeline-step-badge {
+      background: white !important;
+      border: 2px solid #333;
+    }
+
+    .timeline-step-number {
+      color: #333;
+    }
+
+    .timeline-step-connector-line {
+      background: #ccc;
+    }
+
+    .timeline-step-connector-progress {
+      display: none;
+    }
+  }
+</style>

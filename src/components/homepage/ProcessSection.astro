@@ -1,0 +1,329 @@
+---
+/**
+ * ProcessSection Component - Homepage
+ *
+ * A clear, confidence-building section that shows customers exactly what
+ * to expect when they call B.A.P. Transforms uncertainty into trust.
+ *
+ * Design Philosophy:
+ * When someone's furnace breaks down or they need a new AC, they have
+ * questions: "How does this work? Will I get surprised by hidden fees?
+ * How long will this take?" This section answers all of it upfront.
+ *
+ * The industrial aesthetic (bold numbered badges, strong connectors)
+ * reinforces that B.A.P follows a professional, systematic process.
+ * Each step is a promise kept.
+ *
+ * Aesthetic Direction:
+ * - Warm muted background to stand out from default sections
+ * - Horizontal timeline on desktop shows the complete journey at a glance
+ * - Vertical on mobile for easy scrolling
+ * - Subtle geometric accents reinforce the "industrial precision" vibe
+ * - Strong CTA at the end to capture momentum
+ *
+ * Structure:
+ * 1. SectionHeader - Eyebrow + headline + description
+ * 2. ProcessTimeline - 4 steps with icons
+ * 3. CTA button - Drive conversions
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import ProcessTimeline from '../shared/ProcessTimeline.astro';
+import Button from '../primitives/Button.astro';
+
+interface Props {
+  /** Custom headline override */
+  headline?: string;
+  /** Custom description override */
+  description?: string;
+  /** Show CTA button at bottom */
+  showCTA?: boolean;
+  /** Custom CTA label */
+  ctaLabel?: string;
+  /** Custom CTA href */
+  ctaHref?: string;
+  /** Section variant for background */
+  sectionVariant?: 'default' | 'muted' | 'warm' | 'primary' | 'dark';
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  headline = 'Getting Comfortable is Easy',
+  description = 'From your first call to a job well done — here\'s exactly what happens. No surprises, no runaround, just straightforward service.',
+  showCTA = true,
+  ctaLabel = 'Schedule Your Service',
+  ctaHref = 'tel:+15198361622',
+  sectionVariant = 'muted',
+  class: className = '',
+} = Astro.props;
+
+// B.A.P's service process - these are promises, not just steps
+const processSteps = [
+  {
+    step: 1,
+    title: 'Call or Book Online',
+    description: 'Reach us 24/7. Real people answer, no phone trees.',
+    icon: 'phone',
+  },
+  {
+    step: 2,
+    title: 'Same-Day Diagnosis',
+    description: 'Our licensed tech arrives on time and finds the issue fast.',
+    icon: 'clock',
+  },
+  {
+    step: 3,
+    title: 'Upfront Quote',
+    description: 'You see the price before any work starts. No hidden fees.',
+    icon: 'dollar',
+  },
+  {
+    step: 4,
+    title: 'Expert Repair',
+    description: 'Done right the first time, backed by our warranty.',
+    icon: 'tools',
+  },
+];
+---
+
+<Section variant={sectionVariant} padding="lg" class={`process-section ${className}`}>
+  <Container size="xl">
+    {/* Section Header */}
+    <SectionHeader
+      eyebrow="How It Works"
+      headline={headline}
+      description={description}
+      align="center"
+      headlineSize="lg"
+      maxWidth="lg"
+    />
+
+    {/* Process Timeline - the heart of the section */}
+    <div class="process-section-timeline">
+      <ProcessTimeline
+        steps={processSteps}
+        variant="auto"
+        showNumbers={true}
+        animationDelayBase={200}
+      />
+    </div>
+
+    {/* CTA - capture the momentum */}
+    {showCTA && (
+      <div class="process-section-cta">
+        <Button
+          variant="primary"
+          size="lg"
+          href={ctaHref}
+          iconLeft="phone"
+          data-cta-context="homepage-process"
+        >
+          {ctaLabel}
+        </Button>
+        <p class="process-section-cta-note">
+          Or call us anytime: <a href="tel:+15198361622" class="process-section-phone">(519) 836-1622</a>
+        </p>
+      </div>
+    )}
+  </Container>
+
+  {/* Decorative elements - industrial accent lines */}
+  <div class="process-section-accent process-section-accent-left" aria-hidden="true"></div>
+  <div class="process-section-accent process-section-accent-right" aria-hidden="true"></div>
+</Section>
+
+<style is:global>
+  /**
+   * ProcessSection Styles
+   *
+   * Creates a confident, industrial aesthetic that reinforces
+   * B.A.P's systematic, professional approach to service.
+   */
+
+  /* ============================================
+     BASE LAYOUT
+     ============================================ */
+
+  .process-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Timeline spacing from header */
+  .process-section-timeline {
+    margin-top: var(--space-12);
+    margin-bottom: var(--space-12);
+  }
+
+  @media (min-width: 1024px) {
+    .process-section-timeline {
+      margin-top: var(--space-16);
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* ============================================
+     CTA AREA
+     ============================================ */
+
+  .process-section-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    text-align: center;
+  }
+
+  .process-section-cta-note {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .process-section-phone {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .process-section-phone:hover {
+    color: var(--color-primary-700);
+    text-decoration: underline;
+  }
+
+  /* ============================================
+     DECORATIVE ELEMENTS
+     Industrial accent lines that add visual interest
+     without distracting from content
+     ============================================ */
+
+  .process-section-accent {
+    position: absolute;
+    width: 120px;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-primary-200) 50%,
+      transparent 100%
+    );
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .process-section-accent-left {
+    top: var(--space-8);
+    left: 0;
+    transform: rotate(-45deg) translateX(-30%);
+  }
+
+  .process-section-accent-right {
+    bottom: var(--space-8);
+    right: 0;
+    transform: rotate(-45deg) translateX(30%);
+  }
+
+  /* Stronger accents on muted/warm backgrounds */
+  .section-bg-muted .process-section-accent,
+  .section-bg-warm .process-section-accent {
+    opacity: 0.6;
+    width: 160px;
+  }
+
+  /* Hide accents on primary/dark sections (they have their own visual interest) */
+  .section-inverse .process-section-accent {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%
+    );
+    opacity: 0.4;
+  }
+
+  /* ============================================
+     INVERSE SECTION SUPPORT
+     When section is on dark/primary background
+     ============================================ */
+
+  .section-inverse .process-section-cta-note {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .section-inverse .process-section-phone {
+    color: var(--color-accent-400);
+  }
+
+  .section-inverse .process-section-phone:hover {
+    color: var(--color-accent-300);
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 768px) {
+    .process-section-timeline {
+      margin-top: var(--space-8);
+      margin-bottom: var(--space-10);
+    }
+
+    /* Hide decorative accents on mobile for cleaner look */
+    .process-section-accent {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     ENTRANCE ANIMATION
+     Subtle reveal when scrolling into view
+     ============================================ */
+
+  .process-section-cta {
+    animation: processCTAReveal var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: 800ms;
+    opacity: 0;
+  }
+
+  @keyframes processCTAReveal {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .process-section-cta {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* ============================================
+     PRINT STYLES
+     ============================================ */
+
+  @media print {
+    .process-section-accent {
+      display: none;
+    }
+
+    .process-section {
+      page-break-inside: avoid;
+    }
+  }
+</style>

@@ -1,8 +1,9 @@
 ---
 /**
- * Blog Post Page - Gutted for Redesign
+ * Blog Post Page
  *
- * Preserves all data fetching, routing logic, and schemas.
+ * Individual blog post with editorial reading experience.
+ * Two-column layout with sticky table of contents sidebar.
  */
 
 import { getCollection } from 'astro:content';
@@ -10,6 +11,14 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getBusinessProfile, getPhoneLink } from '../../lib/getBusinessProfile';
 import { getArticleSchema } from '../../lib/schema';
+
+// Components
+import Container from '../../components/primitives/Container.astro';
+import BlogPostHero from '../../components/blog/BlogPostHero.astro';
+import BlogTableOfContents from '../../components/blog/BlogTableOfContents.astro';
+import BlogAuthorBio from '../../components/blog/BlogAuthorBio.astro';
+import BlogRelatedPosts from '../../components/blog/BlogRelatedPosts.astro';
+import CTASection from '../../components/shared/CTASection.astro';
 
 export async function getStaticPaths() {
   const blogPosts = await getCollection('blog');
@@ -24,8 +33,9 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const { Content, headings } = await post.render();
 const profile = await getBusinessProfile();
+const phoneLink = getPhoneLink(profile);
 
 const schema = getArticleSchema(profile, {
   title: post.data.title,
@@ -48,16 +58,33 @@ const allPosts = await getCollection('blog');
 const relatedPosts = allPosts
   .filter(p => p.data.category === post.data.category && p.slug !== post.slug)
   .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime())
-  .slice(0, 2);
+  .slice(0, 3);
 
-// Category display names
-const categoryNames: Record<string, string> = {
-  heating: 'Heating',
-  cooling: 'Cooling',
-  maintenance: 'Maintenance',
-  efficiency: 'Energy Efficiency',
-  guides: 'Guides',
-  news: 'News',
+// Transform related posts for BlogRelatedPosts component
+const relatedPostsData = relatedPosts.map(p => ({
+  title: p.data.title,
+  description: p.data.description,
+  slug: p.slug,
+  publishDate: p.data.publishDate,
+  category: p.data.category,
+  featuredImage: p.data.image,
+  author: p.data.author,
+}));
+
+// Breadcrumbs for hero
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Blog', href: '/blog/' },
+  { label: post.data.title, href: `/blog/${post.slug}/` },
+];
+
+// Author data with defaults
+const authorData = {
+  name: post.data.author || 'Paul Palmer',
+  bio: 'Owner of B.A.P Heating & Cooling since 1992. With over 30 years of experience, I\'m committed to keeping your home comfortable year-round with honest, reliable service.',
+  role: 'Owner & Lead Technician',
+  email: profile.contact.email,
+  phone: profile.contact.phone_display,
 };
 ---
 
@@ -68,11 +95,156 @@ const categoryNames: Record<string, string> = {
   schema={schema}
   ogImage={featuredImage}
 >
-  <div class="redesign-placeholder">
-    <h1>{post.data.title}</h1>
-    <p>Blog post page redesign in progress.</p>
-    <p style="margin-top: 1rem; font-size: 0.875rem; color: #64748b;">
-      Category: {categoryNames[post.data.category] || post.data.category}
-    </p>
-  </div>
+  {/* Blog Post Hero */}
+  <BlogPostHero
+    title={post.data.title}
+    description={post.data.description}
+    publishDate={post.data.publishDate}
+    author={{
+      name: authorData.name,
+      role: authorData.role,
+    }}
+    category={post.data.category}
+    featuredImage={featuredImage ? {
+      src: featuredImage,
+      alt: `Featured image for: ${post.data.title}`,
+    } : undefined}
+    breadcrumbs={breadcrumbs}
+    variant="default"
+  />
+
+  {/* Article Content */}
+  <section class="blog-post-content-section">
+    <Container size="xl">
+      <div class="blog-post-layout">
+        {/* Main Content Column */}
+        <article class="blog-post-article">
+          <div class="prose">
+            <Content />
+          </div>
+        </article>
+
+        {/* Sidebar with Table of Contents */}
+        <aside class="blog-post-sidebar">
+          <BlogTableOfContents
+            headings={headings}
+            title="In This Article"
+            minDepth={2}
+            maxDepth={4}
+          />
+        </aside>
+      </div>
+    </Container>
+  </section>
+
+  {/* Author Bio */}
+  <section class="blog-author-section">
+    <Container size="lg">
+      <BlogAuthorBio
+        author={authorData}
+        variant="default"
+        showContact={true}
+      />
+    </Container>
+  </section>
+
+  {/* Related Posts */}
+  {relatedPostsData.length > 0 && (
+    <section class="blog-related-section">
+      <Container size="xl">
+        <BlogRelatedPosts
+          posts={relatedPostsData}
+          currentSlug={post.slug}
+          limit={3}
+          title="Continue Reading"
+          eyebrow="Related Articles"
+          variant="default"
+          showDescriptions={false}
+        />
+      </Container>
+    </section>
+  )}
+
+  {/* CTA Section */}
+  <CTASection
+    variant="primary"
+    headline="Need HVAC Help? We're Here for You"
+    description="Whether you have questions about your system or need expert service, our team is ready to help."
+    primaryCTA={{
+      label: "Call Now",
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: "Request Service",
+      href: "/contact-us/",
+    }}
+    showPhone={true}
+    showHours={false}
+    align="center"
+  />
 </BaseLayout>
+
+<style>
+  .blog-post-content-section {
+    padding: var(--space-12) 0;
+    background-color: var(--color-surface-primary);
+  }
+
+  .blog-post-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .blog-post-article {
+    min-width: 0; /* Prevent content overflow */
+  }
+
+  .blog-post-sidebar {
+    position: relative;
+  }
+
+  /* Author section styling */
+  .blog-author-section {
+    padding: var(--space-12) 0;
+    background-color: var(--color-surface-primary);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  /* Related posts section */
+  .blog-related-section {
+    padding: 0;
+    background-color: var(--color-surface-primary);
+  }
+
+  /* Responsive layout */
+  @media (max-width: 1024px) {
+    .blog-post-layout {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+
+    .blog-post-sidebar {
+      order: -1; /* Move TOC above content on mobile */
+    }
+
+    .blog-post-content-section {
+      padding: var(--space-8) 0;
+    }
+
+    .blog-author-section {
+      padding: var(--space-8) 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .blog-post-content-section {
+      padding: var(--space-6) 0;
+    }
+
+    .blog-author-section {
+      padding: var(--space-6) 0;
+    }
+  }
+</style>

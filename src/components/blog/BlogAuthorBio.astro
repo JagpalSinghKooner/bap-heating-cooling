@@ -1,0 +1,494 @@
+---
+/**
+ * BlogAuthorBio Component
+ *
+ * A dedicated author bio section for blog posts that builds trust and
+ * personal connection. Reinforces B.A.P's "family-owned, local expertise"
+ * positioning by putting a face to the knowledge.
+ *
+ * Design Direction: Warm Authority
+ * Think of the author bio at the end of a thoughtful magazine article -
+ * it humanizes the expertise and invites further engagement. The warm
+ * background and generous spacing create a moment of pause that says
+ * "This came from a real person who cares about your home comfort."
+ *
+ * Aesthetic Choices:
+ * - Warm tinted background creates visual distinction from article body
+ * - Avatar with primary border treatment for authority
+ * - Asymmetric layout with image offset for visual interest
+ * - Diagonal accent line echoes industrial brand element
+ * - Social/contact links encourage continued relationship
+ *
+ * Variants:
+ * - default:  Standard horizontal layout with warm background
+ * - compact:  Smaller vertical card for sidebar placement
+ * - inline:   Minimal inline treatment for within-article placement
+ */
+
+import Avatar from '../primitives/Avatar.astro';
+import Icon from '../primitives/Icon.astro';
+
+interface Props {
+  /** Author information */
+  author: {
+    name: string;
+    bio?: string;
+    avatar?: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+  };
+  /** Display variant */
+  variant?: 'default' | 'compact' | 'inline';
+  /** Show contact links */
+  showContact?: boolean;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  author,
+  variant = 'default',
+  showContact = true,
+  class: className = '',
+} = Astro.props;
+
+// Default to Paul Palmer if no author provided (reinforces brand)
+const authorData = {
+  name: author.name || 'Paul Palmer',
+  bio: author.bio || 'Owner of B.A.P Heating & Cooling since 1992. With over 30 years of experience, I\'m committed to keeping your home comfortable year-round with honest, reliable service.',
+  avatar: author.avatar,
+  role: author.role || 'Owner & Lead Technician',
+  email: author.email,
+  phone: author.phone,
+};
+
+// Variant configurations
+const variantClasses: Record<string, string> = {
+  default: 'author-bio-default',
+  compact: 'author-bio-compact',
+  inline: 'author-bio-inline',
+};
+
+// Build class string
+const bioClasses = [
+  'author-bio',
+  variantClasses[variant],
+  className,
+].filter(Boolean).join(' ');
+
+const hasContact = showContact && (authorData.email || authorData.phone);
+---
+
+<aside class={bioClasses} aria-label="About the author">
+  {/* Decorative accent */}
+  {variant === 'default' && (
+    <div class="author-bio-accent" aria-hidden="true" />
+  )}
+
+  <div class="author-bio-content">
+    {/* Avatar section */}
+    <div class="author-bio-avatar-wrapper">
+      <Avatar
+        src={authorData.avatar}
+        alt={authorData.name}
+        fallback={authorData.name}
+        size={variant === 'compact' ? 'lg' : 'xl'}
+        bordered
+        borderColor="primary"
+        variant="primary"
+      />
+      {/* Subtle industrial corner accent */}
+      {variant === 'default' && (
+        <div class="author-bio-avatar-accent" aria-hidden="true" />
+      )}
+    </div>
+
+    {/* Info section */}
+    <div class="author-bio-info">
+      {/* Header */}
+      <div class="author-bio-header">
+        {variant !== 'inline' && (
+          <span class="author-bio-label">Written by</span>
+        )}
+        <h3 class="author-bio-name">{authorData.name}</h3>
+        {authorData.role && (
+          <span class="author-bio-role">{authorData.role}</span>
+        )}
+      </div>
+
+      {/* Bio text */}
+      {authorData.bio && variant !== 'inline' && (
+        <p class="author-bio-text">{authorData.bio}</p>
+      )}
+
+      {/* Contact links */}
+      {hasContact && variant === 'default' && (
+        <div class="author-bio-contact">
+          {authorData.phone && (
+            <a href={`tel:${authorData.phone.replace(/\D/g, '')}`} class="author-bio-contact-link">
+              <Icon name="phone" size="sm" />
+              <span>{authorData.phone}</span>
+            </a>
+          )}
+          {authorData.email && (
+            <a href={`mailto:${authorData.email}`} class="author-bio-contact-link">
+              <Icon name="email" size="sm" />
+              <span>{authorData.email}</span>
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+</aside>
+
+<style is:global>
+  /**
+   * BlogAuthorBio Styles
+   * Warm, trustworthy author section with editorial feel
+   */
+
+  /* ============================================
+     BASE STYLES
+     ============================================ */
+
+  .author-bio {
+    position: relative;
+  }
+
+  .author-bio-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  /* ============================================
+     AVATAR SECTION
+     ============================================ */
+
+  .author-bio-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Industrial corner accent on avatar */
+  .author-bio-avatar-accent {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px;
+    height: 24px;
+    border-right: 3px solid var(--color-accent-500);
+    border-bottom: 3px solid var(--color-accent-500);
+    border-bottom-right-radius: var(--radius-md);
+    opacity: 0.7;
+  }
+
+  /* ============================================
+     INFO SECTION
+     ============================================ */
+
+  .author-bio-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .author-bio-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .author-bio-label {
+    display: block;
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    color: var(--color-primary-600);
+    margin-bottom: var(--space-1);
+  }
+
+  .author-bio-name {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .author-bio-role {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-body);
+    color: var(--color-text-secondary);
+  }
+
+  .author-bio-text {
+    font-size: var(--font-size-base);
+    font-family: var(--font-family-body);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  /* ============================================
+     CONTACT LINKS
+     ============================================ */
+
+  .author-bio-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .author-bio-contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-600);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .author-bio-contact-link:hover {
+    color: var(--color-primary-700);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .author-bio-contact-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .author-bio-contact-link .icon {
+    color: var(--color-primary-500);
+  }
+
+  /* ============================================
+     VARIANT: DEFAULT
+     Full horizontal layout with warm background
+     ============================================ */
+
+  .author-bio-default {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      #fffbf7 50%,
+      var(--color-accent-50) 100%
+    );
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    overflow: hidden;
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  /* Diagonal decorative accent */
+  .author-bio-accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-primary-100) 50%
+    );
+    opacity: 0.5;
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  .author-bio-default .author-bio-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .author-bio-default .author-bio-name {
+    font-size: var(--font-size-2xl);
+  }
+
+  .author-bio-default .author-bio-text {
+    max-width: 600px;
+  }
+
+  /* ============================================
+     VARIANT: COMPACT
+     Smaller vertical card for sidebars
+     ============================================ */
+
+  .author-bio-compact {
+    background-color: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .author-bio-compact .author-bio-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-4);
+  }
+
+  .author-bio-compact .author-bio-header {
+    margin-bottom: var(--space-2);
+  }
+
+  .author-bio-compact .author-bio-name {
+    font-size: var(--font-size-lg);
+  }
+
+  .author-bio-compact .author-bio-text {
+    font-size: var(--font-size-sm);
+    margin-bottom: 0;
+  }
+
+  .author-bio-compact .author-bio-avatar-accent {
+    display: none;
+  }
+
+  /* ============================================
+     VARIANT: INLINE
+     Minimal inline treatment
+     ============================================ */
+
+  .author-bio-inline {
+    padding: 0;
+  }
+
+  .author-bio-inline .author-bio-content {
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .author-bio-inline .author-bio-header {
+    margin-bottom: 0;
+  }
+
+  .author-bio-inline .author-bio-name {
+    font-size: var(--font-size-base);
+    margin-bottom: 0;
+  }
+
+  .author-bio-inline .author-bio-role {
+    font-size: var(--font-size-xs);
+  }
+
+  .author-bio-inline .author-bio-avatar-accent {
+    display: none;
+  }
+
+  /* ============================================
+     RESPONSIVE ADJUSTMENTS
+     ============================================ */
+
+  @media (max-width: 640px) {
+    .author-bio-default {
+      padding: var(--space-6);
+    }
+
+    .author-bio-default .author-bio-content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .author-bio-default .author-bio-text {
+      max-width: 100%;
+    }
+
+    .author-bio-contact {
+      justify-content: center;
+    }
+
+    .author-bio-accent {
+      width: 80px;
+      height: 80px;
+    }
+
+    .author-bio-avatar-accent {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     DARK MODE / INVERSE SECTION
+     ============================================ */
+
+  .section-inverse .author-bio-default,
+  .bg-inverse .author-bio-default {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-inverse .author-bio-accent,
+  .bg-inverse .author-bio-accent {
+    background: linear-gradient(
+      135deg,
+      transparent 50%,
+      rgba(255, 255, 255, 0.05) 50%
+    );
+  }
+
+  .section-inverse .author-bio-label,
+  .bg-inverse .author-bio-label {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .author-bio-name,
+  .bg-inverse .author-bio-name {
+    color: var(--color-text-inverse);
+  }
+
+  .section-inverse .author-bio-role,
+  .section-inverse .author-bio-text,
+  .bg-inverse .author-bio-role,
+  .bg-inverse .author-bio-text {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .section-inverse .author-bio-contact-link,
+  .bg-inverse .author-bio-contact-link {
+    color: var(--color-primary-300);
+  }
+
+  .section-inverse .author-bio-contact-link:hover,
+  .bg-inverse .author-bio-contact-link:hover {
+    color: var(--color-primary-200);
+  }
+
+  .section-inverse .author-bio-avatar-accent,
+  .bg-inverse .author-bio-avatar-accent {
+    border-color: var(--color-accent-400);
+    opacity: 0.5;
+  }
+
+  /* ============================================
+     FOCUS & ACCESSIBILITY
+     ============================================ */
+
+  .author-bio:focus-within {
+    /* Visual indicator when interaction happens within */
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .author-bio-contact-link {
+      transition: none;
+    }
+  }
+</style>

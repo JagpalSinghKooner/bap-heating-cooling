@@ -1,0 +1,480 @@
+---
+/**
+ * ServiceTrustBand Component
+ *
+ * A compact horizontal strip of trust signals specific to service pages.
+ * Positioned directly below the ServiceHero, this band reinforces credibility
+ * with quick-scan trust indicators.
+ *
+ * Design Philosophy:
+ * Think of the credentials strip on a licensed tradesperson's van -
+ * official badges that verify expertise at a glance. The industrial
+ * aesthetic with subtle diagonal accents reinforces professionalism.
+ *
+ * Default Items:
+ * - Licensed & Insured (TSSA certified)
+ * - X-Year Warranty (from business profile)
+ * - Upfront Pricing (no hidden fees)
+ * - Same-Day Service (conditional - mainly for repair services)
+ *
+ * @example
+ * <ServiceTrustBand />
+ * <ServiceTrustBand showSameDay={true} />
+ * <ServiceTrustBand variant="highlight" />
+ */
+
+import { getBusinessProfile } from '../../lib/getBusinessProfile';
+import Icon from '../primitives/Icon.astro';
+import Container from '../primitives/Container.astro';
+
+interface TrustItem {
+  /** Icon name from icons.ts */
+  icon: string;
+  /** Primary label text */
+  label: string;
+  /** Optional secondary/supporting text */
+  sublabel?: string;
+  /** Highlight this item (e.g., for emergency context) */
+  highlight?: boolean;
+}
+
+interface Props {
+  /** Include Same-Day Service badge (typically for repair services) */
+  showSameDay?: boolean;
+  /** Custom trust items to display */
+  items?: TrustItem[];
+  /** Visual variant */
+  variant?: 'default' | 'highlight' | 'minimal';
+  /** Override warranty years from profile */
+  warrantyYears?: number;
+  /** Additional CSS classes */
+  class?: string;
+}
+
+const {
+  showSameDay = false,
+  items,
+  variant = 'default',
+  warrantyYears,
+  class: className = '',
+} = Astro.props;
+
+// Fetch business profile for warranty info
+const profile = await getBusinessProfile();
+const years = warrantyYears ?? profile.warranty?.parts_and_labour_years ?? 10;
+
+// Default trust items for service pages
+const defaultItems: TrustItem[] = [
+  {
+    icon: 'certificate',
+    label: 'Licensed & Insured',
+    sublabel: 'TSSA Certified',
+  },
+  {
+    icon: 'shield',
+    label: `${years}-Year Warranty`,
+    sublabel: 'Parts & Labour',
+  },
+  {
+    icon: 'dollar',
+    label: 'Upfront Pricing',
+    sublabel: 'No Hidden Fees',
+  },
+];
+
+// Conditionally add Same-Day Service
+if (showSameDay) {
+  defaultItems.push({
+    icon: 'clock',
+    label: 'Same-Day Service',
+    sublabel: 'Fast Response',
+    highlight: true,
+  });
+}
+
+// Use custom items or defaults
+const trustItems = items ?? defaultItems;
+
+// Build component classes
+const classes = [
+  'service-trust-band',
+  `service-trust-band--${variant}`,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<div class={classes}>
+  {/* Subtle diagonal accent pattern */}
+  <div class="service-trust-band__accent" aria-hidden="true"></div>
+
+  <Container size="xl" class="service-trust-band__container">
+    <ul class="service-trust-band__list" role="list">
+      {trustItems.map((item, index) => (
+        <li
+          class:list={[
+            'trust-band-item',
+            item.highlight && 'trust-band-item--highlight',
+          ]}
+          style={`--item-index: ${index}`}
+        >
+          <div class="trust-band-item__icon">
+            <Icon
+              name={item.icon}
+              size="md"
+              color={item.highlight ? 'accent' : 'primary'}
+            />
+          </div>
+          <div class="trust-band-item__content">
+            <span class="trust-band-item__label">{item.label}</span>
+            {item.sublabel && (
+              <span class="trust-band-item__sublabel">{item.sublabel}</span>
+            )}
+          </div>
+          {/* Separator line between items (hidden on last) */}
+          {index < trustItems.length - 1 && (
+            <div class="trust-band-item__separator" aria-hidden="true"></div>
+          )}
+        </li>
+      ))}
+    </ul>
+  </Container>
+</div>
+
+<style>
+  /* ================================================================
+     SERVICE TRUST BAND - Base Container
+     Compact horizontal trust strip with industrial aesthetic
+     ================================================================ */
+
+  .service-trust-band {
+    position: relative;
+    padding: var(--space-4) 0;
+    background-color: var(--color-surface-secondary);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* ================================================================
+     DIAGONAL ACCENT PATTERN
+     Subtle industrial texture inspired by caution tape
+     ================================================================ */
+
+  .service-trust-band__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--color-primary-100),
+      var(--color-primary-100) 8px,
+      var(--color-primary-200) 8px,
+      var(--color-primary-200) 16px
+    );
+    opacity: 0.6;
+  }
+
+  /* ================================================================
+     CONTAINER
+     ================================================================ */
+
+  .service-trust-band__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ================================================================
+     TRUST LIST
+     Horizontal layout with responsive wrapping
+     ================================================================ */
+
+  .service-trust-band__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .service-trust-band__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: var(--space-6);
+    }
+  }
+
+  /* ================================================================
+     INDIVIDUAL TRUST ITEM
+     Compact badge-like styling
+     ================================================================ */
+
+  .trust-band-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    position: relative;
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: trust-item-enter var(--duration-normal) var(--ease-out) forwards;
+    animation-delay: calc(var(--item-index, 0) * 60ms);
+  }
+
+  @keyframes trust-item-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .trust-band-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-border-primary);
+  }
+
+  /* Highlighted item (e.g., Same-Day Service) */
+  .trust-band-item--highlight {
+    background: linear-gradient(
+      135deg,
+      var(--color-accent-50) 0%,
+      var(--color-surface-primary) 100%
+    );
+    border-color: var(--color-accent-200);
+  }
+
+  .trust-band-item--highlight:hover {
+    border-color: var(--color-accent-400);
+  }
+
+  /* ================================================================
+     ICON CONTAINER
+     ================================================================ */
+
+  .trust-band-item__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .trust-band-item:hover .trust-band-item__icon {
+    background-color: var(--color-primary-100);
+  }
+
+  .trust-band-item--highlight .trust-band-item__icon {
+    background-color: var(--color-accent-100);
+  }
+
+  .trust-band-item--highlight:hover .trust-band-item__icon {
+    background-color: var(--color-accent-200);
+  }
+
+  /* ================================================================
+     CONTENT (Label + Sublabel)
+     ================================================================ */
+
+  .trust-band-item__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .trust-band-item__label {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+    white-space: nowrap;
+  }
+
+  .trust-band-item__sublabel {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-tertiary);
+    line-height: var(--line-height-tight);
+    white-space: nowrap;
+  }
+
+  /* Highlight item gets accent-colored label */
+  .trust-band-item--highlight .trust-band-item__label {
+    color: var(--color-accent-700);
+  }
+
+  /* ================================================================
+     SEPARATOR (Desktop only)
+     Thin vertical line between items
+     ================================================================ */
+
+  .trust-band-item__separator {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .trust-band-item__separator {
+      display: block;
+      position: absolute;
+      right: calc(-1 * var(--space-3) - 1px);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 24px;
+      background-color: var(--color-border-secondary);
+    }
+
+    /* Hide separator if card-style is active */
+    .service-trust-band--default .trust-band-item__separator {
+      display: none;
+    }
+  }
+
+  /* ================================================================
+     VARIANT: HIGHLIGHT
+     More prominent styling for emergency/urgent contexts
+     ================================================================ */
+
+  .service-trust-band--highlight {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-50) 0%,
+      var(--color-surface-secondary) 50%,
+      var(--color-accent-50) 100%
+    );
+  }
+
+  .service-trust-band--highlight .service-trust-band__accent {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--color-accent-200),
+      var(--color-accent-200) 8px,
+      var(--color-accent-300) 8px,
+      var(--color-accent-300) 16px
+    );
+    opacity: 0.5;
+  }
+
+  /* ================================================================
+     VARIANT: MINIMAL
+     Subtle, less prominent styling
+     ================================================================ */
+
+  .service-trust-band--minimal {
+    padding: var(--space-3) 0;
+    background-color: transparent;
+    border-top: 1px solid var(--color-border-secondary);
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  .service-trust-band--minimal .service-trust-band__accent {
+    display: none;
+  }
+
+  .service-trust-band--minimal .trust-band-item {
+    background-color: transparent;
+    border: none;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .service-trust-band--minimal .trust-band-item:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .service-trust-band--minimal .trust-band-item__icon {
+    width: 28px;
+    height: 28px;
+    background-color: transparent;
+  }
+
+  .service-trust-band--minimal .trust-band-item__sublabel {
+    display: none;
+  }
+
+  /* ================================================================
+     RESPONSIVE ADJUSTMENTS
+     ================================================================ */
+
+  @media (max-width: 767px) {
+    .service-trust-band {
+      padding: var(--space-3) 0;
+    }
+
+    .service-trust-band__list {
+      gap: var(--space-2);
+    }
+
+    .trust-band-item {
+      flex: 1 1 calc(50% - var(--space-2));
+      min-width: 140px;
+      justify-content: flex-start;
+      padding: var(--space-2);
+    }
+
+    .trust-band-item__icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .trust-band-item__content {
+      gap: 0;
+    }
+
+    .trust-band-item__label {
+      font-size: var(--font-size-xs);
+    }
+
+    .trust-band-item__sublabel {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trust-band-item {
+      flex: 1 1 100%;
+    }
+
+    .trust-band-item__sublabel {
+      display: block;
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION
+     ================================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .trust-band-item {
+      opacity: 1;
+      animation: none;
+    }
+
+    .trust-band-item:hover {
+      transform: none;
+    }
+  }
+</style>

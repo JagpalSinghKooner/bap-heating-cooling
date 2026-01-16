@@ -1,8 +1,9 @@
 ---
 /**
- * Service Category Page - Gutted for Redesign
+ * Service Category Page
  *
- * Preserves all data fetching and routing logic.
+ * Displays all services within a category (e.g., Heating, Cooling).
+ * Uses PageHero, ServicesGrid, ReviewsCarousel, and CTASection.
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -10,6 +11,14 @@ import { getCollection } from 'astro:content';
 import { getBusinessProfile } from '../../lib/getBusinessProfile';
 import { getLocalBusinessSchema } from '../../lib/schema';
 import type { RegionLocationMap } from '../../lib/types';
+
+// Page Components
+import PageHero from '../../components/shared/PageHero.astro';
+import ServicesGrid from '../../components/shared/ServicesGrid.astro';
+import ReviewsCarousel from '../../components/shared/ReviewsCarousel.astro';
+import CTASection from '../../components/shared/CTASection.astro';
+import Section from '../../components/primitives/Section.astro';
+import Container from '../../components/primitives/Container.astro';
 
 export async function getStaticPaths() {
   const categories = [
@@ -106,8 +115,58 @@ const seoDescription = description;
   robots="index,follow"
   schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>{title}</h1>
-    <p>Category page redesign in progress. {categoryServices.length} services available.</p>
-  </div>
+  {/* Page Hero */}
+  <PageHero
+    title={title}
+    description={description}
+    eyebrow="Our Services"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Services', href: '/services/' },
+      { label: title, href: `/services/${Astro.params.category}/` },
+    ]}
+  />
+
+  {/* Services Grid - Shows all services in this category */}
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <ServicesGrid
+        filterByCategory={category}
+        columns={3}
+        showDescription={true}
+        showServiceType={true}
+        showCategory={false}
+        title={`${title}`}
+        eyebrow={`${categoryServices.length} Services Available`}
+        description="Professional installation, repair, and maintenance services for your home or business."
+      />
+    </Container>
+  </Section>
+
+  {/* Reviews Carousel */}
+  <Section variant="muted" padding="lg">
+    <Container size="xl">
+      <ReviewsCarousel
+        limit={8}
+        title="What Our Customers Say"
+      />
+    </Container>
+  </Section>
+
+  {/* CTA Section */}
+  <CTASection
+    variant="primary"
+    headline={`Need ${title}?`}
+    description="Our certified technicians are ready to help with all your HVAC needs. Contact us today for fast, reliable service."
+    primaryCTA={{
+      label: 'Get a Free Quote',
+      href: '/contact-us/',
+    }}
+    secondaryCTA={{
+      label: 'Call (905) 301-2195',
+      href: 'tel:+19053012195',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>

@@ -1,0 +1,738 @@
+---
+/**
+ * HeroSection Component (Homepage)
+ *
+ * The commanding first impression for B.A.P Heating & Cooling.
+ * Designed with the "Trustworthy Industrial Modern" aesthetic -
+ * like a firm handshake, confident and warm.
+ *
+ * Design Philosophy:
+ * - Phone calls are the PRIMARY conversion goal
+ * - Trust signals appear immediately to build credibility
+ * - Fraunces display font creates warm, handcrafted authority
+ * - Industrial geometric accents add distinctive character
+ * - Staggered reveal animation creates polished entrance
+ *
+ * The goal: Make visitors think "These guys look legit. I should call them."
+ */
+
+import Container from '../primitives/Container.astro';
+import Button from '../primitives/Button.astro';
+import Eyebrow from '../primitives/Eyebrow.astro';
+import Icon from '../primitives/Icon.astro';
+import { getBusinessProfile, getPhoneLink, getPhoneDisplay } from '../../lib/getBusinessProfile';
+
+interface Props {
+  /** Override default headline */
+  headline?: string;
+  /** Override default subheadline */
+  subheadline?: string;
+  /** Background image URL (optional - uses gradient if not provided) */
+  backgroundImage?: string;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  headline = 'Your Home Comfort Experts Since 1992',
+  subheadline = 'Family-owned HVAC service you can trust. Fast response, fair pricing, and work done right the first time.',
+  backgroundImage,
+  class: className = '',
+} = Astro.props;
+
+// Fetch business data
+const profile = await getBusinessProfile();
+const phoneDisplay = getPhoneDisplay(profile);
+const phoneLink = getPhoneLink(profile);
+const bookingUrl = profile.contact.booking.url;
+const yearsInBusiness = new Date().getFullYear() - profile.business.established_year;
+const rating = profile.reputation.google_rating;
+const reviewCount = profile.reputation.google_review_count;
+const has24_7 = profile.hours.emergency_service;
+const warrantyYears = profile.warranty.parts_and_labour_years;
+
+// Trust indicators data
+const trustIndicators = [
+  {
+    icon: 'star',
+    value: rating.toString(),
+    label: `${reviewCount}+ reviews`,
+    highlight: true,
+  },
+  {
+    icon: 'shield',
+    value: `${yearsInBusiness}+`,
+    label: 'Years',
+  },
+  {
+    icon: 'certificate',
+    value: 'TSSA',
+    label: 'Licensed',
+  },
+  ...(has24_7 ? [{
+    icon: 'clock',
+    value: '24/7',
+    label: 'Emergency',
+    highlight: true,
+  }] : []),
+];
+---
+
+<section
+  class:list={['hero-section', className]}
+  role="banner"
+  aria-labelledby="hero-headline"
+>
+  <!-- Background Layer -->
+  <div class="hero-bg">
+    {backgroundImage && (
+      <img
+        src={backgroundImage}
+        alt=""
+        class="hero-bg-image"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    )}
+    <div class="hero-gradient" aria-hidden="true" />
+    <!-- Industrial diagonal stripe pattern - subtle signature element -->
+    <div class="hero-pattern" aria-hidden="true" />
+  </div>
+
+  <Container size="2xl" class="hero-container">
+    <div class="hero-layout">
+      <!-- Left Column: Content -->
+      <div class="hero-content">
+        <!-- Availability Badge -->
+        <div class="hero-availability animate-hero" style="--delay: 0;">
+          <span class="availability-pulse" aria-hidden="true"></span>
+          <span class="availability-text">
+            {has24_7 ? 'Available 24/7 for Emergencies' : 'Accepting New Customers'}
+          </span>
+        </div>
+
+        <!-- Eyebrow -->
+        <div class="hero-eyebrow animate-hero" style="--delay: 1;">
+          <Eyebrow variant="badge" color="inverse" icon="shield-check">
+            Trusted by {reviewCount}+ Homeowners
+          </Eyebrow>
+        </div>
+
+        <!-- Headline -->
+        <h1 id="hero-headline" class="hero-headline animate-hero" style="--delay: 2;">
+          {headline}
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="hero-subheadline animate-hero" style="--delay: 3;">
+          {subheadline}
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="hero-ctas animate-hero" style="--delay: 4;">
+          <Button
+            variant="primary"
+            size="lg"
+            href={phoneLink}
+            iconLeft="phone"
+            class="hero-cta-primary"
+            data-cta-context="hero-call"
+          >
+            Call Now: {phoneDisplay}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            href={bookingUrl}
+            iconLeft="calendar"
+            class="hero-cta-secondary"
+            data-cta-context="hero-book"
+          >
+            Book Online
+          </Button>
+        </div>
+
+        <!-- Trust Indicators -->
+        <div class="hero-trust animate-hero" style="--delay: 5;">
+          {trustIndicators.map((indicator) => (
+            <div
+              class:list={[
+                'trust-badge',
+                indicator.highlight && 'trust-badge--highlight',
+              ]}
+            >
+              {indicator.icon === 'star' ? (
+                <div class="trust-stars" aria-label={`${indicator.value} out of 5 stars`}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg
+                      class:list={['star-icon', { filled: star <= Math.round(rating) }]}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+              ) : (
+                <Icon name={indicator.icon} size="md" color="inverse" />
+              )}
+              <div class="trust-text">
+                <span class="trust-value">{indicator.value}</span>
+                <span class="trust-label">{indicator.label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Warranty callout -->
+        <div class="hero-warranty animate-hero" style="--delay: 6;">
+          <Icon name="check-circle" size="sm" />
+          <span>{warrantyYears}-Year Warranty on All Installations</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Visual -->
+      <div class="hero-visual animate-hero" style="--delay: 3;">
+        <div class="hero-graphic">
+          <div class="graphic-ring graphic-ring--outer" aria-hidden="true"></div>
+          <div class="graphic-ring graphic-ring--middle" aria-hidden="true"></div>
+          <div class="graphic-ring graphic-ring--inner" aria-hidden="true"></div>
+          <div class="graphic-center">
+            <div class="graphic-icon">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="12" y="20" width="40" height="32" rx="4" />
+                <path d="M12 32h40" />
+                <circle cx="22" cy="26" r="2" fill="currentColor" />
+                <circle cx="32" cy="26" r="2" fill="currentColor" />
+                <circle cx="42" cy="26" r="2" fill="currentColor" />
+                <path d="M20 40h24M20 46h16" stroke-linecap="round" />
+                <path d="M32 8v12M26 12l6-4 6 4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <span class="graphic-text">Comfort<br />Guaranteed</span>
+          </div>
+          <div class="floating-badge floating-badge--top">
+            <Icon name="shield" size="sm" />
+            <span>Licensed</span>
+          </div>
+          <div class="floating-badge floating-badge--bottom">
+            <Icon name="clock" size="sm" />
+            <span>Fast Response</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Container>
+
+  <!-- Bottom edge accent -->
+  <div class="hero-edge" aria-hidden="true">
+    <svg preserveAspectRatio="none" viewBox="0 0 1440 80" fill="none">
+      <path
+        d="M0 80L1440 80L1440 0C1200 60 960 75 720 65C480 55 240 20 0 0L0 80Z"
+        fill="currentColor"
+      />
+    </svg>
+  </div>
+</section>
+
+<style>
+  /* =================================================================
+     BASE SECTION
+     ================================================================= */
+
+  .hero-section {
+    position: relative;
+    min-height: clamp(600px, 90vh, 900px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background-color: var(--color-surface-inverse);
+  }
+
+  /* =================================================================
+     BACKGROUND LAYER
+     ================================================================= */
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero-bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(26, 47, 89, 0.97) 0%,
+      rgba(29, 64, 143, 0.92) 35%,
+      rgba(36, 81, 179, 0.85) 70%,
+      rgba(59, 111, 217, 0.78) 100%
+    );
+  }
+
+  .hero-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background-image:
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 20px,
+        rgba(255, 255, 255, 0.5) 20px,
+        rgba(255, 255, 255, 0.5) 21px
+      );
+    pointer-events: none;
+  }
+
+  /* =================================================================
+     CONTAINER & LAYOUT
+     ================================================================= */
+
+  .hero-section :global(.hero-container) {
+    position: relative;
+    z-index: 1;
+    padding-top: calc(var(--header-height-desktop) + var(--topbar-height) + var(--space-12));
+    padding-bottom: var(--space-24);
+  }
+
+  .hero-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-layout {
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-16);
+    }
+  }
+
+  /* =================================================================
+     CONTENT COLUMN
+     ================================================================= */
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .hero-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1-5) var(--space-4) var(--space-1-5) var(--space-3);
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-full);
+    width: fit-content;
+  }
+
+  .availability-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-success-500);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+  }
+
+  .availability-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-success-400);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .hero-eyebrow {
+    margin-top: var(--space-2);
+  }
+
+  .hero-headline {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-display-hero);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tighter);
+    color: var(--color-text-inverse);
+    text-wrap: balance;
+    max-width: 16ch;
+  }
+
+  .hero-subheadline {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-relaxed);
+    color: rgba(248, 250, 252, 0.85);
+    max-width: 48ch;
+  }
+
+  @media (min-width: 768px) {
+    .hero-subheadline {
+      font-size: var(--font-size-2xl);
+    }
+  }
+
+  /* =================================================================
+     CTA BUTTONS
+     ================================================================= */
+
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .hero-section :global(.hero-cta-secondary) {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: var(--color-text-inverse);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .hero-section :global(.hero-cta-secondary:hover) {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--color-text-inverse);
+  }
+
+  /* =================================================================
+     TRUST INDICATORS
+     ================================================================= */
+
+  .hero-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .trust-badge--highlight {
+    color: var(--color-accent-400);
+  }
+
+  .trust-stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .star-icon {
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  .star-icon.filled {
+    color: var(--color-accent-400);
+  }
+
+  .trust-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .trust-value {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    line-height: var(--line-height-none);
+  }
+
+  .trust-badge--highlight .trust-value {
+    color: var(--color-accent-400);
+  }
+
+  .trust-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    color: rgba(248, 250, 252, 0.6);
+    line-height: var(--line-height-none);
+  }
+
+  .hero-warranty {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: rgba(248, 250, 252, 0.7);
+  }
+
+  .hero-warranty :global(svg) {
+    color: var(--color-success-400);
+  }
+
+  /* =================================================================
+     VISUAL COLUMN (Desktop Only)
+     ================================================================= */
+
+  .hero-visual {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .hero-graphic {
+    position: relative;
+    width: clamp(280px, 100%, 380px);
+    aspect-ratio: 1;
+  }
+
+  .graphic-ring {
+    position: absolute;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .graphic-ring--outer {
+    inset: 0;
+    animation: ring-pulse 4s ease-in-out infinite;
+  }
+
+  .graphic-ring--middle {
+    inset: 12%;
+    border-color: rgba(255, 255, 255, 0.15);
+    animation: ring-pulse 4s ease-in-out infinite 0.5s;
+  }
+
+  .graphic-ring--inner {
+    inset: 24%;
+    border-color: rgba(255, 255, 255, 0.2);
+    animation: ring-pulse 4s ease-in-out infinite 1s;
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+  }
+
+  .graphic-center {
+    position: absolute;
+    inset: 28%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    background: linear-gradient(
+      135deg,
+      rgba(59, 111, 217, 0.3) 0%,
+      rgba(36, 81, 179, 0.4) 100%
+    );
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .graphic-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--color-text-inverse);
+    opacity: 0.9;
+  }
+
+  .graphic-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .graphic-text {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+    text-align: center;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+  }
+
+  .floating-badge {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-inverse);
+    backdrop-filter: blur(4px);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .floating-badge--top {
+    top: 8%;
+    right: 5%;
+    animation-delay: 0s;
+  }
+
+  .floating-badge--bottom {
+    bottom: 15%;
+    left: 0;
+    animation-delay: 3s;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* =================================================================
+     BOTTOM EDGE ACCENT
+     ================================================================= */
+
+  .hero-edge {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    color: var(--color-surface-primary);
+    z-index: 2;
+  }
+
+  .hero-edge svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* =================================================================
+     STAGGERED ENTRANCE ANIMATION
+     ================================================================= */
+
+  .animate-hero {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: hero-enter 0.8s var(--ease-out) forwards;
+    animation-delay: calc(var(--delay, 0) * 100ms + 200ms);
+  }
+
+  @keyframes hero-enter {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* =================================================================
+     REDUCED MOTION
+     ================================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hero {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .availability-pulse {
+      animation: none;
+    }
+
+    .graphic-ring {
+      animation: none;
+    }
+
+    .floating-badge {
+      animation: none;
+    }
+  }
+
+  /* =================================================================
+     MOBILE ADJUSTMENTS
+     ================================================================= */
+
+  @media (max-width: 640px) {
+    .hero-section {
+      min-height: auto;
+      padding-top: calc(var(--header-height-mobile) + var(--topbar-height));
+    }
+
+    .hero-section :global(.hero-container) {
+      padding-top: var(--space-8);
+      padding-bottom: var(--space-20);
+    }
+
+    .hero-headline {
+      max-width: 100%;
+    }
+
+    .hero-ctas {
+      flex-direction: column;
+    }
+
+    .hero-ctas :global(.hero-cta-primary),
+    .hero-ctas :global(.hero-cta-secondary) {
+      width: 100%;
+    }
+
+    .hero-trust {
+      gap: var(--space-4);
+    }
+
+    .trust-badge {
+      flex: 1 1 calc(50% - var(--space-2));
+      min-width: 120px;
+    }
+  }
+</style>

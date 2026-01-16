@@ -18,6 +18,25 @@ import { generateFAQSchema } from '../../lib/faqSchema';
 import { getReviewsForPage } from '../../lib/reviewResolver';
 import { generateReviewSchemas } from '../../lib/reviewSchema';
 
+// Service Page Components (Section Order per spec)
+import ServiceHero from '../../components/services/ServiceHero.astro';
+import ServiceTrustBand from '../../components/services/ServiceTrustBand.astro';
+import ServiceProblemAgitation from '../../components/services/ServiceProblemAgitation.astro';
+import ServiceSolution from '../../components/services/ServiceSolution.astro';
+import ServiceValueProps from '../../components/services/ServiceValueProps.astro';
+import ServiceProcess from '../../components/services/ServiceProcess.astro';
+import ServiceInclusions from '../../components/services/ServiceInclusions.astro';
+import ServiceSavings from '../../components/services/ServiceSavings.astro';
+import ServiceLocalProof from '../../components/services/ServiceLocalProof.astro';
+import ServiceImageGallery from '../../components/services/ServiceImageGallery.astro';
+import ServiceGuarantee from '../../components/services/ServiceGuarantee.astro';
+
+// Shared Components
+import ServicesGrid from '../../components/shared/ServicesGrid.astro';
+import ReviewsCarousel from '../../components/shared/ReviewsCarousel.astro';
+import FAQSection from '../../components/shared/FAQSection.astro';
+import CTASection from '../../components/shared/CTASection.astro';
+
 export async function getStaticPaths() {
   const services = await getCollection('services');
   const locations = await getCollection('locations');
@@ -254,12 +273,141 @@ if (type === 'service-city' && location && locationSlug) {
   robots={robots}
   schema={schema}
 >
-  <!-- Service/Service-City page placeholder - will be rebuilt in Phase 5-6 -->
-  <div class="redesign-placeholder">
-    <h1>{type === 'service' ? service.data.title : `${service.data.title} in ${location?.data.title}`}</h1>
-    <p>Service page redesign in progress. Components will be built using the frontend-design skill.</p>
-    <p class="text-sm" style="margin-top: 1rem; color: #94a3b8;">
-      Page type: {type} | Service: {serviceSlug} {locationSlug && `| Location: ${locationSlug}`}
-    </p>
-  </div>
+  {/* 1. ServiceHero - Contextual hero with service type styling */}
+  <ServiceHero
+    service={{
+      title: mergedData.title,
+      description: mergedData.description,
+      serviceType: mergedData.serviceType || 'installation',
+      category: mergedData.category,
+    }}
+    location={location ? { title: location.data.title, slug: locationSlug! } : undefined}
+  />
+
+  {/* 2. ServiceTrustBand - Social proof strip */}
+  <ServiceTrustBand />
+
+  {/* 3. ServiceProblemAgitation - Pain points the service solves */}
+  {mergedData.problems && mergedData.problems.length > 0 && (
+    <ServiceProblemAgitation
+      problems={mergedData.problems}
+    />
+  )}
+
+  {/* 4. ServiceSolution - How B.A.P solves the problems */}
+  {mergedData.approach && (
+    <ServiceSolution
+      approach={mergedData.approach}
+    />
+  )}
+
+  {/* 5. ServiceValueProps - Key benefits/differentiators */}
+  {mergedData.valueProps && mergedData.valueProps.length > 0 && (
+    <ServiceValueProps
+      valueProps={mergedData.valueProps}
+    />
+  )}
+
+  {/* 6. ServiceProcess - Step-by-step workflow */}
+  {mergedData.processSteps && mergedData.processSteps.length > 0 && (
+    <ServiceProcess
+      processSteps={mergedData.processSteps}
+      serviceTitle={mergedData.title}
+    />
+  )}
+
+  {/* 7. ServiceInclusions - What's included in the service */}
+  {mergedData.inclusions && (
+    <ServiceInclusions
+      inclusions={mergedData.inclusions}
+    />
+  )}
+
+  {/* 8. ServiceSavings - Energy/cost savings messaging */}
+  {mergedData.savings && (
+    <ServiceSavings
+      savings={mergedData.savings}
+    />
+  )}
+
+  {/* 9. ServiceLocalProof - Local testimonial (service-city pages only) */}
+  {type === 'service-city' && mergedData.localProof && location && (
+    <ServiceLocalProof
+      localProof={mergedData.localProof}
+      locationTitle={location.data.title}
+    />
+  )}
+
+  {/* 10. ServiceImageGallery - Project photos */}
+  {mergedData.images && mergedData.images.length > 0 && (
+    <ServiceImageGallery
+      images={mergedData.images}
+      title="Our Recent Work"
+      eyebrow="Project Gallery"
+    />
+  )}
+
+  {/* 11. ServicesGrid - Related services in same category */}
+  <ServicesGrid
+    filterByCategory={mergedData.category}
+    locationSlug={locationSlug || undefined}
+    columns={3}
+    limit={6}
+    title="Related Services"
+    eyebrow="More Solutions"
+    description="Explore our other professional HVAC services"
+  />
+
+  {/* 12. ReviewsCarousel - Customer testimonials */}
+  <ReviewsCarousel
+    filterBy={{
+      serviceSlug: serviceSlug,
+      locationSlug: locationSlug || undefined,
+    }}
+    limit={8}
+    title="What Our Customers Say"
+  />
+
+  {/* 13. ServiceGuarantee - Trust and guarantee section */}
+  {mergedData.guarantee && (
+    <ServiceGuarantee
+      guarantee={mergedData.guarantee}
+    />
+  )}
+
+  {/* 14. FAQSection - Page-specific FAQs */}
+  {pageFAQs && pageFAQs.length > 0 && (
+    <FAQSection
+      faqs={pageFAQs.map(faq => ({
+        question: faq.data.question,
+        answer: faq.data.answer,
+      }))}
+      title="Frequently Asked Questions"
+      eyebrow="Got Questions?"
+      showCTA={true}
+      ctaHeadline="Can't find your answer?"
+      ctaLabel="Contact Us"
+      ctaHref="/contact-us/"
+      includeSchema={false}
+    />
+  )}
+
+  {/* 15. CTASection - Final conversion section */}
+  <CTASection
+    variant={mergedData.serviceType === 'repair' ? 'emergency' : 'primary'}
+    headline={type === 'service-city' && location
+      ? `Ready for Professional ${mergedData.title} in ${location.data.title}?`
+      : `Ready for Professional ${mergedData.title}?`
+    }
+    description="Our certified technicians are ready to help. Call now for fast, reliable service."
+    primaryCTA={{
+      label: mergedData.serviceType === 'repair' ? 'Emergency Service' : 'Get a Free Quote',
+      href: '/contact-us/',
+    }}
+    secondaryCTA={{
+      label: 'Call (905) 301-2195',
+      href: 'tel:+19053012195',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>

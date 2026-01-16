@@ -1,0 +1,904 @@
+---
+/**
+ * WhyChooseBAPSection Component (Homepage)
+ *
+ * Establishes trust and credibility by showcasing B.A.P's differentiators:
+ * - Paul Palmer's story and family-owned values
+ * - Key trust signals (24/7 service, warranty, transparency)
+ * - Impressive statistics that build confidence
+ *
+ * Design Philosophy:
+ * "Your neighbor who happens to be an expert."
+ *
+ * This section bridges the emotional gap between "just another contractor"
+ * and "people I can trust with my home." The two-column layout pairs a
+ * personal image with compelling differentiators, while the stats bar
+ * provides social proof that seals the deal.
+ *
+ * Visual Approach: Trustworthy Industrial Modern
+ * - Warm surfaces create intimacy
+ * - Diagonal accent line adds industrial character
+ * - Generous whitespace signals professionalism
+ * - Staggered animations reward engagement
+ */
+
+import Section from '../primitives/Section.astro';
+import Container from '../primitives/Container.astro';
+import SectionHeader from '../primitives/SectionHeader.astro';
+import Icon from '../primitives/Icon.astro';
+import Heading from '../primitives/Heading.astro';
+import Text from '../primitives/Text.astro';
+
+interface Differentiator {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface Stat {
+  value: string;
+  label: string;
+  suffix?: string;
+}
+
+interface Props {
+  /** Override default eyebrow text */
+  eyebrow?: string;
+  /** Override default headline */
+  headline?: string;
+  /** Override default description */
+  description?: string;
+  /** Owner name */
+  ownerName?: string;
+  /** Owner image path */
+  ownerImage?: string;
+  /** Established year */
+  establishedYear?: number;
+  /** Additional classes */
+  class?: string;
+}
+
+const {
+  eyebrow = 'Why Choose Us',
+  headline = "Family Values, Professional Results",
+  description = "For over 30 years, we've built our reputation on doing right by our neighbours. When you call B.A.P, you're not just getting a technician—you're getting a team that treats your home like their own.",
+  ownerName = 'Paul Palmer',
+  ownerImage = '/images/team/paul-palmer.jpg',
+  establishedYear = 1994,
+  class: className = '',
+} = Astro.props;
+
+// Calculate years in business
+const currentYear = new Date().getFullYear();
+const yearsInBusiness = currentYear - establishedYear;
+
+// Differentiators data
+const differentiators: Differentiator[] = [
+  {
+    icon: 'home',
+    title: `Family-Owned Since ${establishedYear}`,
+    description: 'Three decades of keeping Ontario families comfortable. We answer to you, not shareholders.',
+  },
+  {
+    icon: 'clock',
+    title: '24/7 Emergency Service',
+    description: 'Furnace out at 2am? We answer. No voicemail, no waiting—real help when you need it most.',
+  },
+  {
+    icon: 'shield',
+    title: '10-Year Parts & Labour',
+    description: "Our warranty means something. If it fails, we fix it—no fine print, no runaround.",
+  },
+  {
+    icon: 'dollar',
+    title: 'Transparent Pricing',
+    description: 'You approve the cost before we start. No surprises, no pressure—just honest work.',
+  },
+];
+
+// Stats data
+const stats: Stat[] = [
+  {
+    value: String(yearsInBusiness),
+    label: 'Years Serving Ontario',
+    suffix: '+',
+  },
+  {
+    value: '10,000',
+    label: 'Happy Customers',
+    suffix: '+',
+  },
+  {
+    value: '4.8',
+    label: 'Google Rating',
+    suffix: '★',
+  },
+  {
+    value: '407',
+    label: 'Five-Star Reviews',
+    suffix: '',
+  },
+];
+---
+
+<Section variant="default" padding="lg" class:list={['why-choose-section', className]}>
+  <!-- Decorative diagonal accent -->
+  <div class="diagonal-accent" aria-hidden="true"></div>
+
+  <Container size="xl">
+    <!-- Section Header -->
+    <div class="section-header-wrapper">
+      <SectionHeader
+        eyebrow={eyebrow}
+        headline={headline}
+        description={description}
+        align="center"
+        headlineSize="lg"
+        maxWidth="lg"
+        animate
+      />
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+      <!-- Left Column: Image & Signature -->
+      <div class="image-column">
+        <div class="image-wrapper">
+          <!-- Main image container with industrial frame -->
+          <div class="image-frame">
+            <div class="image-inner">
+              <img
+                src={ownerImage}
+                alt={`${ownerName}, Owner of B.A.P Heating & Cooling`}
+                class="owner-image"
+                loading="lazy"
+                onerror="this.style.display='none'; this.parentElement.classList.add('image-fallback');"
+              />
+              <!-- Fallback pattern if image doesn't load -->
+              <div class="image-placeholder">
+                <Icon name="home" size="xl" />
+                <span>B.A.P</span>
+              </div>
+            </div>
+
+            <!-- Corner accent -->
+            <div class="frame-corner frame-corner--tl" aria-hidden="true"></div>
+            <div class="frame-corner frame-corner--br" aria-hidden="true"></div>
+          </div>
+
+          <!-- Owner signature/badge -->
+          <div class="owner-badge">
+            <div class="owner-badge-content">
+              <span class="owner-title">Owner & Lead Technician</span>
+              <span class="owner-name">{ownerName}</span>
+              <span class="owner-since">Since {establishedYear}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust certification badges (desktop only) -->
+        <div class="certification-strip">
+          <div class="cert-badge">
+            <Icon name="certificate" size="sm" />
+            <span>TSSA Licensed</span>
+          </div>
+          <div class="cert-badge">
+            <Icon name="shield" size="sm" />
+            <span>WSIB Covered</span>
+          </div>
+          <div class="cert-badge">
+            <Icon name="check" size="sm" />
+            <span>Fully Insured</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Differentiators -->
+      <div class="content-column">
+        <!-- Owner intro text -->
+        <div class="owner-intro">
+          <p class="intro-text">
+            <span class="intro-quote">"</span>When I started B.A.P in {establishedYear}, I had one simple promise:
+            treat every customer like family. That means showing up when we say we will,
+            explaining everything in plain English, and standing behind our work—always.<span class="intro-quote">"</span>
+          </p>
+          <div class="intro-attribution">
+            <span class="attribution-dash">—</span>
+            <span class="attribution-name">{ownerName}</span>
+          </div>
+        </div>
+
+        <!-- Differentiator Cards -->
+        <div class="differentiators-grid">
+          {differentiators.map((diff, index) => (
+            <div
+              class="differentiator-card"
+              style={`--diff-index: ${index};`}
+            >
+              <div class="diff-icon-wrapper">
+                <div class="diff-icon">
+                  <Icon name={diff.icon} size="lg" />
+                </div>
+              </div>
+              <div class="diff-content">
+                <h3 class="diff-title">{diff.title}</h3>
+                <p class="diff-description">{diff.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-bar">
+      <div class="stats-bar-inner">
+        {stats.map((stat, index) => (
+          <div
+            class="stat-item"
+            style={`--stat-index: ${index};`}
+          >
+            <span class="stat-value">
+              {stat.value}<span class="stat-suffix">{stat.suffix}</span>
+            </span>
+            <span class="stat-label">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /* =================================================================
+     SECTION WRAPPER
+     ================================================================= */
+
+  .why-choose-section {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-surface-warm, #fffbf7);
+  }
+
+  /* Subtle warm gradient overlay */
+  .why-choose-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(59, 111, 217, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(249, 115, 22, 0.02) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  /* Diagonal industrial accent line */
+  .diagonal-accent {
+    position: absolute;
+    top: 0;
+    right: -10%;
+    width: 140%;
+    height: 100%;
+    background: linear-gradient(
+      -5deg,
+      transparent 0%,
+      transparent 49.5%,
+      var(--color-primary-100) 49.5%,
+      var(--color-primary-100) 50%,
+      transparent 50%,
+      transparent 100%
+    );
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .section-header-wrapper {
+    margin-bottom: var(--space-12);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    .section-header-wrapper {
+      margin-bottom: var(--space-16);
+    }
+  }
+
+  /* =================================================================
+     TWO COLUMN LAYOUT
+     ================================================================= */
+
+  .two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--space-16);
+  }
+
+  @media (min-width: 1024px) {
+    .two-column-layout {
+      grid-template-columns: 5fr 7fr;
+      gap: var(--space-16);
+      align-items: start;
+    }
+  }
+
+  /* =================================================================
+     IMAGE COLUMN
+     ================================================================= */
+
+  .image-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .image-wrapper {
+    position: relative;
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: imageEnter 0.8s var(--ease-out) forwards;
+    animation-delay: 200ms;
+  }
+
+  @keyframes imageEnter {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .image-frame {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--color-surface-tertiary);
+  }
+
+  .image-inner {
+    aspect-ratio: 4 / 5;
+    position: relative;
+  }
+
+  .owner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Image placeholder/fallback */
+  .image-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    background: linear-gradient(
+      145deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    color: var(--color-primary-600);
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .image-inner:not(.image-fallback) .image-placeholder {
+    display: none;
+  }
+
+  .image-fallback .owner-image {
+    display: none;
+  }
+
+  /* Industrial corner accents */
+  .frame-corner {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--color-primary-500);
+    pointer-events: none;
+  }
+
+  .frame-corner--tl {
+    top: -6px;
+    left: -6px;
+    border-right: none;
+    border-bottom: none;
+    border-radius: var(--radius-md) 0 0 0;
+  }
+
+  .frame-corner--br {
+    bottom: -6px;
+    right: -6px;
+    border-left: none;
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) 0;
+  }
+
+  /* Owner badge */
+  .owner-badge {
+    position: absolute;
+    bottom: var(--space-4);
+    left: var(--space-4);
+    right: var(--space-4);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(10px);
+    opacity: 0;
+    animation: badgeEnter 0.5s var(--ease-out) forwards;
+    animation-delay: 600ms;
+  }
+
+  @keyframes badgeEnter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .owner-badge-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .owner-title {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  .owner-name {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+  }
+
+  .owner-since {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-600);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Certification strip */
+  .certification-strip {
+    display: none;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--color-border-secondary);
+
+    opacity: 0;
+    animation: certEnter 0.5s var(--ease-out) forwards;
+    animation-delay: 800ms;
+  }
+
+  @keyframes certEnter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .certification-strip {
+      display: flex;
+    }
+  }
+
+  .cert-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .cert-badge :global(svg) {
+    color: var(--color-primary-500);
+  }
+
+  /* =================================================================
+     CONTENT COLUMN
+     ================================================================= */
+
+  .content-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* Owner intro quote */
+  .owner-intro {
+    padding: var(--space-6);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    border-left: 4px solid var(--color-primary-500);
+    box-shadow: var(--shadow-sm);
+
+    opacity: 0;
+    animation: introEnter 0.6s var(--ease-out) forwards;
+    animation-delay: 300ms;
+  }
+
+  @keyframes introEnter {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .intro-text {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+    margin: 0;
+    position: relative;
+  }
+
+  .intro-quote {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-300);
+    line-height: 0;
+    vertical-align: middle;
+  }
+
+  .intro-attribution {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .attribution-dash {
+    color: var(--color-primary-400);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .attribution-name {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  @media (min-width: 768px) {
+    .intro-text {
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  /* =================================================================
+     DIFFERENTIATORS GRID
+     ================================================================= */
+
+  .differentiators-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 640px) {
+    .differentiators-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  .differentiator-card {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-lg);
+    transition:
+      transform var(--duration-normal) var(--ease-out),
+      box-shadow var(--duration-normal) var(--ease-out),
+      border-color var(--duration-normal) var(--ease-out);
+
+    /* Staggered entrance animation */
+    opacity: 0;
+    animation: diffEnter 0.5s var(--ease-out) forwards;
+    animation-delay: calc(var(--diff-index, 0) * 100ms + 400ms);
+  }
+
+  @keyframes diffEnter {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .differentiator-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-200);
+  }
+
+  .diff-icon-wrapper {
+    flex-shrink: 0;
+  }
+
+  .diff-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-50) 0%,
+      var(--color-primary-100) 100%
+    );
+    border-radius: var(--radius-lg);
+    color: var(--color-primary-600);
+    transition: transform var(--duration-normal) var(--ease-bounce);
+  }
+
+  .differentiator-card:hover .diff-icon {
+    transform: scale(1.1);
+  }
+
+  .diff-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .diff-title {
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
+    line-height: var(--line-height-tight);
+  }
+
+  .diff-description {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+  }
+
+  @media (min-width: 768px) {
+    .diff-title {
+      font-size: var(--font-size-lg);
+    }
+
+    .diff-description {
+      font-size: var(--font-size-base);
+    }
+  }
+
+  /* =================================================================
+     STATS BAR
+     ================================================================= */
+
+  .stats-bar {
+    position: relative;
+    z-index: 1;
+    padding: var(--space-8);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-700) 0%,
+      var(--color-primary-800) 100%
+    );
+    border-radius: var(--radius-2xl);
+    box-shadow:
+      var(--shadow-xl),
+      0 4px 30px -4px rgba(36, 81, 179, 0.3);
+    overflow: hidden;
+
+    opacity: 0;
+    animation: statsEnter 0.7s var(--ease-out) forwards;
+    animation-delay: 900ms;
+  }
+
+  @keyframes statsEnter {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Subtle pattern overlay */
+  .stats-bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .stats-bar-inner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    .stats-bar-inner {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-8);
+    }
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-2);
+
+    /* Individual stat animation */
+    opacity: 0;
+    animation: statItemEnter 0.4s var(--ease-out) forwards;
+    animation-delay: calc(var(--stat-index, 0) * 100ms + 1100ms);
+  }
+
+  @keyframes statItemEnter {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .stat-value {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    line-height: 1;
+    margin-bottom: var(--space-2);
+  }
+
+  .stat-suffix {
+    font-size: var(--font-size-2xl);
+    color: var(--color-accent-400);
+    margin-left: 2px;
+  }
+
+  .stat-label {
+    font-family: var(--font-family-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-200);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  @media (min-width: 768px) {
+    .stat-value {
+      font-size: var(--font-size-5xl);
+    }
+
+    .stat-suffix {
+      font-size: var(--font-size-3xl);
+    }
+  }
+
+  /* =================================================================
+     MOBILE OPTIMIZATIONS
+     ================================================================= */
+
+  @media (max-width: 639px) {
+    .owner-intro {
+      padding: var(--space-5);
+    }
+
+    .intro-text {
+      font-size: var(--font-size-base);
+    }
+
+    .intro-quote {
+      font-size: var(--font-size-2xl);
+    }
+
+    .differentiator-card {
+      padding: var(--space-4);
+    }
+
+    .diff-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .stats-bar {
+      padding: var(--space-6);
+    }
+
+    .stat-value {
+      font-size: var(--font-size-3xl);
+    }
+
+    .stat-suffix {
+      font-size: var(--font-size-xl);
+    }
+
+    .stat-label {
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  /* =================================================================
+     REDUCED MOTION
+     ================================================================= */
+
+  @media (prefers-reduced-motion: reduce) {
+    .image-wrapper,
+    .owner-badge,
+    .certification-strip,
+    .owner-intro,
+    .differentiator-card,
+    .stats-bar,
+    .stat-item {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .differentiator-card:hover,
+    .differentiator-card:hover .diff-icon {
+      transform: none;
+    }
+  }
+</style>

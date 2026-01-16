@@ -1,38 +1,293 @@
 ---
 /**
- * Locations Index Page - Gutted for Redesign
+ * Locations Index Page
  *
- * Preserves all data fetching logic.
+ * Shows all cities served by B.A.P.
+ * Helps users find their local service area.
+ *
+ * Sections:
+ * 1. PageHero
+ * 2. CitiesGrid (all locations)
+ * 3. CTASection
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
-import { buildLocationPath } from '../lib/slugBuilder';
+import { getBusinessProfile, getPhoneLink } from '../lib/getBusinessProfile';
+import { getLocalBusinessSchema } from '../lib/schema';
 
-const locations = await getCollection('locations');
+// Components
+import PageHero from '../components/shared/PageHero.astro';
+import CTASection from '../components/shared/CTASection.astro';
+import CitiesGrid from '../components/shared/CitiesGrid.astro';
+import RegionsGrid from '../components/shared/RegionsGrid.astro';
+import Section from '../components/primitives/Section.astro';
+import Container from '../components/primitives/Container.astro';
+import Heading from '../components/primitives/Heading.astro';
+import Text from '../components/primitives/Text.astro';
+import Icon from '../components/primitives/Icon.astro';
 
-// Group locations by region
-const locationsByRegion: Record<string, typeof locations> = {};
-locations.forEach(location => {
-  const region = location.data.region;
-  if (!locationsByRegion[region]) {
-    locationsByRegion[region] = [];
-  }
-  locationsByRegion[region].push(location);
-});
+const profile = await getBusinessProfile();
+const schema = getLocalBusinessSchema(profile);
+const phoneLink = getPhoneLink(profile);
 
-// Sort locations within each region alphabetically
-Object.keys(locationsByRegion).forEach(region => {
-  locationsByRegion[region].sort((a, b) => a.data.title.localeCompare(b.data.title));
-});
+// Service area highlights
+const highlights = [
+  {
+    icon: 'mapPin',
+    title: '30+ Cities Served',
+    description: 'From Guelph to Hamilton and everywhere in between.',
+  },
+  {
+    icon: 'clock',
+    title: 'Fast Response Times',
+    description: 'Local technicians mean faster service to your door.',
+  },
+  {
+    icon: 'truck',
+    title: 'Same-Day Service',
+    description: 'Often available for urgent heating and cooling needs.',
+  },
+];
 ---
 
 <BaseLayout
-  title="Locations - B.A.P Heating and Cooling"
-  description="Areas we serve with professional heating and cooling services"
+  title="Service Areas - B.A.P Heating and Cooling"
+  description="B.A.P Heating & Cooling proudly serves communities across Southern Ontario. Find your city and learn about our local HVAC services."
+  schema={schema}
 >
-  <div class="redesign-placeholder">
-    <h1>Service Areas</h1>
-    <p>Locations page redesign in progress. {locations.length} locations served.</p>
-  </div>
+  <!-- Hero Section -->
+  <PageHero
+    title="Proudly Serving Southern Ontario"
+    description="Local expertise, community commitment. Find your city below to see how we can help with your heating and cooling needs."
+    eyebrow="Service Areas"
+    variant="default"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Locations', href: '/locations/' },
+    ]}
+    ctaButtons={[
+      { label: 'Call for Service', href: phoneLink, variant: 'primary', icon: 'phone' },
+    ]}
+  />
+
+  <!-- Service Area Highlights -->
+  <Section variant="muted" padding="md">
+    <Container size="xl">
+      <div class="locations-highlights">
+        {highlights.map((item) => (
+          <div class="locations-highlight-item">
+            <div class="locations-highlight-icon">
+              <Icon name={item.icon} size="xl" color="primary" />
+            </div>
+            <Heading level={3} size="md" weight="semibold">
+              {item.title}
+            </Heading>
+            <Text size="sm" color="secondary">
+              {item.description}
+            </Text>
+          </div>
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Browse by Region -->
+  <Section variant="default" padding="lg">
+    <Container size="xl">
+      <div class="locations-section-header">
+        <Text size="sm" color="primary" weight="semibold">Browse by Region</Text>
+        <Heading level={2} size="2xl" align="center">
+          Our Service Regions
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="locations-section-description">
+          Click on a region to see all cities served in that area
+        </Text>
+      </div>
+      <RegionsGrid
+        columns={2}
+        variant="cards"
+        showCityCount={true}
+        showCities={true}
+        maxCityPreview={5}
+      />
+    </Container>
+  </Section>
+
+  <!-- All Cities -->
+  <Section variant="muted" padding="lg">
+    <Container size="xl">
+      <div class="locations-section-header">
+        <Text size="sm" color="primary" weight="semibold">All Locations</Text>
+        <Heading level={2} size="2xl" align="center">
+          Cities We Serve
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="locations-section-description">
+          Find your city below or call us to confirm service availability in your area
+        </Text>
+      </div>
+      <CitiesGrid
+        columns={4}
+        variant="compact"
+        showServiceCount={true}
+        showDescription={false}
+      />
+    </Container>
+  </Section>
+
+  <!-- Don't See Your City -->
+  <Section variant="warm" padding="md">
+    <Container size="md">
+      <div class="locations-not-listed">
+        <div class="locations-not-listed-icon">
+          <Icon name="mapPin" size="2xl" color="primary" />
+        </div>
+        <Heading level={2} size="xl" align="center">
+          Don't See Your City?
+        </Heading>
+        <Text size="lg" color="secondary" align="center" class="locations-not-listed-text">
+          We may still serve your area! Our service territory is always expanding.
+          Give us a call and we'll let you know if we can help.
+        </Text>
+        <a href={phoneLink} class="locations-call-cta">
+          <Icon name="phone" size="lg" />
+          <span>Call to Check Your Area</span>
+        </a>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- CTA Section -->
+  <CTASection
+    variant="primary"
+    headline="Ready for Local HVAC Service?"
+    description="Our local technicians are standing by to help with all your heating and cooling needs. Fast response, fair prices, expert service."
+    primaryCTA={{
+      label: 'Call Now',
+      href: phoneLink,
+    }}
+    secondaryCTA={{
+      label: 'View Services',
+      href: '/services/',
+    }}
+    showPhone={true}
+  />
 </BaseLayout>
+
+<style>
+  /* ============================================
+     HIGHLIGHTS SECTION
+     ============================================ */
+
+  .locations-highlights {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .locations-highlights {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .locations-highlight-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-primary);
+  }
+
+  .locations-highlight-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-16);
+    height: var(--space-16);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-full);
+  }
+
+  /* ============================================
+     SECTION HEADERS
+     ============================================ */
+
+  .locations-section-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-10);
+  }
+
+  .locations-section-description {
+    max-width: 50ch;
+  }
+
+  /* ============================================
+     NOT LISTED SECTION
+     ============================================ */
+
+  .locations-not-listed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-5);
+  }
+
+  .locations-not-listed-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-20);
+    height: var(--space-20);
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+    border-radius: var(--radius-full);
+  }
+
+  .locations-not-listed-text {
+    max-width: 50ch;
+  }
+
+  .locations-call-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-8);
+    background: var(--color-primary-600);
+    border-radius: var(--radius-full);
+    color: white;
+    text-decoration: none;
+    font-family: var(--font-family-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--duration-normal) var(--ease-out);
+    box-shadow: var(--shadow-md);
+  }
+
+  .locations-call-cta:hover {
+    background: var(--color-primary-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ============================================
+     REDUCED MOTION
+     ============================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    .locations-call-cta {
+      transition: none;
+    }
+
+    .locations-call-cta:hover {
+      transform: none;
+    }
+  }
+</style>
