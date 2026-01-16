@@ -3,7 +3,7 @@
 > **Status**: NOT STARTED - Ready for proper implementation
 > **Total Issues Found**: 70+
 > **Last Updated**: 2026-01-16
-> **Completed**: 0 of 45 steps
+> **Completed**: 0 of 50 steps
 
 ---
 
@@ -23,7 +23,7 @@
 
 | Category | Issues Found | Severity |
 |----------|-------------|----------|
-| **CRO - Conversion Blockers** | 5 | **REVENUE CRITICAL** |
+| CRO / Conversion Optimization | 5 | CRITICAL |
 | URL/Link Bugs (404s) | 4 | CRITICAL |
 | Missing Component Integration | 2 | HIGH |
 | Exit Intent/Modal Issues | 1 | HIGH |
@@ -40,75 +40,36 @@
 
 ---
 
-# PHASE 0: CRITICAL CONVERSION FIXES (Steps 0.1-0.5)
-
-> **REVENUE IMPACT:** These 5 fixes directly affect phone calls and bookings.
-> **Estimated improvement:** +15-40% conversion rate when combined.
-> **Priority:** Complete BEFORE bug fixes - bugs don't matter if users can't convert.
+# PHASE 0: CRO CONVERSION FIXES (Steps 0.1-0.5)
 
 ---
 
-## STEP 0.1: Show Phone Number on ALL Mobile Screens
+## STEP 0.1: Make Phone Number Visible on ALL Mobile Screens
 
 **Status**: [ ] Not Started
-**Severity**: REVENUE CRITICAL
-**Estimated Impact**: +8-15% emergency calls
+**Severity**: CRITICAL
 
 **File**: `src/components/layout/Header.astro`
-**Lines**: 545-549
-**Issue**: Phone number is HIDDEN on screens <640px. Users see only an icon, no number.
-
-**Current Code (BROKEN):**
-```css
-.header__phone-number {
-  display: none;  /* Hidden by default! */
-}
-@media (min-width: 640px) {
-  .header__phone-number {
-    display: inline;
-  }
-}
-```
+**Issue**: Phone number is hidden on screens smaller than 640px, losing potential leads
 
 **Prompt (copy and paste this):**
 ```
 Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
-TASK: Make phone number visible on ALL mobile screen sizes in Header.astro
+TASK: Step 0.1 - Make phone number visible on ALL mobile screen sizes in Header.astro
 
-PROBLEM: The phone number is hidden on screens smaller than 640px (Header.astro lines 545-549). On iPhone SE and similar devices, users see only a phone icon - no actual number. For emergency HVAC calls (70%+ from mobile), this is devastating for conversions.
-
-CURRENT CSS (lines 545-549):
-.header__phone-number {
-  display: none;
-}
-@media (min-width: 640px) {
-  .header__phone-number {
-    display: inline;
-  }
-}
+PROBLEM: The phone number is hidden on screens smaller than 640px (sm breakpoint). Mobile users - the most likely to call - can't see the phone number without opening the menu. This loses potential leads.
 
 SOLUTION:
-Option A (Recommended): Always show the number with responsive font size:
-.header__phone-number {
-  display: inline;
-  font-size: clamp(0.75rem, 2.5vw, 1rem);
-}
-
-Option B: Show abbreviated on very small screens:
-.header__phone-number {
-  display: inline;
-}
-@media (max-width: 360px) {
-  .header__phone-number {
-    font-size: 0.75rem;
-  }
-}
+1. Find the phone number display in Header.astro
+2. Change the responsive visibility so it's always visible, even on smallest screens
+3. May need to adjust layout/spacing for very small screens
+4. Phone icon + number should be tappable on mobile
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Test on mobile viewport (320px, 375px, 414px) - phone number must be visible
-- Phone number must be tappable (tel: link)
+- Test at 320px, 375px, 414px viewport widths
+- Phone number should be visible and tappable at all sizes
 
 Ask me any questions about this approach before implementing.
 ```
@@ -118,47 +79,32 @@ Ask me any questions about this approach before implementing.
 ## STEP 0.2: Add Sticky Mobile Footer CTA
 
 **Status**: [ ] Not Started
-**Severity**: REVENUE CRITICAL
-**Estimated Impact**: +5-10% calls
+**Severity**: CRITICAL
 
-**Files**: Create new component + update BaseLayout
-**Issue**: No persistent CTA when users scroll. They scroll away from header and lose access to phone button.
+**File**: `src/components/shared/FloatingCTA.astro` or new component
+**Issue**: No persistent call-to-action on mobile - users scroll past CTAs
 
 **Prompt (copy and paste this):**
 ```
 Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
-TASK: Create a sticky mobile footer CTA component for phone calls
+TASK: Step 0.2 - Add a sticky mobile footer CTA bar
 
-PROBLEM: When mobile users scroll past the header, they lose easy access to the phone number. There's no floating or sticky CTA to capture them. For emergency HVAC calls, this loses 5-10% of potential conversions.
+PROBLEM: On mobile, once users scroll past the hero CTA, there's no persistent way to contact without scrolling back up. This loses conversions.
 
 SOLUTION:
-1. Create new component: src/components/layout/StickyMobileCTA.astro
-
-2. Component requirements:
-   - Fixed to bottom of viewport (position: fixed; bottom: 0)
-   - Only visible on mobile (<1024px)
-   - Shows phone number + "Call Now" button
-   - Respects iOS safe area (padding-bottom: env(safe-area-inset-bottom))
-   - High z-index (var(--z-fixed) or 30)
-   - Uses primary-700 background color
-   - Hides when mobile menu is open
-   - Optional: Only appears after scrolling past hero
-
-3. Add to BaseLayout.astro after Footer component
-
-DESIGN TOKENS TO USE:
-- Background: var(--color-primary-700)
-- Text: var(--color-text-inverse)
-- Padding: var(--space-3) var(--space-4)
-- Shadow: var(--shadow-lg)
-- Z-index: var(--z-fixed)
+1. Check if FloatingCTA.astro exists and what it does
+2. Create or enhance a sticky footer bar for mobile that includes:
+   - "Call Now" button (primary action)
+   - "Get Quote" button (secondary action)
+3. Should only appear on mobile (< 768px)
+4. Should be fixed to bottom of viewport
+5. Should not overlap content - add bottom padding to body/main
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Test on mobile - sticky bar appears at bottom
-- Tapping calls the phone number
-- Bar disappears when menu opens (to avoid overlap)
+- Test on mobile viewport - sticky bar should appear at bottom
+- Buttons should be large enough to tap easily (min 44px touch target)
 
 Ask me any questions about this approach before implementing.
 ```
@@ -168,37 +114,30 @@ Ask me any questions about this approach before implementing.
 ## STEP 0.3: Add Hero CTA Button to Service Pages
 
 **Status**: [ ] Not Started
-**Severity**: REVENUE CRITICAL
-**Estimated Impact**: +10-15% conversions
+**Severity**: HIGH
 
-**File**: `src/components/services/ServiceHero.astro`
-**Issue**: Service page heroes have NO call-to-action button. Users must scroll through multiple sections to find a CTA.
+**File**: `src/pages/services/[...slug].astro`
+**Issue**: Service page heroes may lack clear CTA buttons
 
 **Prompt (copy and paste this):**
 ```
 Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
-TASK: Add CTA buttons to ServiceHero component
+TASK: Step 0.3 - Ensure service page heroes have prominent CTA buttons
 
-PROBLEM: The ServiceHero component on service pages has no CTA button. Users land on a service page (e.g., furnace repair) and see a hero with just a headline - no "Get Quote" or "Call Now" button. They must scroll through 2-3+ sections before finding a conversion point. This loses 10-15% of ready-to-convert visitors.
+PROBLEM: Service pages are key conversion pages but heroes may lack clear, prominent CTA buttons. Users land on these pages ready to act but don't see an obvious next step.
 
 SOLUTION:
-1. Read src/components/services/ServiceHero.astro to understand current structure
-2. Add CTA buttons similar to homepage HeroSection:
-   - Primary: "Call Now" with phone icon (links to tel:)
-   - Secondary: "Get Free Quote" or "Book Online" (links to booking)
-
-3. Position buttons below the hero headline/description
-4. Use existing Button primitive for consistency
-5. Make buttons responsive (stack on mobile)
-
-REFERENCE: Look at src/components/homepage/HeroSection.astro for button implementation pattern
+1. Review the service page hero section in src/pages/services/[...slug].astro
+2. Ensure there's a prominent "Get a Free Quote" or "Schedule Service" button
+3. Consider adding a secondary "Call Now" link/button
+4. CTAs should be above the fold on all devices
+5. Use high-contrast button styling (accent color)
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Check any service page - hero should have visible CTA buttons
-- Buttons should be above the fold on desktop AND mobile
-- Phone button should initiate call
+- Check multiple service pages - all should have visible hero CTAs
+- Test on mobile - CTAs should be above the fold
 
 Ask me any questions about this approach before implementing.
 ```
@@ -208,51 +147,29 @@ Ask me any questions about this approach before implementing.
 ## STEP 0.4: Move Reviews Carousel Earlier on Homepage
 
 **Status**: [ ] Not Started
-**Severity**: HIGH
-**Estimated Impact**: +5-10% trust/engagement
+**Severity**: MEDIUM
 
 **File**: `src/pages/index.astro`
-**Issue**: ReviewsCarousel appears at section 8 of 13. Too late - skeptical visitors bounce before seeing social proof.
+**Issue**: Social proof (reviews) appears too late on homepage
 
 **Prompt (copy and paste this):**
 ```
 Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
-TASK: Move ReviewsCarousel earlier in the homepage section order
+TASK: Step 0.4 - Move reviews carousel higher on the homepage
 
-PROBLEM: The ReviewsCarousel component currently appears at position 8 out of 13 sections on the homepage. This is too late in the funnel. Visitors skeptical of claims like "Family-owned since 1992" need to see customer testimonials BEFORE they've scrolled through 7 other sections.
-
-CURRENT ORDER (simplified):
-1. Hero
-2. ServiceCategories
-3. EmergencyCTA
-4. WhyChooseBAP
-5. BrandLogos
-6. ProcessSection
-7. GallerySection
-8. ReviewsCarousel ← TOO LATE
-9. FinancingTeaser
-...
-
-RECOMMENDED ORDER:
-1. Hero
-2. ServiceCategories
-3. EmergencyCTA
-4. ReviewsCarousel ← MOVE HERE (social proof early)
-5. WhyChooseBAP
-6. BrandLogos
-7. ProcessSection
-8. GallerySection
-9. FinancingTeaser
-...
+PROBLEM: The reviews carousel currently appears too far down the homepage. Social proof should appear earlier to build trust before users leave.
 
 SOLUTION:
-In src/pages/index.astro, move the <ReviewsCarousel /> component from its current position to immediately after EmergencyCTASection (around section 4).
+1. Open src/pages/index.astro
+2. Find the ReviewsCarousel component
+3. Move it higher in the page order - ideally after the hero and services section
+4. Good position: Hero → Services → Reviews → Why Choose Us → Service Areas
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Check homepage - reviews should appear early (within first 4 sections)
-- Scroll test: Reviews should be visible within 1-2 scroll actions from hero
+- Reviews should appear within first 2 scroll lengths on desktop
+- Should appear even earlier on mobile (within first scroll)
 
 Ask me any questions about this approach before implementing.
 ```
@@ -262,48 +179,32 @@ Ask me any questions about this approach before implementing.
 ## STEP 0.5: Add Micro-CTAs to Service Content Sections
 
 **Status**: [ ] Not Started
-**Severity**: HIGH
-**Estimated Impact**: +10-15% engagement
+**Severity**: MEDIUM
 
-**Files**: `src/components/services/ServiceProblemAgitation.astro`, `src/components/services/ServiceSolution.astro`
-**Issue**: Content sections have zero inline CTAs. Users read, read, read... then hit final CTA at bottom (if they get there).
+**File**: Service page components
+**Issue**: Long service content lacks conversion opportunities mid-page
 
 **Prompt (copy and paste this):**
 ```
 Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
-TASK: Add micro-CTAs (inline conversion points) to service page content sections
+TASK: Step 0.5 - Add micro-CTAs throughout service page content
 
-PROBLEM: The ServiceProblemAgitation and ServiceSolution components have long content blocks with NO inline calls-to-action. Users read through problems and solutions but are never prompted to take action until they scroll to the very bottom. This loses 10-15% of engaged visitors who were ready to convert mid-content.
+PROBLEM: Service pages have long content sections without any calls-to-action. Users who are convinced mid-page have to scroll to find how to contact.
 
 SOLUTION:
-1. ServiceProblemAgitation.astro - Add soft CTA at end of problem section:
-   - Text link style: "Experiencing these issues? Schedule a free inspection →"
-   - Not a big button - just a styled link to reduce visual noise
-
-2. ServiceSolution.astro - Add medium CTA after solution description:
-   - Small button or prominent link: "See if you qualify for rebates" or "Get your free quote"
-   - Links to contact or financing page
-
-DESIGN PATTERN:
-Use subtle but clear CTAs:
-- Link style with arrow icon
-- Color: var(--color-primary-600) or var(--color-accent-600)
-- Hover: underline + color shift
-- Not full-width buttons (too aggressive mid-content)
-
-EXAMPLE:
-<p class="micro-cta">
-  <a href="/contact-us/">
-    Ready to solve this? Get your free quote
-    <Icon name="arrow-right" size="sm" />
-  </a>
-</p>
+1. Identify key service content sections (ServiceProblemAgitation, ServiceSolution, ServiceValueProps, etc.)
+2. Add subtle inline CTAs at strategic points:
+   - After problem/agitation section: "Ready to solve this? Get a free quote"
+   - After solution section: "Schedule your installation"
+   - After value props: "Call now for same-day service"
+3. Use text links or small buttons - not intrusive but visible
+4. Link to contact page or trigger phone call
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Check service pages - inline CTAs appear in problem and solution sections
-- CTAs are clickable and link to appropriate pages
+- Service pages should have 2-3 CTAs throughout content
+- CTAs should feel natural, not spammy
 
 Ask me any questions about this approach before implementing.
 ```
@@ -365,11 +266,11 @@ PROBLEM: Line 80 uses raw `region.id` which includes the `.md` extension, causin
 
 SOLUTION:
 1. Add a cleanSlug helper function at the top of the component's script section:
-   const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+  const cleanSlug = (id: string) => id.replace(/\.md$/, '');
 
 2. On line 80, change:
-   - From: href: `/regions/${region.id}/`
-   - To: href: `/regions/${cleanSlug(region.id)}/`
+  - From: href: `/regions/${region.id}/`
+  - To: href: `/regions/${cleanSlug(region.id)}/`
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -399,8 +300,8 @@ PROBLEM: Line 90 uses raw `loc.id` which includes the `.md` extension
 
 SOLUTION:
 - On line 90, change:
-  - From: href: `/locations/${loc.id}/`
-  - To: href: `/locations/${cleanSlug(loc.id)}/`
+- From: href: `/locations/${loc.id}/`
+- To: href: `/locations/${cleanSlug(loc.id)}/`
 - The cleanSlug function should already exist from Step 2
 
 VERIFICATION:
@@ -431,11 +332,11 @@ PROBLEM: Line 92 uses raw `region.id` which includes the `.md` extension, causin
 
 SOLUTION:
 1. Add a cleanSlug helper function at the top of the component's script section:
-   const cleanSlug = (id: string) => id.replace(/\.md$/, '');
+  const cleanSlug = (id: string) => id.replace(/\.md$/, '');
 
 2. On line 92, change:
-   - From: href: `/regions/${region.id}/`
-   - To: href: `/regions/${cleanSlug(region.id)}/`
+  - From: href: `/regions/${region.id}/`
+  - To: href: `/regions/${cleanSlug(region.id)}/`
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -465,15 +366,15 @@ PROBLEM: The exit intent popup never appears because the trigger conditions on l
 
 CURRENT CODE:
 const shouldTrigger =
-  e.clientY <= 5 &&
-  e.relatedTarget === null &&
-  e.toElement === null;
+e.clientY <= 5 &&
+e.relatedTarget === null &&
+e.toElement === null;
 
 SOLUTION:
 Change the shouldTrigger logic to:
 const shouldTrigger =
-  e.clientY <= 10 &&
-  !e.relatedTarget;
+e.clientY <= 10 &&
+!e.relatedTarget;
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -502,11 +403,11 @@ PROBLEM: The SeasonalCalloutBar component exists at src/components/layout/Season
 
 SOLUTION:
 1. Add import near other layout component imports (around line 16-17):
-   import SeasonalCalloutBar from '../components/layout/SeasonalCalloutBar.astro';
+  import SeasonalCalloutBar from '../components/layout/SeasonalCalloutBar.astro';
 
 2. Add the component right after the Header (around line 161-162):
-   <Header showTopBar={true} />
-   <SeasonalCalloutBar />
+  <Header showTopBar={true} />
+  <SeasonalCalloutBar />
 
 The component already has date-based logic (winter content is enabled for Dec 1 - Feb 28).
 
@@ -575,14 +476,14 @@ PROBLEM: The close button uses a plus icon rotated 45 degrees instead of a prope
 
 SOLUTION:
 1. On line 101, change the icon from "plus" to "x":
-   - From: <Icon name="plus" size="lg" class="mobile-menu__close-icon" />
-   - To: <Icon name="x" size="lg" class="mobile-menu__close-icon" />
+  - From: <Icon name="plus" size="lg" class="mobile-menu__close-icon" />
+  - To: <Icon name="x" size="lg" class="mobile-menu__close-icon" />
 
 2. Remove the CSS rotation hack on lines 359-361:
-   Delete this CSS block:
-   .mobile-menu__close-icon {
-     transform: rotate(45deg);
-   }
+  Delete this CSS block:
+  .mobile-menu__close-icon {
+    transform: rotate(45deg);
+  }
 
 The x icon was added in Step 7.
 
@@ -618,11 +519,11 @@ PROBLEM: On line 288, the ServiceTrustBand creates duplicate trust signals (same
 
 SOLUTION:
 1. Find the import for ServiceTrustBand and change it to import BrandLogosSection:
-   import BrandLogosSection from '../../components/homepage/BrandLogosSection.astro';
+  import BrandLogosSection from '../../components/homepage/BrandLogosSection.astro';
 
 2. On line 288, replace:
-   - From: <ServiceTrustBand />
-   - To: <BrandLogosSection variant="compact" /> (or just <BrandLogosSection /> if no compact variant)
+  - From: <ServiceTrustBand />
+  - To: <BrandLogosSection variant="compact" /> (or just <BrandLogosSection /> if no compact variant)
 
 The brands section shows logos like Carrier, Lennox, Trane, Goodman - provides unique value vs duplicating trust stats.
 
@@ -654,15 +555,15 @@ PROBLEM: For client-side blog filtering to work, each blog card needs a data-cat
 SOLUTION:
 1. Find where blog posts are mapped/rendered
 2. Add data-category to each card wrapper:
-   data-category={post.data.category}
+  data-category={post.data.category}
 
-   Example:
-   <article class="blog-card" data-category={post.data.category}>
-     ...
-   </article>
+  Example:
+  <article class="blog-card" data-category={post.data.category}>
+    ...
+  </article>
 
 3. Add an id to the blog grid container for JavaScript targeting:
-   <div id="blog-grid" class="blog-grid">
+  <div id="blog-grid" class="blog-grid">
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -692,33 +593,33 @@ PROBLEM: The category pills are purely visual with no filtering logic. Clicking 
 SOLUTION:
 1. Add data-category attributes to each pill button
 2. Add JavaScript to make the category pills filter blog posts:
-   - Add click event listeners to each category pill
-   - On click: prevent default, get category, show/hide cards by data-category, update URL hash, toggle active class
+  - Add click event listeners to each category pill
+  - On click: prevent default, get category, show/hide cards by data-category, update URL hash, toggle active class
 
 Script to add at bottom of component:
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const pills = document.querySelectorAll('.category-pill');
-    const cards = document.querySelectorAll('[data-category]');
+document.addEventListener('DOMContentLoaded', () => {
+  const pills = document.querySelectorAll('.category-pill');
+  const cards = document.querySelectorAll('[data-category]');
 
-    pills.forEach(pill => {
-      pill.addEventListener('click', (e) => {
-        e.preventDefault();
-        const category = pill.dataset.category || 'all';
-        pills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        cards.forEach(card => {
-          card.style.display = (category === 'all' || card.dataset.category === category) ? '' : 'none';
-        });
-        history.replaceState(null, '', category === 'all' ? '#' : `#${category}`);
+  pills.forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const category = pill.dataset.category || 'all';
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      cards.forEach(card => {
+        card.style.display = (category === 'all' || card.dataset.category === category) ? '' : 'none';
       });
+      history.replaceState(null, '', category === 'all' ? '#' : `#${category}`);
     });
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-      const pill = document.querySelector(`[data-category="${hash}"]`);
-      if (pill) pill.click();
-    }
   });
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const pill = document.querySelector(`[data-category="${hash}"]`);
+    if (pill) pill.click();
+  }
+});
 </script>
 
 VERIFICATION:
@@ -754,14 +655,14 @@ PROBLEM: Line 221 shows the lightbox image has `alt=""` that is never populated 
 
 SOLUTION:
 1. Find the lightbox image element (line 219-224):
-   <img src="" alt="" ... data-lightbox-image />
+  <img src="" alt="" ... data-lightbox-image />
 
 2. In the JavaScript that opens the lightbox, ensure both src AND alt are updated:
-   - Find where the image src is set when opening lightbox
-   - Also set the alt attribute from the clicked thumbnail's alt
+  - Find where the image src is set when opening lightbox
+  - Also set the alt attribute from the clicked thumbnail's alt
 
 Look for the click handler that populates the lightbox and add:
-   lightboxImg.alt = clickedImage.alt || 'Gallery image';
+  lightboxImg.alt = clickedImage.alt || 'Gallery image';
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -870,12 +771,12 @@ SOLUTION:
 
 Add to the component:
 <div aria-live="polite" aria-atomic="true" class="sr-only" id="carousel-announcement">
-  <!-- Updated via JS when slide changes -->
+<!-- Updated via JS when slide changes -->
 </div>
 
 In the JavaScript slide change handler, update the announcement:
 document.getElementById('carousel-announcement').textContent =
-  `Showing review ${currentSlide + 1} of ${totalSlides}`;
+`Showing review ${currentSlide + 1} of ${totalSlides}`;
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -910,9 +811,9 @@ SOLUTION:
 
 Example:
 <ol role="list" aria-label="Installation process steps">
-  <li role="listitem" aria-label="Step 1 of 4: Consultation">
-    ...
-  </li>
+<li role="listitem" aria-label="Step 1 of 4: Consultation">
+  ...
+</li>
 </ol>
 
 VERIFICATION:
@@ -1052,8 +953,8 @@ PROBLEM:
 SOLUTION:
 1. Remove #fffbf7 fallback on line 171
 2. Replace #fff9f2 with var(--color-surface-warm) for consistency:
-   - From: #fff9f2 100%
-   - To: var(--color-surface-warm) 100%
+  - From: #fff9f2 100%
+  - To: var(--color-surface-warm) 100%
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -1239,13 +1140,13 @@ PROBLEM: The component uses hardcoded gradient colors for seasonal themes instea
 
 SOLUTION:
 1. Find seasonal gradient colors and replace with token references:
-   - Blues -> var(--color-primary-*) tokens
-   - Oranges -> var(--color-accent-*) tokens
-   - Greens -> var(--color-success-*) tokens
+  - Blues -> var(--color-primary-*) tokens
+  - Oranges -> var(--color-accent-*) tokens
+  - Greens -> var(--color-success-*) tokens
 
 2. For gradients, create CSS custom properties at the component level:
-   --gradient-winter: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
-   --gradient-summer: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+  --gradient-winter: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
+  --gradient-summer: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
@@ -1675,22 +1576,22 @@ TASK: Final comprehensive build test and verification
 VERIFICATION CHECKLIST:
 1. Run `pnpm build` - must complete with 0 errors
 2. Run `pnpm dev` and manually test:
-   - [ ] Homepage loads correctly
-   - [ ] Region links work (no 404s)
-   - [ ] Blog links work (no 404s)
-   - [ ] Exit intent modal triggers on mouse exit
-   - [ ] Seasonal message bar appears (January = winter)
-   - [ ] Mobile menu X button is clear and works
-   - [ ] Blog category filtering works
-   - [ ] Service pages show brand logos
-   - [ ] All accessibility improvements work
-   - [ ] No hardcoded colors visible in DevTools
+  - [ ] Homepage loads correctly
+  - [ ] Region links work (no 404s)
+  - [ ] Blog links work (no 404s)
+  - [ ] Exit intent modal triggers on mouse exit
+  - [ ] Seasonal message bar appears (January = winter)
+  - [ ] Mobile menu X button is clear and works
+  - [ ] Blog category filtering works
+  - [ ] Service pages show brand logos
+  - [ ] All accessibility improvements work
+  - [ ] No hardcoded colors visible in DevTools
 
 3. Run Lighthouse audit:
-   - Performance score
-   - Accessibility score
-   - Best practices score
-   - SEO score
+  - Performance score
+  - Accessibility score
+  - Best practices score
+  - SEO score
 
 Report any remaining issues found during testing.
 
@@ -1704,7 +1605,7 @@ Ask me any questions about this approach before implementing.
 | Step | Description | Status | Verified |
 |------|-------------|--------|----------|
 | **PHASE 0: CRO CONVERSION FIXES** | | | |
-| 0.1 | Show phone number on ALL mobile screens | [ ] | [ ] |
+| 0.1 | Make phone number visible on ALL mobile screens | [ ] | [ ] |
 | 0.2 | Add sticky mobile footer CTA | [ ] | [ ] |
 | 0.3 | Add hero CTA button to service pages | [ ] | [ ] |
 | 0.4 | Move reviews carousel earlier on homepage | [ ] | [ ] |
@@ -1764,33 +1665,22 @@ Ask me any questions about this approach before implementing.
 **Copy and paste this to start Step 0.1 (CRO - Phone Visibility):**
 
 ```
-/frontend-design
+Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
 
 TASK: Step 0.1 - Make phone number visible on ALL mobile screen sizes in Header.astro
 
-PROBLEM: The phone number is hidden on screens smaller than 640px (Header.astro lines 545-549). On iPhone SE and similar devices, users see only a phone icon - no actual number. For emergency HVAC calls (70%+ from mobile), this is devastating for conversions.
-
-CURRENT CSS (lines 545-549):
-.header__phone-number {
-  display: none;
-}
-@media (min-width: 640px) {
-  .header__phone-number {
-    display: inline;
-  }
-}
+PROBLEM: The phone number is hidden on screens smaller than 640px (sm breakpoint). Mobile users - the most likely to call - can't see the phone number without opening the menu. This loses potential leads.
 
 SOLUTION:
-Option A (Recommended): Always show the number with responsive font size:
-.header__phone-number {
-  display: inline;
-  font-size: clamp(0.75rem, 2.5vw, 1rem);
-}
+1. Find the phone number display in Header.astro
+2. Change the responsive visibility so it's always visible, even on smallest screens
+3. May need to adjust layout/spacing for very small screens
+4. Phone icon + number should be tappable on mobile
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Test on mobile viewport (320px, 375px, 414px) - phone number must be visible
-- Phone number must be tappable (tel: link)
+- Test at 320px, 375px, 414px viewport widths
+- Phone number should be visible and tappable at all sizes
 
-Enter plan mode and discuss this approach with me before implementing.
+Ask me any questions about this approach before implementing.
 ```
