@@ -1,9 +1,9 @@
 # B.A.P Heating & Cooling - Comprehensive Website Remediation Plan
 
-> **Status**: IN PROGRESS - PHASE 1 & PHASE 2 COMPLETE (Phase 0: 4/5)
+> **Status**: NOT STARTED - Ready for proper implementation
 > **Total Issues Found**: 70+
 > **Last Updated**: 2026-01-16
-> **Completed**: 12 of 45 steps
+> **Completed**: 0 of 45 steps
 
 ---
 
@@ -1704,21 +1704,21 @@ Ask me any questions about this approach before implementing.
 | Step | Description | Status | Verified |
 |------|-------------|--------|----------|
 | **PHASE 0: CRO CONVERSION FIXES** | | | |
-| 0.1 | Show phone number on ALL mobile screens | [x] | [x] |
-| 0.2 | Add sticky mobile footer CTA | [x] | [x] |
-| 0.3 | Add hero CTA button to service pages | [x] | [x] (Already existed) |
-| 0.4 | Move reviews carousel earlier on homepage | [x] | [x] |
+| 0.1 | Show phone number on ALL mobile screens | [ ] | [ ] |
+| 0.2 | Add sticky mobile footer CTA | [ ] | [ ] |
+| 0.3 | Add hero CTA button to service pages | [ ] | [ ] |
+| 0.4 | Move reviews carousel earlier on homepage | [ ] | [ ] |
 | 0.5 | Add micro-CTAs to service content sections | [ ] | [ ] |
 | **PHASE 1: CRITICAL BUGS** | | | |
-| 1 | Fix BlogPreviewSection URL | [x] | [x] |
-| 2 | Fix ServiceAreasSection region URLs | [x] | [x] |
-| 3 | Fix ServiceAreasSection location URLs | [x] | [x] |
-| 4 | Fix RegionsGrid URLs | [x] | [x] |
-| 5 | Fix ExitIntentModal trigger | [x] | [x] |
-| 6 | Add SeasonalCalloutBar to layout | [x] | [x] |
+| 1 | Fix BlogPreviewSection URL | [ ] | [ ] |
+| 2 | Fix ServiceAreasSection region URLs | [ ] | [ ] |
+| 3 | Fix ServiceAreasSection location URLs | [ ] | [ ] |
+| 4 | Fix RegionsGrid URLs | [ ] | [ ] |
+| 5 | Fix ExitIntentModal trigger | [ ] | [ ] |
+| 6 | Add SeasonalCalloutBar to layout | [ ] | [ ] |
 | **PHASE 2: NAVIGATION** | | | |
-| 7 | Add close icon to icons.ts | [x] | [x] |
-| 8 | Fix MobileMenu close button | [x] | [x] |
+| 7 | Add close icon to icons.ts | [ ] | [ ] |
+| 8 | Fix MobileMenu close button | [ ] | [ ] |
 | **PHASE 3: FUNCTIONALITY** | | | |
 | 9 | Replace ServiceTrustBand with brands | [ ] | [ ] |
 | 10 | Add blog card data-category attributes | [ ] | [ ] |
@@ -1761,35 +1761,36 @@ Ask me any questions about this approach before implementing.
 
 ## Next Prompt to Execute
 
-**Copy and paste this to start Step 0.5 (CRO - Micro-CTAs):**
+**Copy and paste this to start Step 0.1 (CRO - Phone Visibility):**
 
 ```
-Use the /frontend-design skill. Enter plan mode first to discuss this step with me before implementing.
+/frontend-design
 
-TASK: Add micro-CTAs (inline conversion points) to service page content sections
+TASK: Step 0.1 - Make phone number visible on ALL mobile screen sizes in Header.astro
 
-PROBLEM: The ServiceProblemAgitation and ServiceSolution components have long content blocks with NO inline calls-to-action. Users read through problems and solutions but are never prompted to take action until they scroll to the very bottom. This loses 10-15% of engaged visitors who were ready to convert mid-content.
+PROBLEM: The phone number is hidden on screens smaller than 640px (Header.astro lines 545-549). On iPhone SE and similar devices, users see only a phone icon - no actual number. For emergency HVAC calls (70%+ from mobile), this is devastating for conversions.
+
+CURRENT CSS (lines 545-549):
+.header__phone-number {
+  display: none;
+}
+@media (min-width: 640px) {
+  .header__phone-number {
+    display: inline;
+  }
+}
 
 SOLUTION:
-1. ServiceProblemAgitation.astro - Add soft CTA at end of problem section:
-   - Text link style: "Experiencing these issues? Schedule a free inspection →"
-   - Not a big button - just a styled link to reduce visual noise
-
-2. ServiceSolution.astro - Add medium CTA after solution description:
-   - Small button or prominent link: "See if you qualify for rebates" or "Get your free quote"
-   - Links to contact or financing page
-
-DESIGN PATTERN:
-Use subtle but clear CTAs:
-- Link style with arrow icon
-- Color: var(--color-primary-600) or var(--color-accent-600)
-- Hover: underline + color shift
-- Not full-width buttons (too aggressive mid-content)
+Option A (Recommended): Always show the number with responsive font size:
+.header__phone-number {
+  display: inline;
+  font-size: clamp(0.75rem, 2.5vw, 1rem);
+}
 
 VERIFICATION:
 - Run `pnpm build` to verify no errors
-- Check service pages - inline CTAs appear in problem and solution sections
-- CTAs are clickable and link to appropriate pages
+- Test on mobile viewport (320px, 375px, 414px) - phone number must be visible
+- Phone number must be tappable (tel: link)
 
-Ask me any questions about this approach before implementing.
+Enter plan mode and discuss this approach with me before implementing.
 ```
